@@ -1,6 +1,5 @@
 
-
 #[tokio::main]
-async fn main() {
-    dreka_server::serve().await;
+async fn main() -> std::io::Result<()> {
+    return dreka_server::serve().await;
 }
