@@ -2,5 +2,6 @@
     "rust-analyzer.linkedProjects": [
         "./server/Cargo.toml"
     ],
+    "svelte.enable-ts-plugin": true,
     "rust-analyzer.showUnlinkedFileNotification": false
 }
