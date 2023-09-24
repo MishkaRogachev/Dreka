@@ -1,8 +1,10 @@
 <script lang="ts">
-  let pongMsg = ""
+  import {ping} from "../lib/services/root"
+
+  let pongMsg: String = ""
 
   async function greet() {
-    // TODO: ping server to get response
+    pongMsg = await ping()
   }
 </script>
 
