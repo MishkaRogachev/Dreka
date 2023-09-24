@@ -1,11 +1,11 @@
-use actix_web::{App, HttpServer, web::Data};
+mod db;
 
-mod persistence;
+use actix_web::{App, HttpServer, web::Data};
 
 pub async fn serve() -> std::io::Result<()> {
     println!("Starting Dreka server");
 
-    let db = persistence::db::Db::new("memory").await.expect("Error establishing a database connection");
+    let db = db::persistence::Persistence::new().await.expect("Error establishing a database connection");
     let db_data = Data::new(db);
 
     HttpServer::new(move || {
