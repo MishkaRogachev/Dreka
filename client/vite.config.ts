@@ -1,10 +1,11 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
+import cesium from 'vite-plugin-cesium'
 import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  plugins: [svelte()],
+  plugins: [svelte(), cesium()],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //

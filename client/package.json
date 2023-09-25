@@ -18,11 +18,13 @@
         "@tauri-apps/cli": "^1.4.0",
         "@tsconfig/svelte": "^5.0.0",
         "@types/node": "^20.6.5",
+        "cesium": "^1.109.0",
         "svelte": "^4.0.5",
         "svelte-check": "^3.4.6",
         "svelte-preprocess": "^5.0.0",
         "tslib": "^2.6.0",
         "typescript": "^5.0.2",
-        "vite": "^4.4.4"
+        "vite": "^4.4.9",
+        "vite-plugin-cesium": "^1.2.22"
     }
 }
