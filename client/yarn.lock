@@ -274,6 +274,11 @@
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-1.0.2.tgz#ff02bc3dc8317cd668dfec247b750ba1f1d62453"
   integrity sha512-VeiPZ9MMwXjO32/Xu7+OwflfmeoRwkE/qzndw42gGtgJwZopBnzy2gD//NN1+go1mADzkDcqf/KnFRSjTJ8xJA==
 
+"@types/node@^20.6.5":
+  version "20.6.5"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.6.5.tgz#4c6a79adf59a8e8193ac87a0e522605b16587258"
+  integrity sha512-2qGq5LAOTh9izcc0+F+dToFigBWiK1phKPt7rNhOqJSr35y8rlIBjDwGtFSgAI6MGIhjwOVNSQZVdJsZJ2uR1w==
+
 "@types/pug@^2.0.6":
   version "2.0.7"
   resolved "https://registry.yarnpkg.com/@types/pug/-/pug-2.0.7.tgz#ffb9239e4da7ea1af27070cad9343049e440993d"

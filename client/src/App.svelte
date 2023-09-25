@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Ping from './lib/Ping.svelte'
+  import Ping from '$components/Ping.svelte'
 </script>
 
 <main class="container">
