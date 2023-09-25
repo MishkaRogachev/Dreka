@@ -1,10 +1,19 @@
 <script lang="ts">
 import { onMount } from 'svelte';
+
 import * as Cesium from 'cesium';
 
-let viewer: Cesium.Viewer;
+import { MapViewportCesium } from '$lib/map/cesium/viewport';
+import { MapInteractionCesium } from '$lib/map/cesium/interaction';
+
+import MapControl from '../common/MapControl.svelte';
+
+let cesium: Cesium.Viewer;
+let viewport: MapViewportCesium;
+let interaction: MapInteractionCesium;
+
 onMount(async () => {
-    viewer = new Cesium.Viewer(
+    cesium = new Cesium.Viewer(
         'cesiumContainer', {
             orderIndependentTranslucency: false,
             timeline: false,
@@ -15,9 +24,13 @@ onMount(async () => {
             shouldAnimate: true,
             baseLayerPicker: false,
         });
-    viewer.resolutionScale = window.devicePixelRatio;
+    cesium.resolutionScale = window.devicePixelRatio;
+
+    viewport = new MapViewportCesium(cesium)
+    interaction = new MapInteractionCesium(cesium)
 });
 
 </script>
 
 <div id="cesiumContainer"></div>
+<MapControl viewport={viewport} interaction={interaction}/>

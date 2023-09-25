@@ -39,3 +39,216 @@ body,
     position: absolute;
     top: -999em;
 }
+
+button {
+    background: rgba(0, 0, 0, 0.85);
+    min-width: 24px;
+    height: 24px;
+    color: white;
+    padding: 0px 0px;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 5px;
+    transition-duration: 0.2s;
+}
+
+button:hover {
+    background: rgba(42, 42, 42, 0.85);
+}
+
+button:disabled {
+    background: rgba(86, 86, 86, 0.85);
+}
+
+button:focus {
+    outline: none;
+}
+
+.flat {
+    background: transparent
+}
+
+.flat:disabled {
+    background: transparent;
+    color: rgba(86, 86, 86, 0.85);
+}
+
+input[type=checkbox] {
+    cursor: pointer;
+    max-width: 0px;
+    max-height: 0px;
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    margin: 12px 12px;
+}
+
+input[type=checkbox]:before {
+    content: "";
+    display: block;
+    width: 16px;
+    height: 16px;
+    margin: -10px -8px;
+    border: 2px solid rgba(5, 108, 98, 1.0);
+    border-radius: 2px;
+    background-color: transparent;
+    transition-duration: 0.2s;
+}
+
+input[type=checkbox]:checked:before {
+    background-color: rgba(0, 144, 130, 0.85);
+    border: 2px solid rgba(6, 144, 130, 1.0);
+}
+
+input[type=checkbox]:after {
+    content: "";
+    display: block;
+    width: 1px;
+    height: 1px;
+    border: solid rgba(255, 255, 255, 1.0);
+    border-width: 0px 0px 0px 0px;
+    margin: 0px 0px;
+    transition-duration: 0.2s;
+}
+
+input[type=checkbox]:checked:after {
+    content: "";
+    display: block;
+    width: 6px;
+    height: 10px;
+    margin: -16px -2px;
+    transform: rotate(45deg);
+    border-width: 0 2px 2px 0;
+}
+
+input[type=checkbox]:focus {
+    background-color: rgba(0, 218, 223, 1.0);
+}
+
+.pane,
+.frame {
+    min-height: 24px;
+    color: white;
+    text-align: center;
+    font-size: 12px;
+    border-radius: 5px;
+}
+
+.pane {
+    background-color: rgba(0, 0, 0, 0.85);
+}
+
+.frame {
+    background-color: rgba(0, 0, 0, 1.00);
+    overflow: scroll;
+    overflow-x: hidden;
+}
+
+.frame::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background-color: transparent;
+}
+
+.frame::-webkit-scrollbar {
+    width: 6px;
+    background-color: transparent;
+}
+
+.frame::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background-color: rgba(0, 144, 130, 0.85);
+}
+
+.button-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.indicator-icon {
+    width: 22px;
+    height: 22px;
+}
+
+.icon-selected {
+    filter: invert(80%) sepia(100%) saturate(648%) hue-rotate(140deg) brightness(250%) contrast(110%);
+}
+
+.icon-danger {
+    filter: invert(50%) sepia(100%) saturate(900%) hue-rotate(320deg) brightness(75%) contrast(90%);
+}
+
+.icon-caution {
+    filter: invert(8%) sepia(100%) saturate(648%) hue-rotate(-30deg) brightness(75%) contrast(90%);
+}
+
+.icon-positive {
+    filter: invert(8%) sepia(100%) saturate(648%) hue-rotate(33deg) brightness(75%) contrast(90%);
+}
+
+.icon-disabled {
+    filter: invert(8%) sepia(100%) saturate(0%) hue-rotate(33deg) brightness(55%) contrast(90%);
+}
+
+.hidden,
+.hidden:disabled,
+.hidden:disabled:hover {
+    background: transparent;
+}
+
+.hidden img,
+.hidden:disabled:hover img {
+    opacity: 0.0;
+}
+
+.hidden:hover img {
+    opacity: 1.0;
+}
+
+button,
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.top-cropped {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+}
+
+.bottom-cropped {
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+.left-cropped {
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+
+.right-cropped {
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+.progress-container {
+    position: relative;
+    display: inline-block;
+    background: rgba(86, 86, 86, 0.85);
+    height: 6px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: rgba(6, 144, 130, 1.0);
+}
