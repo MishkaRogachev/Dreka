@@ -1,10 +1,11 @@
 <script lang="ts">
-  import {ping} from "../lib/services/root"
+  import {AppService} from "./services/app"
 
   let pongMsg: String = ""
+  let appService = new AppService()
 
   async function greet() {
-    pongMsg = await ping()
+    appService.pingServer()
   }
 </script>
 
