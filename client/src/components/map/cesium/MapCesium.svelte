@@ -30,6 +30,14 @@ onMount(async () => {
         });
     cesium.resolutionScale = window.devicePixelRatio;
 
+    // TODO: terrain layers
+    cesium.terrainProvider = await Cesium.createWorldTerrainAsync({
+        requestVertexNormals: true,
+        requestWaterMask: true
+    });
+
+    // TODO: setup imagery layers
+
     viewport = new MapViewportCesium(cesium);
     interaction = new MapInteractionCesium(cesium);
     ruler = new MapRulerCesium(cesium, interaction);
