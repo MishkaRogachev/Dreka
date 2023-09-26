@@ -1,31 +1,13 @@
 
 import type { Geodetic, Cartesian } from "$lib/interfaces/common"
 
-export enum KeyModifier {
-    None,
-    Ctrl,
-    Shift,
-    Option
-}
-
-export interface Interactable {
-    setDragging: (dragging: boolean) => void
-    setHovered: (hovered: boolean) => void
-
-    matchInteraction: (objects: Array<any>) => boolean
-
-    drag: (screenXY: Cartesian, modifier: KeyModifier) => boolean
-    click: () => boolean
-
-    isDraggable: () => boolean
-}
+export type ClickListener = (geodetic: Geodetic, position: Cartesian) => boolean;
 
 export interface MapInteraction {
     mouseCoordinates: () => Cartesian
 
-    // listener is Fn(geodetic: IGeodetic) => bool
-    subscribeClick: (listener: Function) => void
-    unsubscribeClick: (listener: Function) => void
+    subscribeClick: (listener: ClickListener) => void
+    unsubscribeClick: (listener: ClickListener) => void
 }
 
 export interface MapViewport {
@@ -43,4 +25,12 @@ export interface MapViewport {
 
     screenXYToGeodetic: (point: Cartesian) => Geodetic
     geodeticToScreenXY: (geodetic: Geodetic) => Cartesian
+}
+
+export interface MapRuler {
+    setEnabled: (enabled: boolean) => void
+    enabled: () => boolean
+
+    clear: () => void
+    distance: () => number
 }

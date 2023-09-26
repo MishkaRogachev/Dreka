@@ -2,7 +2,7 @@
 import Button from "$components/controls/Button.svelte";
 
 import { degreesToDmsString, roundTo125 } from "$lib/common/formats";
-import type { MapViewport, MapInteraction } from "$lib/interfaces/map";
+import type { MapViewport, MapInteraction, MapRuler } from "$lib/interfaces/map";
 
 import crossIcon from "$assets/svg/cross.svg";
 import compasIcon from "$assets/svg/compas.svg";
@@ -15,62 +15,60 @@ import gridIcon from "$assets/svg/grid.svg";
 
 export let viewport: MapViewport;
 export let interaction: MapInteraction;
+export let ruler: MapRuler;
 
 const scaleFactor: number = 10
 
 const btnStyle = "display: inline; margin: 0px 2px; float: left;"
 
-let scaleWidth: number = 0.0
-let zoomInPressed: boolean = false
-let zoomOutPressed: boolean = false
+let scaleWidth: number = 0.0;
+let zoomInPressed: boolean = false;
+let zoomOutPressed: boolean = false;
 
-let heading: number = 0.0
+let heading: number = 0.0;
 
-let pixelScale: number = 0.0
-let metersInWidth: number = 0.0
-let metersRounded: number = 0.0
+let pixelScale: number = 0.0;
+let metersInWidth: number = 0.0;
+let metersRounded: number = 0.0;
 
-let latitude: string = "-"
-let longitude: string = "-"
+let latitude: string = "-";
+let longitude: string = "-";
 
-let crossMode: boolean = false
+let crossMode: boolean = false;
 
-let rulerMode: boolean = false
-let rulerLength: number = 0.0
+let rulerMode: boolean = false;
+let rulerLength: number = 0.0;
 
-let gridMode: boolean = false
+let gridMode: boolean = false;
 
 setInterval(() => {
-    if (!viewport || !interaction)
-        return
-
-    heading = viewport.heading()
-    pixelScale = viewport.pixelScale()
-    metersInWidth = pixelScale * scaleWidth
-    metersRounded = roundTo125(metersInWidth)
+    heading = viewport.heading();
+    pixelScale = viewport.pixelScale();
+    metersInWidth = pixelScale * scaleWidth;
+    metersRounded = roundTo125(metersInWidth);
 
     let geodetic = crossMode ? viewport.screenXYToGeodetic({ x: viewport.viewportWidth() / 2, 
                                                             y: viewport.viewportHeight() / 2 }) :
-                                viewport.screenXYToGeodetic(interaction.mouseCoordinates())
-    latitude = degreesToDmsString(geodetic.latitude, false)
-    longitude = degreesToDmsString(geodetic.longitude, true)
+                                viewport.screenXYToGeodetic(interaction.mouseCoordinates());
+    latitude = degreesToDmsString(geodetic.latitude, false);
+    longitude = degreesToDmsString(geodetic.longitude, true);
 
-    // rulerLength = Math.round(ruler.distance())
+    rulerLength = Math.round(ruler.distance())
 
     if (zoomInPressed) {
-        viewport.zoomIn(pixelScale * scaleFactor)
+        viewport.zoomIn(pixelScale * scaleFactor);
     }
 
     if (zoomOutPressed) {
-        viewport.zoomOut(pixelScale * scaleFactor)
+        viewport.zoomOut(pixelScale * scaleFactor);
     }
 }, 50)
 
-function resetCompas() { viewport.lookTo(0, -90, 2) }
-function coordsToClipboard() { navigator.clipboard.writeText(latitude + " " + longitude) }
+function resetCompas() { viewport.lookTo(0, -90, 2); }
+function coordsToClipboard() { navigator.clipboard.writeText(latitude + " " + longitude); }
 function switchRulerMode() {
-    /* rulerMode = !rulerMode
-    map.ruler.setEnabled(rulerMode) */
+    rulerMode = !rulerMode
+    ruler.setEnabled(rulerMode)
 }
 
 function switchGridMode() {
@@ -79,7 +77,7 @@ function switchGridMode() {
 }
 
 function clearRuler() {
-
+    ruler.clear()
 }
 </script>
 
@@ -126,7 +124,8 @@ button {
 .scale-tick {
     position: absolute;
     border-left: 2px solid white;
-    height: 12px;
+    height: 6px;
+    bottom: 0px;
 }
 </style>
 
@@ -158,7 +157,7 @@ button {
         <div id="ruler-label" class="pane noselect left-cropped right-cropped">
             {rulerLength > 1000 ? ((Math.round(rulerLength / 100) / 10).toString() + " km") : (rulerLength + " m")}
         </div>
-        <Button style={btnStyle} left_cropped={true} icon={closeIcon} on:click={() => {clearRuler}}/>
+        <Button style={btnStyle} left_cropped={true} icon={closeIcon} on:click={clearRuler}/>
     {/if}
     <Button style={btnStyle} selected={gridMode} icon={gridIcon} on:click={switchGridMode}/>
 </div>
