@@ -2,4 +2,4 @@
 import MapCesium from '$components/map/cesium/MapCesium.svelte';
 </script>
 
-<MapCesium />
+<MapCesium/>

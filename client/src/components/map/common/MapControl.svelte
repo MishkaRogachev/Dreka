@@ -3,6 +3,7 @@ import Button from "$components/controls/Button.svelte";
 
 import { degreesToDmsString, roundTo125 } from "$lib/common/formats";
 import type { MapViewport, MapInteraction, MapRuler, MapGraticule } from "$lib/interfaces/map";
+import { preferences } from "$lib/preferences";
 
 import crossIcon from "$assets/svg/cross.svg";
 import compasIcon from "$assets/svg/compas.svg";
@@ -42,6 +43,7 @@ let rulerLength: number = 0.0;
 
 let gridMode: boolean = false;
 
+// Update UI every 50ms
 setInterval(() => {
     heading = viewport.heading();
     pixelScale = viewport.pixelScale();
@@ -49,7 +51,7 @@ setInterval(() => {
     metersRounded = roundTo125(metersInWidth);
 
     let geodetic = crossMode ? viewport.screenXYToGeodetic({ x: viewport.viewportWidth() / 2, 
-                                                            y: viewport.viewportHeight() / 2 }) :
+                                                                y: viewport.viewportHeight() / 2 }) :
                                 viewport.screenXYToGeodetic(interaction.mouseCoordinates());
     latitude = degreesToDmsString(geodetic.latitude, false);
     longitude = degreesToDmsString(geodetic.longitude, true);
@@ -64,6 +66,16 @@ setInterval(() => {
         viewport.zoomOut(pixelScale * scaleFactor);
     }
 }, 50)
+
+const viewportSettings = preferences.read("user/map/viewport")
+if (!!viewportSettings) {
+    viewport.restore(JSON.parse(viewportSettings));
+}
+
+// Save viewport every second
+setInterval(() => {
+    preferences.write("user/map/viewport", JSON.stringify(viewport.save()))
+}, 1000);
 
 function resetCompas() { viewport.lookTo(0, -90, 2); }
 function coordsToClipboard() { navigator.clipboard.writeText(latitude + " " + longitude); }

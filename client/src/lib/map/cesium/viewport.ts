@@ -1,4 +1,4 @@
-import type { MapViewport } from '$lib/interfaces/map';
+import type { MapViewport, MapViewportSettings } from '$lib/interfaces/map';
 import { type Cartesian, type Geodetic, GeodeticFrame, nullGeodetic } from '$lib/interfaces/common';
 
 import * as Cesium from 'cesium';
@@ -111,6 +111,28 @@ export class MapViewportCesium implements MapViewport {
         } else {
             return 0;
         }
+    }
+
+    save(): MapViewportSettings {
+        const position = this.cesium.camera.positionCartographic;
+        return {
+            longitude: Cesium.Math.toDegrees(position.longitude),
+            latitude: Cesium.Math.toDegrees(position.latitude),
+            altitude: position.height,
+            heading: Cesium.Math.toDegrees(this.cesium.camera.heading),
+            pitch: Cesium.Math.toDegrees(this.cesium.camera.pitch),
+        };
+    }
+
+    restore(settings: MapViewportSettings) {
+        this.cesium.camera.setView({
+            destination: Cesium.Cartesian3.fromDegrees(settings.longitude, settings.latitude, settings.altitude),
+            orientation: {
+                heading: Cesium.Math.toRadians(settings.heading),
+                pitch: Cesium.Math.toRadians(settings.pitch),
+                roll: 0.0
+            }
+        })
     }
 
     private cesium: Cesium.Viewer

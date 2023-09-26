@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Flight from '$pages/flight/Flight.svelte';
+import Main from '$pages/Main.svelte';
 </script>
 
-<Flight />
+<Main />

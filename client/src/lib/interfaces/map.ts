@@ -10,6 +10,14 @@ export interface MapInteraction {
     unsubscribeClick: (listener: ClickListener) => void
 }
 
+export interface MapViewportSettings {
+    latitude: number
+    longitude: number
+    altitude: number
+    heading: number
+    pitch: number
+}
+
 export interface MapViewport {
     flyTo: (latitude: number, longitude: number, altitude: number, heading: number, pitch: number, duration: number) => void
     setView: (latitude: number, longitude: number, altitude: number, heading: number, pitch: number) => void
@@ -25,6 +33,9 @@ export interface MapViewport {
 
     screenXYToGeodetic: (point: Cartesian) => Geodetic
     geodeticToScreenXY: (geodetic: Geodetic) => Cartesian
+
+    save: () => MapViewportSettings
+    restore: (settings: MapViewportSettings) => void
 }
 
 export interface MapRuler {
