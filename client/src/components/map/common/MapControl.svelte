@@ -2,7 +2,7 @@
 import Button from "$components/controls/Button.svelte";
 
 import { degreesToDmsString, roundTo125 } from "$lib/common/formats";
-import type { MapViewport, MapInteraction, MapRuler } from "$lib/interfaces/map";
+import type { MapViewport, MapInteraction, MapRuler, MapGraticule } from "$lib/interfaces/map";
 
 import crossIcon from "$assets/svg/cross.svg";
 import compasIcon from "$assets/svg/compas.svg";
@@ -16,6 +16,7 @@ import gridIcon from "$assets/svg/grid.svg";
 export let viewport: MapViewport;
 export let interaction: MapInteraction;
 export let ruler: MapRuler;
+export let graticule: MapGraticule;
 
 const scaleFactor: number = 10
 
@@ -72,8 +73,8 @@ function switchRulerMode() {
 }
 
 function switchGridMode() {
-/*   gridMode = !gridMode
-    map.graticule.setEnabled(gridMode)*/
+    gridMode = !gridMode
+    graticule.setEnabled(gridMode)
 }
 
 function clearRuler() {

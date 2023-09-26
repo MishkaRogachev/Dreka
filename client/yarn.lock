@@ -467,6 +467,11 @@ callsites@^3.0.0:
   resolved "https://registry.yarnpkg.com/callsites/-/callsites-3.1.0.tgz#b3630abd8943432f54b3f0519238e33cd7df2f73"
   integrity sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==
 
+cesium-graticule@^0.3.3:
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/cesium-graticule/-/cesium-graticule-0.3.3.tgz#f9c252fbf2ff725acaad59c35782f965e90bf3a2"
+  integrity sha512-GnPS1b3humqPQoAQce7zCpEROn05wBrT2QXOMFN13x33ea8C1E02GHEHka5Vp8ZCW36siFsntovJ9rJlP0GT6Q==
+
 cesium@^1.109.0:
   version "1.109.0"
   resolved "https://registry.yarnpkg.com/cesium/-/cesium-1.109.0.tgz#68f1a0f46ec2e49a86dec52438570d2670325140"

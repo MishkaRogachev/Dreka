@@ -34,3 +34,8 @@ export interface MapRuler {
     clear: () => void
     distance: () => number
 }
+
+export interface MapGraticule {
+    setEnabled: (enabled: boolean) => void
+    enabled: () => boolean
+}
