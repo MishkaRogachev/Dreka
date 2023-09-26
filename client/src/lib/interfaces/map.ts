@@ -50,3 +50,23 @@ export interface MapGraticule {
     setEnabled: (enabled: boolean) => void
     enabled: () => boolean
 }
+
+export interface ImageryLayer {
+    name: string
+    source: string
+    opacity: number
+    visibility: boolean
+    index: number
+}
+
+export interface MapLayers {
+    imageryLayers: () => Array<ImageryLayer>
+
+    addImageryLayers: (layers: ImageryLayer[]) => Promise<void>
+    addImageryLayer: (layer: ImageryLayer) => Promise<void>
+    updateImageryLayer: (layer: ImageryLayer) => Promise<void>
+    raiseImageryLayer: (layer: ImageryLayer) => Promise<void>
+    lowerImageryLayer: (layer: ImageryLayer) => Promise<void>
+    removeImageryLayer: (layer: ImageryLayer) => Promise<void>
+    resetImageryLayers: () => Promise<void>
+}

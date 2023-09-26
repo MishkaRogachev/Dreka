@@ -1,12 +1,14 @@
 <script lang="ts">
-import { onMount, onDestroy } from 'svelte';
+import { onMount } from 'svelte';
 
 import * as Cesium from 'cesium';
 
+import { preferences } from "$lib/preferences";
 import { MapViewportCesium } from '$lib/map/cesium/viewport';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
 import { MapRulerCesium } from '$lib/map/cesium/ruler';
 import { MapGraticuleCesium } from '$lib/map/cesium/graticule';
+import { MapLayersCesium } from '$lib/map/cesium/layers';
 
 import MapControl from '../common/MapControl.svelte';
 
@@ -15,6 +17,9 @@ let viewport: MapViewportCesium;
 let interaction: MapInteractionCesium;
 let ruler: MapRulerCesium
 let graticule: MapGraticuleCesium
+let layers: MapLayersCesium
+
+let ready: boolean = false
 
 onMount(async () => {
     cesium = new Cesium.Viewer(
@@ -36,18 +41,39 @@ onMount(async () => {
         requestWaterMask: true
     });
 
-    // TODO: setup imagery layers
-
     viewport = new MapViewportCesium(cesium);
+    const viewportSettings = preferences.read("user/map/viewport")
+    if (!!viewportSettings) {
+        viewport.restore(JSON.parse(viewportSettings));
+    }
+
     interaction = new MapInteractionCesium(cesium);
     ruler = new MapRulerCesium(cesium, interaction);
     graticule = new MapGraticuleCesium(cesium);
+    
+    layers = new MapLayersCesium(cesium);
+    const layerSettings = preferences.read("user/map/imagery_layers");
+    if (!!layerSettings) {
+        layers.addImageryLayers(JSON.parse(layerSettings));
+    } else {
+        layers.resetImageryLayers();
+    }
+
+    ready = true;
 });
+
+// Save map settings every second
+setInterval(() => {
+    if (!ready)
+        return
+
+    preferences.write("user/map/viewport", JSON.stringify(viewport.save()));
+    preferences.write("user/map/imagery_layers", JSON.stringify(layers.imageryLayers()));
+}, 1000);
 
 </script>
 
 <div id="cesiumContainer"></div>
-{#if viewport && interaction && ruler && graticule}
-    <MapControl viewport={viewport} interaction={interaction} ruler={ruler} graticule={graticule}/>
-    <!-- TODO: LAYERS here! -->
+{#if ready}
+    <MapControl viewport={viewport} interaction={interaction} ruler={ruler} graticule={graticule} layers={layers}/>
 {/if}

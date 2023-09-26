@@ -12,7 +12,8 @@
     },
     "dependencies": {
         "@tauri-apps/api": "^1.4.0",
-        "cesium-graticule": "^0.3.3"
+        "cesium-graticule": "^0.3.3",
+        "svelte-overlay": "^1.4.1"
     },
     "devDependencies": {
         "@sveltejs/vite-plugin-svelte": "^2.4.2",

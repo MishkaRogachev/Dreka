@@ -1,10 +1,12 @@
 <script lang="ts">
 import Button from "$components/controls/Button.svelte";
+import OverlayButton from '$components/controls/OverlayButton.svelte';
+import MapLayersView from '../common/MapLayers.svelte';
 
 import { degreesToDmsString, roundTo125 } from "$lib/common/formats";
-import type { MapViewport, MapInteraction, MapRuler, MapGraticule } from "$lib/interfaces/map";
-import { preferences } from "$lib/preferences";
+import type { MapViewport, MapInteraction, MapRuler, MapGraticule, MapLayers } from "$lib/interfaces/map";
 
+import layersIcon from "$assets/svg/layers.svg"
 import crossIcon from "$assets/svg/cross.svg";
 import compasIcon from "$assets/svg/compas.svg";
 import cursorIcon from "$assets/svg/cursor.svg";
@@ -18,6 +20,7 @@ export let viewport: MapViewport;
 export let interaction: MapInteraction;
 export let ruler: MapRuler;
 export let graticule: MapGraticule;
+export let layers: MapLayers;
 
 const scaleFactor: number = 10
 
@@ -56,7 +59,7 @@ setInterval(() => {
     latitude = degreesToDmsString(geodetic.latitude, false);
     longitude = degreesToDmsString(geodetic.longitude, true);
 
-    rulerLength = Math.round(ruler.distance())
+    rulerLength = Math.round(ruler.distance());
 
     if (zoomInPressed) {
         viewport.zoomIn(pixelScale * scaleFactor);
@@ -67,30 +70,20 @@ setInterval(() => {
     }
 }, 50)
 
-const viewportSettings = preferences.read("user/map/viewport")
-if (!!viewportSettings) {
-    viewport.restore(JSON.parse(viewportSettings));
-}
-
-// Save viewport every second
-setInterval(() => {
-    preferences.write("user/map/viewport", JSON.stringify(viewport.save()))
-}, 1000);
-
 function resetCompas() { viewport.lookTo(0, -90, 2); }
 function coordsToClipboard() { navigator.clipboard.writeText(latitude + " " + longitude); }
 function switchRulerMode() {
-    rulerMode = !rulerMode
-    ruler.setEnabled(rulerMode)
+    rulerMode = !rulerMode;
+    ruler.setEnabled(rulerMode);
 }
 
 function switchGridMode() {
-    gridMode = !gridMode
-    graticule.setEnabled(gridMode)
+    gridMode = !gridMode;
+    graticule.setEnabled(gridMode);
 }
 
 function clearRuler() {
-    ruler.clear()
+    ruler.clear();
 }
 </script>
 
@@ -173,4 +166,7 @@ button {
         <Button style={btnStyle} left_cropped={true} icon={closeIcon} on:click={clearRuler}/>
     {/if}
     <Button style={btnStyle} selected={gridMode} icon={gridIcon} on:click={switchGridMode}/>
+    <OverlayButton style={btnStyle} icon={layersIcon} position="top-left">
+        <MapLayersView layers={layers}/>
+    </OverlayButton>
 </div>

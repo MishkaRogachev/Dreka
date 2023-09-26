@@ -42,7 +42,7 @@ class RulerPoint {
 
 export class MapRulerCesium implements MapRuler {
     constructor(cesium: Cesium.Viewer, interaction: MapInteractionCesium) {
-        this._cesium = cesium;
+        this.cesium = cesium;
         this._interaction = interaction;
 
         this._points = [];
@@ -74,7 +74,7 @@ export class MapRulerCesium implements MapRuler {
 
     clear(): void {
         for (let i = 0; i < this._labeledLines.length; ++i) {
-            this._cesium.entities.remove(this._labeledLines[i]);
+            this.cesium.entities.remove(this._labeledLines[i]);
         }
         this._labeledLines = [];
 
@@ -92,7 +92,7 @@ export class MapRulerCesium implements MapRuler {
 
     addPoint(cartesian: Cesium.Cartesian3) {
         const previousPoint = this._points.slice(-1).pop();
-        const newPoint = new RulerPoint(this, this._cesium, cartesian, this._interaction);
+        const newPoint = new RulerPoint(this, this.cesium, cartesian, this._interaction);
         this._points.push(newPoint);
 
         if (previousPoint)
@@ -120,7 +120,7 @@ export class MapRulerCesium implements MapRuler {
     }
 
     addLabel(first: RulerPoint, second: RulerPoint, index = -1) {
-        const labeledLine = this._cesium.entities.add({
+        const labeledLine = this.cesium.entities.add({
             //@ts-ignore
             position: new Cesium.CallbackProperty(() => { return Utils.intermediate(first.cartesian(), second.cartesian()) }, false),
             polyline: {
@@ -147,11 +147,11 @@ export class MapRulerCesium implements MapRuler {
     }
 
     removeLabel(index: number) {
-        this._cesium.entities.remove(this._labeledLines[index]);
+        this.cesium.entities.remove(this._labeledLines[index]);
         this._labeledLines.splice(index, 1);
     }
 
-    private _cesium: Cesium.Viewer
+    private cesium: Cesium.Viewer
     private _interaction: MapInteractionCesium
 
     private _points: Array<RulerPoint>

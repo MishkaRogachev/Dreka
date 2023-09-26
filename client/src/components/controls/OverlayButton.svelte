@@ -1,4 +1,5 @@
 <script lang="ts">
+// @ts-ignore
 import Overlay from "svelte-overlay"
 import Button from "./Button.svelte"
 
