@@ -69,7 +69,7 @@ onMount(async () => {
     }, 1000);
 });
 
-onDestroy(async () => { clearInterval(interval); });
+onDestroy(async () => { clearInterval(interval); ready = false; });
 
 </script>
 

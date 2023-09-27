@@ -48,6 +48,7 @@ button {
     color: white;
     padding: 0px 0px;
     text-align: center;
+    align-items: center;
     text-decoration: none;
     border: none;
     border-radius: 5px;
@@ -132,6 +133,7 @@ input[type=checkbox]:focus {
     min-height: 24px;
     color: white;
     text-align: center;
+    align-items: center;
     font-size: 12px;
     border-radius: 5px;
 }
