@@ -5,7 +5,7 @@ use actix_web::{get, App, HttpServer, web::Data, Responder, HttpResponse};
 
 #[get("/")]
 async fn ping() -> impl Responder {
-    HttpResponse::Ok().content_type("text/plain").body("Dreka server is online")
+    HttpResponse::Ok().json("ok")
 }
 
 pub async fn serve(persistence: persistence::Persistence) -> std::io::Result<()> {

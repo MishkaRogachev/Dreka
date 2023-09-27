@@ -12,6 +12,8 @@ import { MapLayersCesium } from '$lib/map/cesium/layers';
 
 import MapControl from '../common/MapControl.svelte';
 
+export let visible: boolean = true
+
 let cesium: Cesium.Viewer;
 let viewport: MapViewportCesium;
 let interaction: MapInteractionCesium;
@@ -73,7 +75,8 @@ onDestroy(async () => { clearInterval(interval); ready = false; });
 
 </script>
 
-<div id="cesiumContainer" style={ ready ? "" : "visibility: hidden;"}></div>
+<div id="cesiumContainer" style={ready && visible ? "" : "display: none"}>
 {#if ready}
     <MapControl viewport={viewport} interaction={interaction} ruler={ruler} graticule={graticule} layers={layers}/>
 {/if}
+</div>

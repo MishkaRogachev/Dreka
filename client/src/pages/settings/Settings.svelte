@@ -1,4 +1,5 @@
 <script lang="ts">
+export let visible: boolean = true
 </script>
 
 <style>
@@ -13,7 +14,7 @@
 }
 </style>
 
-<div id="settingsPanel">
+<div id="settingsPanel" style={visible ? "" : "display: none"}>
     <span>Settings will be here..</span>
 </div>
 

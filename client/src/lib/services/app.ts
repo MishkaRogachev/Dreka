@@ -1,16 +1,8 @@
-import { send_request, server_root, RequestType } from "./common";
+import { send_request, server_root } from "../datasource/rest";
 
 export class AppService {
-    constructor() {
-        this.serverOnline = false
+    static async pingServer(): Promise<boolean> {
+        const response = await send_request(server_root);
+        return response == "ok";
     }
-
-    pingServer() {
-        send_request(RequestType.Get, server_root, (response: any) => {
-            this.serverOnline = !!response
-            console.log(response)
-        })
-    }
-
-    private serverOnline: boolean
 }
