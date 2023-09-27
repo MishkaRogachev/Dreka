@@ -1,4 +1,6 @@
 <script lang="ts">
+import { onMount, onDestroy } from 'svelte';
+
 import Button from "$components/controls/Button.svelte";
 import OverlayButton from '$components/controls/OverlayButton.svelte';
 import MapLayersView from '../common/MapLayers.svelte';
@@ -46,29 +48,35 @@ let rulerLength: number = 0.0;
 
 let gridMode: boolean = false;
 
-// Update UI every 50ms
-setInterval(() => {
-    heading = viewport.heading();
-    pixelScale = viewport.pixelScale();
-    metersInWidth = pixelScale * scaleWidth;
-    metersRounded = roundTo125(metersInWidth);
+let interval: any;
 
-    let geodetic = crossMode ? viewport.screenXYToGeodetic({ x: viewport.viewportWidth() / 2, 
-                                                                y: viewport.viewportHeight() / 2 }) :
-                                viewport.screenXYToGeodetic(interaction.mouseCoordinates());
-    latitude = degreesToDmsString(geodetic.latitude, false);
-    longitude = degreesToDmsString(geodetic.longitude, true);
+onMount(async () => {
+    // Update UI every 50ms
+    interval = setInterval(() => {
+        heading = viewport.heading();
+        pixelScale = viewport.pixelScale();
+        metersInWidth = pixelScale * scaleWidth;
+        metersRounded = roundTo125(metersInWidth);
 
-    rulerLength = Math.round(ruler.distance());
+        let geodetic = crossMode ? viewport.screenXYToGeodetic({ x: viewport.viewportWidth() / 2, 
+                                                                    y: viewport.viewportHeight() / 2 }) :
+                                    viewport.screenXYToGeodetic(interaction.mouseCoordinates());
+        latitude = degreesToDmsString(geodetic.latitude, false);
+        longitude = degreesToDmsString(geodetic.longitude, true);
 
-    if (zoomInPressed) {
-        viewport.zoomIn(pixelScale * scaleFactor);
-    }
+        rulerLength = Math.round(ruler.distance());
 
-    if (zoomOutPressed) {
-        viewport.zoomOut(pixelScale * scaleFactor);
-    }
-}, 50)
+        if (zoomInPressed) {
+            viewport.zoomIn(pixelScale * scaleFactor);
+        }
+
+        if (zoomOutPressed) {
+            viewport.zoomOut(pixelScale * scaleFactor);
+        }
+    }, 50);
+})
+
+onDestroy(async () => { clearInterval(interval); });
 
 function resetCompas() { viewport.lookTo(0, -90, 2); }
 function coordsToClipboard() { navigator.clipboard.writeText(latitude + " " + longitude); }

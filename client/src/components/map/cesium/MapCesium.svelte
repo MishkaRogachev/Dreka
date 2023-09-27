@@ -1,5 +1,5 @@
 <script lang="ts">
-import { onMount } from 'svelte';
+import { onMount, onDestroy } from 'svelte';
 
 import * as Cesium from 'cesium';
 
@@ -15,11 +15,12 @@ import MapControl from '../common/MapControl.svelte';
 let cesium: Cesium.Viewer;
 let viewport: MapViewportCesium;
 let interaction: MapInteractionCesium;
-let ruler: MapRulerCesium
-let graticule: MapGraticuleCesium
-let layers: MapLayersCesium
+let ruler: MapRulerCesium;
+let graticule: MapGraticuleCesium;
+let layers: MapLayersCesium;
 
-let ready: boolean = false
+let ready: boolean = false;
+let interval: any;
 
 onMount(async () => {
     cesium = new Cesium.Viewer(
@@ -60,16 +61,15 @@ onMount(async () => {
     }
 
     ready = true;
+
+    // Save map settings every second
+    interval = setInterval(() => {
+        preferences.write("user/map/viewport", JSON.stringify(viewport.save()));
+        preferences.write("user/map/imagery_layers", JSON.stringify(layers.imageryLayers()));
+    }, 1000);
 });
 
-// Save map settings every second
-setInterval(() => {
-    if (!ready)
-        return
-
-    preferences.write("user/map/viewport", JSON.stringify(viewport.save()));
-    preferences.write("user/map/imagery_layers", JSON.stringify(layers.imageryLayers()));
-}, 1000);
+onDestroy(async () => { clearInterval(interval); });
 
 </script>
 

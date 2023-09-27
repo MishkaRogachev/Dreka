@@ -1,57 +1,57 @@
 <script lang="ts">
 import { createEventDispatcher } from "svelte"
 
-export let text: String = ""
-export let icon = ""
-export let disabled = false
-export let selected = false
-export let flat = false
-export let left_cropped = false
-export let right_cropped = false
-export let top_cropped = false
+export let text: String = "";
+export let icon = "";
+export let disabled = false;
+export let selected = false;
+export let flat = false;
+export let left_cropped = false;
+export let right_cropped = false;
+export let top_cropped = false;
 export let bottom_cropped = false
-export let style: string = ""
-export let type: string = "normal"
+export let style: string = "";
+export let type: string = "normal";
 
-$: iconClass = disabled ? "button-icon icon-disabled " : selected ? "button-icon icon-selected" : "button-icon"
+$: iconClass = disabled ? "button-icon icon-disabled " : selected ? "button-icon icon-selected" : "button-icon";
 
 function getButtonClass(flat: boolean, left_cropped: boolean, right_cropped: boolean, top_cropped: boolean, bottom_cropped: boolean,
                         type: string) {
-    let arr = []
+    let arr = [];
 
     if (flat)
-        arr.push("flat")
+        arr.push("flat");
     if (left_cropped)
-        arr.push("left-cropped")
+        arr.push("left-cropped");
     if (right_cropped)
-        arr.push("right-cropped")
+        arr.push("right-cropped");
     if (top_cropped)
-        arr.push("top-cropped")
+        arr.push("top-cropped");
     if (bottom_cropped)
-        arr.push("bottom-cropped")
+        arr.push("bottom-cropped");
 
     switch (type){
     case "danger":
-        arr.push("button-danger")
+        arr.push("button-danger");
         break
     case "warning":
-        arr.push("button-warning")
+        arr.push("button-warning");
         break
     case "normal":
     default:
-        arr.push("button-normal")
+        arr.push("button-normal");
         break
     }
 
-    return arr.join(" ")
+    return arr.join(" ");
 }
 
 const dispatch = createEventDispatcher()
 
-function click() { dispatch('click', {}) }
-function mousedown() { dispatch('mousedown', {}) }
-function mouseup() { dispatch('mouseup', {}) }
-function mouseleave() { dispatch('mouseleave', {}) }
+function click() { dispatch('click', {}); }
+function mousedown() { dispatch('mousedown', {}); }
+function mouseup() { dispatch('mouseup', {}); }
+function mouseleave() { dispatch('mouseleave', {}); }
 
 </script>
 
