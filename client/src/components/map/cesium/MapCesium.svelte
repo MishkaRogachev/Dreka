@@ -73,7 +73,7 @@ setInterval(() => {
 
 </script>
 
-<div id="cesiumContainer"></div>
+<div id="cesiumContainer" style={ ready ? "" : "visibility: hidden;"}></div>
 {#if ready}
     <MapControl viewport={viewport} interaction={interaction} ruler={ruler} graticule={graticule} layers={layers}/>
 {/if}

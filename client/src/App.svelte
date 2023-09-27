@@ -2,4 +2,6 @@
 import Main from '$pages/Main.svelte';
 </script>
 
-<Main />
+<div id="app">
+    <Main />
+</div>
