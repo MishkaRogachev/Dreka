@@ -1,4 +1,8 @@
-export type Nullable<T> = T | null
+
+export interface Cartesian {
+    x: number
+    y: number
+}
 
 export enum GeodeticFrame {
     None = "None",
@@ -7,14 +11,9 @@ export enum GeodeticFrame {
     Wgs84AboveTerrain = "Wgs84AboveTerrain"
 }
 
-export interface Cartesian {
-    x: number
-    y: number
-}
-
 export interface Geodetic {
-    latitude: number
-    longitude: number
+    latitude: number,
+    longitude: number,
     altitude: number,
     frame: GeodeticFrame
 }

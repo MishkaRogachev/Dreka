@@ -25,6 +25,7 @@ export default defineConfig(async () => ({
       $lib: path.resolve('./src/lib'),
       $components: path.resolve('./src/components'),
       $pages: path.resolve('./src/pages'),
+      $bindings: path.resolve('./src/bindings'),
     }
   }
 }));

@@ -1,5 +1,5 @@
 
-import type { Geodetic, Cartesian } from "$lib/interfaces/common"
+import type { Geodetic, Cartesian } from "$bindings/spatial";
 
 export type ClickListener = (geodetic: Geodetic, position: Cartesian) => boolean;
 
@@ -11,10 +11,10 @@ export interface MapInteraction {
 }
 
 export interface MapViewportSettings {
-    latitude: number
-    longitude: number
-    altitude: number
-    heading: number
+    latitude: number,
+    longitude: number,
+    altitude: number,
+    heading: number,
     pitch: number
 }
 
@@ -52,10 +52,10 @@ export interface MapGraticule {
 }
 
 export interface ImageryLayer {
-    name: string
-    source: string
-    opacity: number
-    visibility: boolean
+    name: string,
+    source: string,
+    opacity: number,
+    visibility: boolean,
     index: number
 }
 

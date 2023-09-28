@@ -1,17 +1,30 @@
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub enum VehicleClass {
+#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
+#[ts(export)]
+pub enum VehicleType {
     Unknown,
     Plane,
+    Vtol,
     Heli,
     Copter
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
+#[ts(export)]
+pub enum VehicleFeatures {
+    PetrolEngine,
+    Parachute,
+    Lidar
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
+#[ts(export)]
 pub struct Vehicle {
     pub name: String,
     pub protocol_id: String,
     pub online: bool,
-    pub class: VehicleClass
+    pub vehicle_type: VehicleType,
+    pub features: Vec<VehicleFeatures>
 }

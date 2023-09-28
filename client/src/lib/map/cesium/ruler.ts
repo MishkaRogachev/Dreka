@@ -1,6 +1,6 @@
 import type { MapRuler } from '$lib/interfaces/map';
 import type { MapInteractionCesium } from '$lib/map/cesium/interaction';
-import type { Geodetic } from "$lib/interfaces/common"
+import type { Geodetic } from "$bindings/spatial"
 
 import { GroundPointEntity } from "./base-entities"
 import * as Utils from "./utils"

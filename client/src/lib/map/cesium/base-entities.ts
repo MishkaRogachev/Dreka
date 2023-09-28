@@ -1,4 +1,4 @@
-import { type Cartesian } from '$lib/interfaces/common';
+import type { Cartesian } from "$bindings/spatial";
 import { type Interactable, KeyModifier } from './interaction';
 
 import * as Cesium from "cesium";

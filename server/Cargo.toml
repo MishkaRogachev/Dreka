@@ -9,3 +9,4 @@ surrealdb = { version = "1.0.0", features = ["kv-mem", "kv-rocksdb"] }
 tokio = { version = "1", features = ["full", "macros", "rt-multi-thread"] }
 actix-web = "4"
 actix-cors = "0.6.4"
+ts-rs = "7.0.0"

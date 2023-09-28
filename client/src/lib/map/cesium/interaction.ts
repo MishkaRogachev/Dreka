@@ -1,5 +1,5 @@
 import { type MapInteraction, type ClickListener } from '$lib/interfaces/map';
-import { GeodeticFrame, type Cartesian } from '$lib/interfaces/common';
+import { GeodeticFrame, type Cartesian } from "$bindings/spatial";
 
 import * as Cesium from 'cesium';
 

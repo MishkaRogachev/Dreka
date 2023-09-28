@@ -1,5 +1,5 @@
 import type { MapViewport, MapViewportSettings } from '$lib/interfaces/map';
-import { type Cartesian, type Geodetic, GeodeticFrame, nullGeodetic } from '$lib/interfaces/common';
+import { type Cartesian, type Geodetic, GeodeticFrame, nullGeodetic } from "$bindings/spatial"
 
 import * as Cesium from 'cesium';
 
