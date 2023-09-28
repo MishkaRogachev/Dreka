@@ -1,6 +1,6 @@
 import { readable } from 'svelte/store';
 
-import { AppService } from '$lib/services/app';
+import { AppService } from '$services/app';
 
 export const isServerOnline = readable(false, (set) => {
     const pingInterval = setInterval(() => {

@@ -26,6 +26,9 @@ export default defineConfig(async () => ({
       $components: path.resolve('./src/components'),
       $pages: path.resolve('./src/pages'),
       $bindings: path.resolve('./src/bindings'),
+      $stores: path.resolve('./src/stores'),
+      $services: path.resolve('./src/services'),
+      $datasource: path.resolve('./src/datasource'),
     }
   }
 }));

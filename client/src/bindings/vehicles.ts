@@ -6,13 +6,13 @@ export enum VehicleType {
     Copter = "Copter"
 }
 
-export enum VehicleType {
+export enum VehicleFeatures {
     PetrolEngine = "PetrolEngine",
     Parachute = "Parachute",
     Lidar = "Lidar"
 }
 
-export interface VehicleFeatures {
+export interface VehicleDescription {
     name: string,
     protocol_id: string,
     online: boolean,

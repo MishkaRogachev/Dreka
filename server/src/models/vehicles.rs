@@ -21,7 +21,7 @@ pub enum VehicleFeatures {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
-pub struct Vehicle {
+pub struct VehicleDescription {
     pub name: String,
     pub protocol_id: String,
     pub online: bool,

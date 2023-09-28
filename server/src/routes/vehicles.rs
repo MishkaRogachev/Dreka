@@ -1,12 +1,22 @@
-use crate::{db::persistence, models::vehicles::Vehicle};
+use crate::{db::persistence, models::vehicles::VehicleDescription};
 
-use actix_web::{get, web, Responder, HttpResponse};
+use actix_web::{get, post, web, Responder, HttpResponse};
+use uuid::Uuid;
 
 #[get("/vehicles")]
-pub async fn list_vehicles(data: web::Data<persistence::Persistence>) -> impl Responder {
-    let response = data.read_all::<Vehicle>("vehicles").await;
+pub async fn list_vehicles(persistence: web::Data<persistence::Persistence>) -> impl Responder {
+    let response = persistence.read_all::<VehicleDescription>("vehicles").await;
     match response {
         Ok(vehicles) => return HttpResponse::Ok().json(vehicles),
-        Err(err) => HttpResponse::InternalServerError().json(err),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
+#[post("/vehicles/new")]
+pub async fn add_vehicle(persistence: web::Data<persistence::Persistence>, new_vehicle: web::Json<VehicleDescription>) -> impl Responder {
+    let result = persistence.create("vehicles", &Uuid::new_v4().to_string(), &new_vehicle.into_inner()).await;
+    match result {
+        Ok(vehicle) => HttpResponse::Ok().json(vehicle),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

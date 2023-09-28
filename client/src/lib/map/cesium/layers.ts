@@ -1,6 +1,6 @@
-import type { ImageryLayer, MapLayers } from '$lib/interfaces/map'
+import type { ImageryLayer, MapLayers } from '$lib/interfaces/map';
 
-import * as Cesium from 'cesium'
+import * as Cesium from 'cesium';
 
 const defaultLayers = [{
     name: "ArcGIS World Imagery",

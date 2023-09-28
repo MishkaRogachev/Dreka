@@ -30,7 +30,10 @@ async fn test_crud_operations() {
     };
 
     let created = db.create("test_users", "0x123", &john).await;
-    assert!(created.is_ok());
+
+    if let Err(err) = created {
+        panic!("Create error: {}", err)
+    }
     assert_eq!(john, created.unwrap());
 
     let edit_route = Permission {
@@ -39,7 +42,9 @@ async fn test_crud_operations() {
     };
 
     let updated = db.update("test_users", "0x123", &edit_route).await;
-    assert!(updated.is_ok());
+    if let Err(err) = updated {
+        panic!("Update error: {}", err)
+    }
     assert_eq!(edit_route, updated.unwrap());
 
     let john_db = db.read::<User>("test_users", "0x123").await;
