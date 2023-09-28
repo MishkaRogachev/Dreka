@@ -3,7 +3,7 @@ mod models;
 mod routes;
 
 pub async fn start() -> std::io::Result<()> {
-    println!("Starting Dreka server");
+    println!("Starting Brygge server");
 
     let persistence = db::persistence::Persistence::new().await
         .expect("Error establishing a database connection");

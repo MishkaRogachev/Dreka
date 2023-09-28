@@ -9,7 +9,7 @@ async fn ping() -> impl Responder {
 }
 
 pub async fn serve(persistence: persistence::Persistence) -> std::io::Result<()> {
-    HttpServer::new(move || {
+    let result = HttpServer::new(move || {
         let cors = Cors::default().allow_any_origin().send_wildcard();
 
         App::new()
@@ -17,5 +17,7 @@ pub async fn serve(persistence: persistence::Persistence) -> std::io::Result<()>
             .service(ping)
             .service(super::vehicles::list_vehicles)
             .app_data(Data::new(persistence.clone()))
-    }).bind(("127.0.0.1", 45486))?.run().await
+    }).bind(("127.0.0.1", 45486))?.run();
+
+    return result.await;
 }
