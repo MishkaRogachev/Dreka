@@ -5,9 +5,9 @@ use ts_rs::TS;
 #[ts(export)]
 pub enum VehicleType {
     Unknown,
-    Plane,
+    FixedWing,
     Vtol,
-    Heli,
+    RotaryWing,
     Copter
 }
 

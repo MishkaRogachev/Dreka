@@ -1,8 +1,8 @@
 export enum VehicleType {
     Unknown = "Unknown",
-    Plane = "Plane",
+    FixedWing = "FixedWing",
     Vtol = "Vtol",
-    Heli = "Heli",
+    RotaryWing = "RotaryWing",
     Copter = "Copter"
 }
 

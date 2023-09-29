@@ -82,6 +82,6 @@ function positionToMargin() {
      bottom_cropped={bottom_cropped}
      let:toggle on:click={toggle}/>
     <div slot="content" id="popup" class={opacity ? "pane" : "frame"} style={marginStyle}>
-        <slot></slot>
+        <slot/>
     </div>
 </Overlay>

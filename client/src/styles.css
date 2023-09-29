@@ -55,12 +55,8 @@ button {
     transition-duration: 0.2s;
 }
 
-button:hover {
+button:hover:not([disabled]) {
     background: rgba(42, 42, 42, 0.85);
-}
-
-button:disabled {
-    background: rgba(86, 86, 86, 0.85);
 }
 
 button:focus {
@@ -136,6 +132,8 @@ input[type=checkbox]:focus {
     align-items: center;
     font-size: 12px;
     border-radius: 5px;
+    overflow: scroll;
+    overflow-x: hidden;
 }
 
 .pane {
@@ -144,8 +142,6 @@ input[type=checkbox]:focus {
 
 .frame {
     background-color: rgba(0, 0, 0, 1.00);
-    overflow: scroll;
-    overflow-x: hidden;
 }
 
 .frame::-webkit-scrollbar-track {

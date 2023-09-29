@@ -56,13 +56,13 @@ function mouseleave() { dispatch('mouseleave', {}); }
 </script>
 
 <style>
-.button-danger:active {
+.button-danger:active:not([disabled]) {
     background: rgba(144, 11, 6, 0.85);
 }
-.button-warning:active {
+.button-warning:active:not([disabled]) {
     background: rgba(144, 89, 6, 0.85);
 }
-.button-normal:active {
+.button-normal:active:not([disabled]) {
     background: rgba(6, 144, 130, 0.85);
 }
 
@@ -86,32 +86,32 @@ function mouseleave() { dispatch('mouseleave', {}); }
     border: 1px solid rgba(0, 218, 223, 1.0);
 }
 
-#button-txt {
+.button-txt {
     display: inline-block;
     width: 100%;
     text-align: center;
 }
-#button-txt-icon {
+.button-txt-icon {
     display: inline-block;
     width: 80%;
     text-align: center;
 }
-#btnIcon {
-    display: block;
+#btn-icon {
     margin-left: auto;
     margin-right: auto;
-    width: 50%;
+    display: block !important;
 }
 </style>
 
 <button class={getButtonClass(flat, left_cropped, right_cropped, top_cropped, bottom_cropped, type)} disabled={disabled} style={style}
     on:click={click} on:mousedown={mousedown} on:mouseup={mouseup} on:mouseleave={mouseleave}>
     {#if icon !== ""}
-    <img id={text === "" ? "btnIcon" : ""} class={iconClass} src={icon} alt="-"/>
+    <img id={text === "" ? "btn-icon" : ""} class={iconClass} src={icon} alt="-"/>
     {/if}
 
     {#if text !== ""}
-    <div id={icon !== "" ? "button-txt-icon" : "button-txt"}><b>{text}</b></div>
+    <div class={icon !== "" ? "button-txt-icon" : "button-txt"} style={disabled ? "color: rgb(59, 55, 55);" : ""}><b>{text}</b></div>
     {/if}
+    <slot/>
 </button>
 

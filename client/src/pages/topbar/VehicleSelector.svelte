@@ -2,34 +2,39 @@
 import Button from "$components/controls/Button.svelte"
 import OverlayButton from "$components/controls/OverlayButton.svelte";
 import Led from "$components/controls/Led.svelte";
+import VehicleSelectorItem from "$pages/topbar/VehicleSelectorItem.svelte";
 
+import { isServerOnline } from '$stores/app';
 import { availableVehicles, selectedVehicle, addNewVehicle } from "$stores/vehicles";
 
-import plusIcon from "$assets/svg/plus.svg";
+import configureIcon from "$assets/svg/configure.svg"
 
 let overlay: any
 
 </script>
+
 <Button
-    icon={plusIcon}
+    icon={configureIcon}
     right_cropped={true}
     flat={true}
-    on:click={addNewVehicle}
+    disabled={!$selectedVehicle}
 />
-
 <OverlayButton
     bind:this={overlay}
     style="width: 216px; height: 24px"
     left_cropped={true}
-    disabled={$availableVehicles.length === 0}
-    text={$selectedVehicle ? $selectedVehicle.name : "No vehicle selected"}
-    flat={true}
-    opacity={false}>
+    text={$selectedVehicle ? $selectedVehicle.name : "No vehicles"}
+    flat={true}>
     <div style="width:208px; max-height:256px">
         {#each $availableVehicles as vehicle}
-            <Button style="width:100%" flat={true} selected={vehicle == $selectedVehicle} text={vehicle.name}
-                on:click={() => { selectedVehicle.set(vehicle); overlay.close() }} />
+            <VehicleSelectorItem vehicle={vehicle} on:activate={() => { selectedVehicle.set(vehicle); overlay.close() }} />
         {/each}
+        <Button
+            style="width:100%"
+            text="Add new vehicle"
+            disabled={!$isServerOnline}
+        on:click={() => { addNewVehicle(); overlay.close() }}
+        />
     </div>
 </OverlayButton>
 

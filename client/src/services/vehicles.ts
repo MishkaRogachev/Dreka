@@ -13,7 +13,6 @@ export class VehiclesService {
     }
 
     static async addVehicle(vehicle: VehicleDescription): Promise<VehicleDescription | null> {
-        console.log(JSON.stringify(vehicle))
         const json = await send_request("/vehicles/new", {
             method: "POST",
             body: JSON.stringify(vehicle),
