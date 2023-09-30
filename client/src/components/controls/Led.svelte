@@ -23,7 +23,7 @@ export let state: string = "off";
 
 .off {
     box-shadow: 0 0 0px 0px black;
-    background-color: lightgray;
+    background-color: rgb(88, 88, 88)
 }
 
 </style>

@@ -5,6 +5,7 @@ use ts_rs::TS;
 #[ts(export)]
 pub enum VehicleType {
     Unknown,
+    Auto,
     FixedWing,
     Vtol,
     RotaryWing,

@@ -69,18 +69,20 @@ function positionToMargin() {
     style="margin: 0px"
     bind:isOpen={isOpen}>
     <Button
-     slot="parent"
-     flat={flat}
-     disabled={disabled}
-     selected={isOpen}
-     style={style}
-     text={text}
-     icon={icon}
-     left_cropped={left_cropped}
-     right_cropped={right_cropped}
-     top_cropped={top_cropped}
-     bottom_cropped={bottom_cropped}
-     let:toggle on:click={toggle}/>
+        slot="parent"
+        flat={flat}
+        disabled={disabled}
+        selected={isOpen}
+        style={style}
+        text={text}
+        icon={icon}
+        left_cropped={left_cropped}
+        right_cropped={right_cropped}
+        top_cropped={top_cropped}
+        bottom_cropped={bottom_cropped}
+        let:toggle on:click={toggle}>
+        <slot name="decoration" slot="decoration" />
+    </Button>
     <div slot="content" id="popup" class={opacity ? "pane" : "frame"} style={marginStyle}>
         <slot/>
     </div>

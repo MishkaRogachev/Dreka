@@ -24,7 +24,7 @@ export async function addNewVehicle() {
         name: "Vehicle " + (get(availableVehicles).length + 1),
         protocol_id: "",
         online: false,
-        vehicle_type: VehicleType.FixedWing,
+        vehicle_type: VehicleType.Auto,
         features: []
     });
     selectedVehicle.set(vehicle);

@@ -46,6 +46,21 @@ function getButtonClass(flat: boolean, left_cropped: boolean, right_cropped: boo
     return arr.join(" ");
 }
 
+function getTextStyle(disabled: boolean, selected: boolean, noIcon: boolean): string {
+    let style = ""
+    if (disabled) {
+        style += "color: rgb(88, 88, 88);"
+    }
+    else if (selected) {
+        style += "color: rgb(0, 218, 223);"
+    }
+
+    if (noIcon) {
+        style += "margin-left: auto; margin-right: auto;"
+    }
+    return style
+}
+
 const dispatch = createEventDispatcher()
 
 function click() { dispatch('click', {}); }
@@ -86,32 +101,25 @@ function mouseleave() { dispatch('mouseleave', {}); }
     border: 1px solid rgba(0, 218, 223, 1.0);
 }
 
-.button-txt {
-    display: inline-block;
-    width: 100%;
-    text-align: center;
+#content {
+    display: flex;
+    flex-direction: row;
+    justify-content:space-between;
+    align-items: center;
 }
-.button-txt-icon {
-    display: inline-block;
-    width: 80%;
-    text-align: center;
-}
-#btn-icon {
-    margin-left: auto;
-    margin-right: auto;
-    display: block !important;
-}
+
 </style>
 
 <button class={getButtonClass(flat, left_cropped, right_cropped, top_cropped, bottom_cropped, type)} disabled={disabled} style={style}
     on:click={click} on:mousedown={mousedown} on:mouseup={mouseup} on:mouseleave={mouseleave}>
-    {#if icon !== ""}
-    <img id={text === "" ? "btn-icon" : ""} class={iconClass} src={icon} alt="-"/>
-    {/if}
-
-    {#if text !== ""}
-    <div class={icon !== "" ? "button-txt-icon" : "button-txt"} style={disabled ? "color: rgb(59, 55, 55);" : ""}><b>{text}</b></div>
-    {/if}
-    <slot/>
+    <div id="content">
+        {#if icon !== ""}
+        <img class={iconClass} style={text === "" ? "margin-left: auto; margin-right: auto;" : ""} src={icon} alt="-" />
+        {/if}
+        {#if text !== ""}
+        <b style={getTextStyle(disabled, selected, icon === "")}>{text}</b>
+        {/if}
+        <slot name="decoration" />
+    </div>
 </button>
 
