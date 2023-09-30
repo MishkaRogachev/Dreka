@@ -1,5 +1,6 @@
 use crate::db::persistence;
 
+use std::sync::Arc;
 use actix_cors::Cors;
 use actix_web::{get, App, HttpServer, web::Data, Responder, HttpResponse};
 
@@ -8,7 +9,7 @@ async fn ping() -> impl Responder {
     HttpResponse::Ok().json("ok")
 }
 
-pub async fn serve(persistence: persistence::Persistence) -> std::io::Result<()> {
+pub async fn serve(persistence: Arc<persistence::Persistence>) -> std::io::Result<()> {
     let result = HttpServer::new(move || {
         let cors = Cors::permissive();
 
