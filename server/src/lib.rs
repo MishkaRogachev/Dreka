@@ -26,5 +26,5 @@ pub async fn start() -> std::io::Result<()> {
         _ = rest => {}
         _ = signal::ctrl_c() => {}
     }
-    return Ok(());
+    Ok(())
 }

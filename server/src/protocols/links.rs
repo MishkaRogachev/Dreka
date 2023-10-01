@@ -18,7 +18,8 @@ pub async fn check_and_create_links(persistence: &Arc<persistence::Persistence>)
         return Ok(());
     }
 
-    create_link(persistence, "default_udp_mavlink", &links::LinkDescription {
+    create_link(persistence, &links::LinkDescription {
+        id: None,
         protocol: links::LinkProtocol::Mavlink {
             link_type: links::LinkType::Udp {
                 address: String::from("127.0.0.1"),
@@ -29,7 +30,8 @@ pub async fn check_and_create_links(persistence: &Arc<persistence::Persistence>)
         autoconnect: false
     }).await?;
 
-    create_link(persistence, "default_tcp_mavlink", &links::LinkDescription {
+    create_link(persistence, &links::LinkDescription {
+        id: None,
         protocol: links::LinkProtocol::Mavlink {
             link_type: links::LinkType::Tcp {
                 address: String::from("127.0.0.1"),
@@ -40,16 +42,16 @@ pub async fn check_and_create_links(persistence: &Arc<persistence::Persistence>)
         autoconnect: true
     }).await?;
 
-    return Ok(());
+    Ok(())
 }
 
-async fn create_link(persistence: &Arc<persistence::Persistence>, id: &str, link: &links::LinkDescription) -> std::io::Result<()> {
-    let response = persistence.create("links", id, link).await;
+async fn create_link(persistence: &Arc<persistence::Persistence>, link: &links::LinkDescription) -> std::io::Result<()> {
+    let response = persistence.create("links", link).await;
     if let Err(err) = response {
         return Err(Error::new(ErrorKind::Other, err.to_string()));
     }
 
     println!("create_link: {:?}", link);
 
-    return Ok(());
+    Ok(())
 }

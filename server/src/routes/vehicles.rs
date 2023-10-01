@@ -15,7 +15,7 @@ pub async fn list_vehicles(persistence: web::Data<Arc<persistence::Persistence>>
 
 #[post("/vehicles/new")]
 pub async fn add_vehicle(persistence: web::Data<Arc<persistence::Persistence>>, new_vehicle: web::Json<VehicleDescription>) -> impl Responder {
-    let result = persistence.create("vehicles", &Uuid::new_v4().to_string(), &new_vehicle.into_inner()).await;
+    let result = persistence.create("vehicles", &new_vehicle.into_inner()).await;
     match result {
         Ok(vehicle) => HttpResponse::Ok().json(vehicle),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),

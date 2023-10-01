@@ -21,6 +21,7 @@ export enum VehicleFeatures {
 }
 
 export interface VehicleDescription {
+    id: [string, string] | null,
     name: string,
     protocol_id: string,
     online: boolean,
