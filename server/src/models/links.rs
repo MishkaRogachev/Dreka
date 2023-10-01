@@ -26,6 +26,5 @@ pub enum LinkProtocol {
 #[ts(export)]
 pub struct LinkDescription {
     pub protocol: LinkProtocol,
-    pub enabed: bool,
     pub autoconnect: bool
 }
