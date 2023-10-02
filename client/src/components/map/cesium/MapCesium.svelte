@@ -76,7 +76,7 @@ onDestroy(async () => { clearInterval(interval); ready = false; });
 </script>
 
 <div id="cesiumContainer" style={ready && visible ? "" : "display: none"}>
-{#if ready}
+{#if ready && visible}
     <MapControl viewport={viewport} interaction={interaction} ruler={ruler} graticule={graticule} layers={layers}/>
 {/if}
 </div>
