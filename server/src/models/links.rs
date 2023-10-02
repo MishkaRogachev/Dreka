@@ -25,16 +25,16 @@ pub enum LinkProtocol {
 #[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
 pub struct LinkDescription {
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(skip)]
     pub id: Option<surrealdb::sql::Thing>,
     pub protocol: LinkProtocol,
-    pub autoconnect: bool
+    pub enabled: bool
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
 pub struct LinkStatus {
-    #[ts(skip)]
-    pub id: surrealdb::sql::Thing,
+    pub id: String,
     pub is_connected: bool,
 }

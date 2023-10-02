@@ -2,7 +2,6 @@ use crate::{db::persistence, models::vehicles::VehicleDescription};
 
 use std::sync::Arc;
 use actix_web::{get, post, web, Responder, HttpResponse};
-use uuid::Uuid;
 
 #[get("/vehicles")]
 pub async fn list_vehicles(persistence: web::Data<Arc<persistence::Persistence>>) -> impl Responder {

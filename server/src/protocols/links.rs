@@ -27,7 +27,7 @@ pub async fn check_and_create_links(persistence: &Arc<persistence::Persistence>)
             },
             protocol_version: links::ProtocolVersion::MavlinkV2
         },
-        autoconnect: false
+        enabled: false
     }).await?;
 
     create_link(persistence, &links::LinkDescription {
@@ -39,7 +39,7 @@ pub async fn check_and_create_links(persistence: &Arc<persistence::Persistence>)
             },
             protocol_version: links::ProtocolVersion::MavlinkV2
         },
-        autoconnect: true
+        enabled: true
     }).await?;
 
     Ok(())

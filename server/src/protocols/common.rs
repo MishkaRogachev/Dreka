@@ -1,8 +1,11 @@
+use async_trait::async_trait;
 
-
+#[async_trait]
 pub trait Connection {
-    fn connect(&self) -> std::io::Result<()>;
-    fn disconnect(&self) -> std::io::Result<()>;
+    async fn connect(&mut self) -> std::io::Result<()>;
+    async fn disconnect(&mut self) -> std::io::Result<()>;
+
+    fn is_connected(&self) -> bool;
 
     // TODO: getter for connection statistics
 }
