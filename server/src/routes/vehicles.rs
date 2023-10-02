@@ -12,7 +12,7 @@ pub async fn list_vehicles(persistence: web::Data<Arc<persistence::Persistence>>
     }
 }
 
-#[post("/vehicles/new")]
+#[post("/vehicles/create")]
 pub async fn add_vehicle(persistence: web::Data<Arc<persistence::Persistence>>, new_vehicle: web::Json<VehicleDescription>) -> impl Responder {
     let result = persistence.create("vehicles", &new_vehicle.into_inner()).await;
     match result {

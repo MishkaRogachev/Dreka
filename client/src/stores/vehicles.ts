@@ -21,6 +21,7 @@ export const selectedVehicle: Writable<VehicleDescription | null> = writable(nul
 
 export async function addNewVehicle() {
     let vehicle = await VehiclesService.addVehicle({
+        id: null,
         name: "Vehicle " + (get(availableVehicles).length + 1),
         protocol_id: "",
         online: false,

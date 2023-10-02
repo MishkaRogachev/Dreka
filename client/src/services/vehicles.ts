@@ -13,7 +13,9 @@ export class VehiclesService {
     }
 
     static async addVehicle(vehicle: VehicleDescription): Promise<VehicleDescription | null> {
-        const json = await send_request("/vehicles/new", {
+        let request = !vehicle.id ? "/vehicles/create" : "/vehicles/update"
+
+        const json = await send_request(request, {
             method: "POST",
             body: JSON.stringify(vehicle),
             headers: default_headers

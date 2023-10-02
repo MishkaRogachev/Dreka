@@ -62,7 +62,6 @@ impl crate::protocols::common::Connection for MavlinkConnection {
         let cloned_mav = mav.clone();
         let listening_task = tokio::task::spawn(async move {
             loop {
-                println!("Recv!");
                 match cloned_mav.recv() {
                     Ok((header, msg)) => {
                         println!("Got mavlink message: {:?}:{:?}", &header, &msg);
