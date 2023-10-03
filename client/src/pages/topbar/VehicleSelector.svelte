@@ -4,22 +4,13 @@ import OverlayButton from "$components/controls/OverlayButton.svelte";
 import Led from "$components/controls/Led.svelte";
 import VehicleSelectorItem from "$pages/topbar/VehicleSelectorItem.svelte";
 
-import { isServerOnline } from '$stores/app';
-import { availableVehicles, selectedVehicle, addNewVehicle } from "$stores/vehicles";
+import { availableVehicles, selectedVehicle } from "$stores/vehicles";
 import { iconFromVehicleType } from "$bindings/vehicles";
-
-import configureIcon from "$assets/svg/configure.svg"
 
 let overlay: any
 
 </script>
 
-<!-- <Button
-    icon={configureIcon}
-    right_cropped={true}
-    flat={true}
-    disabled={!$selectedVehicle}
-/> -->
 <OverlayButton
     bind:this={overlay}
     style="width: 216px; height: 24px"
@@ -31,12 +22,6 @@ let overlay: any
         {#each $availableVehicles as vehicle}
             <VehicleSelectorItem vehicle={vehicle} on:activate={() => { selectedVehicle.set(vehicle); overlay.close() }} />
         {/each}
-        <!-- <Button
-            style="width:100%"
-            text="Add new vehicle"
-            disabled={!$isServerOnline}
-        on:click={() => { addNewVehicle(); overlay.close() }}
-        /> -->
     </div>
     <Led slot="decoration" state={$selectedVehicle && $selectedVehicle.online ? "on" : "off"} />
 </OverlayButton>

@@ -27,9 +27,9 @@ function selected(index: number) { dispatch('selected', { index: index }); }
     margin = {24}
     position="bottom-center">
     <div style="width:96px; max-height:256px">
-        {#each items as item, index}
-            <Button style="width:100%" flat={true} disabled={index == selectedIndex} text={item}
-                on:click={() => { selectedIndex = index; selected(selectedIndex); menuComponent.close() }}/>
-        {/each}
+    {#each items as item, index}
+        <Button style="width:100%" flat={true} disabled={index == selectedIndex} text={item}
+            on:click={() => { selectedIndex = index; selected(selectedIndex); menuComponent.close() }}/>
+    {/each}
     </div>
 </OverlayButton>

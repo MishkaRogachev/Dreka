@@ -23,11 +23,11 @@ impl links::LinkType {
     }
 }
 
-impl links::ProtocolVersion {
+impl links::MavlinkProtocolVersion {
     pub fn to_mavlink(&self) -> mavlink::MavlinkVersion {
         match self {
-            links::ProtocolVersion::MavlinkV1 => return mavlink::MavlinkVersion::V1,
-            links::ProtocolVersion::MavlinkV2 => return mavlink::MavlinkVersion::V2,
+            links::MavlinkProtocolVersion::MavlinkV1 => return mavlink::MavlinkVersion::V1,
+            links::MavlinkProtocolVersion::MavlinkV2 => return mavlink::MavlinkVersion::V2,
         }
     }
 }
@@ -39,7 +39,7 @@ pub struct MavlinkConnection {
 }
 
 impl MavlinkConnection {
-    pub fn new(link_type: &links::LinkType, protocol: &links::ProtocolVersion) -> MavlinkConnection {
+    pub fn new(link_type: &links::LinkType, protocol: &links::MavlinkProtocolVersion) -> MavlinkConnection {
         MavlinkConnection { mav_address: link_type.to_mavlink(), mav_version: protocol.to_mavlink(), token: None }
     }
 }

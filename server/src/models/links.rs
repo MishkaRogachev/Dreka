@@ -11,7 +11,7 @@ pub enum LinkType {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
-pub enum ProtocolVersion {
+pub enum MavlinkProtocolVersion {
     MavlinkV1,
     MavlinkV2
 }
@@ -19,7 +19,7 @@ pub enum ProtocolVersion {
 #[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
 pub enum LinkProtocol {
-    Mavlink { link_type: LinkType, protocol_version: ProtocolVersion },
+    Mavlink { link_type: LinkType, protocol_version: MavlinkProtocolVersion },
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
@@ -29,7 +29,8 @@ pub struct LinkDescription {
     #[ts(skip)]
     pub id: Option<surrealdb::sql::Thing>,
     pub protocol: LinkProtocol,
-    pub enabled: bool
+    pub enabled: bool,
+    pub name: String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, TS)]

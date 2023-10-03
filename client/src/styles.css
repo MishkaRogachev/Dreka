@@ -125,7 +125,8 @@ input[type=checkbox]:focus {
 }
 
 .pane,
-.frame {
+.frame,
+.panel {
     min-height: 24px;
     color: white;
     text-align: center;
@@ -144,17 +145,27 @@ input[type=checkbox]:focus {
     background-color: rgba(0, 0, 0, 1.00);
 }
 
-.frame::-webkit-scrollbar-track {
+.panel {
+    background-color: rgb(26, 24, 24);
+}
+
+.frame::-webkit-scrollbar-track,
+.pane::-webkit-scrollbar-track,
+.panel::-webkit-scrollbar-track {
     border-radius: 10px;
     background-color: transparent;
 }
 
-.frame::-webkit-scrollbar {
+.frame::-webkit-scrollbar,
+.pane::-webkit-scrollbar,
+.panel::-webkit-scrollbar {
     width: 6px;
     background-color: transparent;
 }
 
-.frame::-webkit-scrollbar-thumb {
+.frame::-webkit-scrollbar-thumb,
+.pane::-webkit-scrollbar-thumb,
+.panel::-webkit-scrollbar-thumb {
     border-radius: 3px;
     background-color: rgba(0, 144, 130, 0.85);
 }

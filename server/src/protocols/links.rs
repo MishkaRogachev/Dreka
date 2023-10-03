@@ -20,24 +20,26 @@ pub async fn check_and_create_links(persistence: &Arc<persistence::Persistence>)
 
     create_link(persistence, &links::LinkDescription {
         id: None,
+        name: "Default Mavlink UDP".into(),
         protocol: links::LinkProtocol::Mavlink {
             link_type: links::LinkType::Udp {
                 address: String::from("127.0.0.1"),
                 port: 14540
             },
-            protocol_version: links::ProtocolVersion::MavlinkV2
+            protocol_version: links::MavlinkProtocolVersion::MavlinkV2
         },
         enabled: false
     }).await?;
 
     create_link(persistence, &links::LinkDescription {
         id: None,
+        name: "Default Mavlink TCP".into(),
         protocol: links::LinkProtocol::Mavlink {
             link_type: links::LinkType::Tcp {
                 address: String::from("127.0.0.1"),
                 port: 5760
             },
-            protocol_version: links::ProtocolVersion::MavlinkV2
+            protocol_version: links::MavlinkProtocolVersion::MavlinkV2
         },
         enabled: true
     }).await?;

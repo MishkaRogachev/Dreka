@@ -47,7 +47,7 @@ function getButtonClass(flat: boolean, left_cropped: boolean, right_cropped: boo
 }
 
 function getTextStyle(disabled: boolean, selected: boolean, noIcon: boolean): string {
-    let style = ""
+    let style = "padding-left: 8px; padding-right: 8px;"
     if (disabled) {
         style += "color: rgb(88, 88, 88);"
     }

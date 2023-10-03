@@ -4,17 +4,21 @@ export type LinkType =
     { "Tcp": { address: string, port: number, } } |
     { "Serial": { port: string, baud_rate: number, } };
 
-export type ProtocolVersion = "MavlinkV1" | "MavlinkV2";
+export enum MavlinkProtocolVersion {
+    MavlinkV1 = "MavlinkV1",
+    MavlinkV2 = "MavlinkV2",
+}
 
 export type LinkProtocol = {
-    "Mavlink": {
+    Mavlink: {
         link_type: LinkType,
-        protocol_version: ProtocolVersion,
+        protocol_version: MavlinkProtocolVersion,
     }
 };
 
 export interface LinkDescription {
     id: [string, string] | null,
     protocol: LinkProtocol,
-    enabled: boolean
+    enabled: boolean,
+    name: String
 };
