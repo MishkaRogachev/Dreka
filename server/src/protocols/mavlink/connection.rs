@@ -5,7 +5,7 @@ use mavlink;
 
 use crate::models::communication;
 
-const MAVLINK_POLL_INTERVAL: time::Duration = time::Duration::from_millis(100);
+const MAVLINK_POLL_INTERVAL: time::Duration = time::Duration::from_millis(5);
 
 impl communication::LinkType {
     pub fn to_mavlink(&self) -> String {
@@ -47,9 +47,11 @@ impl MavlinkConnection {
 #[async_trait::async_trait]
 impl crate::protocols::common::Connection for MavlinkConnection {
     async fn connect(&mut self) -> std::io::Result<()> {
-        if self.token.is_some() {
-            println!("MAVLink {:?}:{:?} is already connected", &self.mav_address, &self.mav_version);
-            return Ok(());
+        if let Some(token) = &self.token {
+            if !token.is_cancelled() {
+                println!("MAVLink {:?}:{:?} is already connected", &self.mav_address, &self.mav_version);
+                return Ok(());
+            }
         }
 
         println!("MAVLink connect to {:?}:{:?}", &self.mav_address, &self.mav_version);
@@ -59,49 +61,60 @@ impl crate::protocols::common::Connection for MavlinkConnection {
 
         let mav = Arc::new(mav_connection);
 
-        let cloned_mav = mav.clone();
-        let listening_task = tokio::task::spawn(async move {
-            loop {
-                match cloned_mav.recv() {
-                    Ok((header, msg)) => {
-                        println!("Got mavlink message: {:?}:{:?}", &header, &msg);
-                    },
-                    Err(err) => {
-                        println!("Got mavlink error: {:?}", &err);
-                    }
-                }
-                tokio::time::sleep(MAVLINK_POLL_INTERVAL).await;
-            }
-        });
-
         let token = CancellationToken::new();
         let cloned_token = token.clone();
         self.token = Some(token);
 
-        tokio::select! {
-            _ = listening_task => {}
-            _ = cloned_token.cancelled() => {}
-        };
+        let cloned_mav = mav.clone();
+        tokio::task::spawn(async move { loop {
+            match cloned_mav.recv() {
+                Ok((header, msg)) => {
+                    println!("Got mavlink message: {:?}:{:?}", &header, &msg);
+                },
+                Err(mavlink::error::MessageReadError::Io(err)) => {
+                    if let std::io::ErrorKind::WouldBlock = err.kind() {
+                        //no messages currently available to receive -- wait a while
+                        tokio::time::sleep(MAVLINK_POLL_INTERVAL).await;
+                        continue;
+                    } else {
+                        println!("Got mavlink error: {:?}", &err);
+                        cloned_token.cancel();
+                        break;
+                    }
+                },
+                _ => {}
+            }
+
+            if cloned_token.is_cancelled() {
+                return;
+            }
+        }});
 
         Ok(())
     }
 
     async fn disconnect(&mut self) -> std::io::Result<()> {
-        match &self.token {
-            Some(token) => {
+        if let Some(token) = &self.token {
+            if !token.is_cancelled() {
                 println!("MAVLink disconnect from {:?}:{:?}", &self.mav_address, &self.mav_version);
                 token.cancel();
                 self.token = None;
-                Ok(())
-            },
-            None => {
-                println!("MAVLink {:?}:{:?} is already disconnected", &self.mav_address, &self.mav_version);
-                Ok(())
-            },
+                return Ok(())
+            }
         }
+
+        println!("MAVLink {:?}:{:?} is already connected", &self.mav_address, &self.mav_version);
+        return Ok(());
     }
 
-    fn is_connected(&self) -> bool { self.token.is_some() }
+    fn is_connected(&self) -> bool {
+        if let Some(token) = &self.token {
+            if !token.is_cancelled() {
+                return true;
+            }
+        }
+        false
+    }
 }
 
 impl Drop for MavlinkConnection {

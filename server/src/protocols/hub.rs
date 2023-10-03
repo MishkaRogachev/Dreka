@@ -24,8 +24,6 @@ pub async fn start(persistence: Arc<persistence::Persistence>) {
     }
 }
 
-// TODO: mutable thread-safe connections map
-
 async fn refresh_connections(persistence: &Arc<persistence::Persistence>, link_connections: &mut LinkConnections) {
     let response = persistence.read_all::<communication::LinkDescription>("links").await;
     match response {
