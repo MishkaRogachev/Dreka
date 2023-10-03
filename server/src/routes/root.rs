@@ -18,10 +18,11 @@ pub async fn serve(persistence: Arc<persistence::Persistence>, address: &SocketA
             .service(ping)
             .service(super::vehicles::list_vehicles)
             .service(super::vehicles::add_vehicle)
-            .service(super::links::list_descriptions)
-            .service(super::links::add_description)
-            .service(super::links::update_description)
-            .service(super::links::remove_description)
+            .service(super::communication::list_descriptions)
+            .service(super::communication::add_description)
+            .service(super::communication::update_description)
+            .service(super::communication::remove_description)
+            .service(super::communication::get_status)
             .app_data(Data::new(persistence.clone()))
     }).bind(address)?.run();
 

@@ -26,7 +26,7 @@ impl Persistence {
         Ok(records.pop().unwrap())
     }
 
-    pub async fn read<D>(&self, table: &str, id: surrealdb::sql::Id) -> Result<Option<D>, surrealdb::Error>
+    pub async fn read<D>(&self, table: &str, id: surrealdb::sql::Thing) -> Result<Option<D>, surrealdb::Error>
     where D: serde::ser::Serialize + for<'de> serde::Deserialize<'de> {
         let record: Option<D> = self.db.select((table, id)).await?;
         Ok(record)
@@ -39,7 +39,7 @@ impl Persistence {
         Ok(records)
     }
 
-    pub async fn remove<D>(&self, table: &str, id: surrealdb::sql::Id) -> Result<D, surrealdb::Error>
+    pub async fn remove<D>(&self, table: &str, id: surrealdb::sql::Thing) -> Result<D, surrealdb::Error>
     where D: serde::ser::Serialize + for<'de> serde::Deserialize<'de> {
         let record: Option<D> = self.db.delete((table, id)).await?;
         Ok(record.unwrap())

@@ -1,9 +1,10 @@
+use std::str::FromStr;
 use std::sync::Arc;
 use std::collections::HashMap;
 use tokio::time;
 
 use crate::db::persistence;
-use crate::models::links;
+use crate::models::communication;
 use crate::protocols::mavlink;
 use super::common;
 
@@ -26,7 +27,7 @@ pub async fn start(persistence: Arc<persistence::Persistence>) {
 // TODO: mutable thread-safe connections map
 
 async fn refresh_connections(persistence: &Arc<persistence::Persistence>, link_connections: &mut LinkConnections) {
-    let response = persistence.read_all::<links::LinkDescription>("links").await;
+    let response = persistence.read_all::<communication::LinkDescription>("links").await;
     match response {
         Ok(links) => {
             let mut link_ids: Vec<String> = Vec::new();
@@ -52,11 +53,21 @@ async fn refresh_connections(persistence: &Arc<persistence::Persistence>, link_c
                 }
             }
 
-            // Disconnect removed links
             for (link_id, connection) in link_connections.iter_mut() {
+                // Disconnect removed links
                 if !link_ids.contains(&link_id) {
                     if let Err(err) = connection.disconnect().await {
                         println!("Disconnect (on remove) error: {}", err.to_string());
+                    }
+                // Update link status
+                } else {
+                    let status = communication::LinkStatus {
+                        id: Some(surrealdb::sql::Thing::from_str(link_id).unwrap()),
+                        is_connected: connection.is_connected()
+                    };
+                    let result = persistence.update("links", &status).await;
+                    if let Err(err) = result {
+                        println!("Save connection status error: {}", err.to_string());
                     }
                 }
             }
@@ -68,9 +79,9 @@ async fn refresh_connections(persistence: &Arc<persistence::Persistence>, link_c
     }
 }
 
-fn create_connection(link: &links::LinkDescription) -> LickConnection {
+fn create_connection(link: &communication::LinkDescription) -> LickConnection {
     match &link.protocol {
-        links::LinkProtocol::Mavlink { link_type, protocol_version } => {
+        communication::LinkProtocol::Mavlink { link_type, protocol_version } => {
             Box::new(mavlink::connection::MavlinkConnection::new(link_type, protocol_version))
         },
         // NOTE: other protocols should be handled here

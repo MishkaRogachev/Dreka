@@ -36,6 +36,8 @@ pub struct LinkDescription {
 #[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
 pub struct LinkStatus {
-    pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(skip)]
+    pub id: Option<surrealdb::sql::Thing>,
     pub is_connected: bool,
 }

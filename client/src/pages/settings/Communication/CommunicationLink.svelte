@@ -3,12 +3,13 @@ import Button from "$components/controls/Button.svelte";
 import Label from "$components/controls/Label.svelte";
 import Led from "$components/controls/Led.svelte";
 
-import { type LinkDescription, type LinkProtocol, MavlinkProtocolVersion } from "$bindings/links";
-
-import connectIcon from "$assets/svg/connect.svg"
-import disconnectIcon from "$assets/svg/disconnect.svg"
+import { type LinkDescription, type LinkProtocol, type LinkStatus, MavlinkProtocolVersion } from "$bindings/communication";
+import { linkStatuses } from "$stores/communication";
 
 export let link: LinkDescription
+
+// @ts-ignore
+let linkStatus: LinkStatus = $linkStatuses[link.id.id.String]
 
 function getProtocolName(protocol: LinkProtocol): string {
     let name: string = "";
@@ -41,8 +42,7 @@ function getProtocolName(protocol: LinkProtocol): string {
 </style>
 
 <div id="link" class="frame">
-    <Led />
-    <!-- Link status -->
+    <Led state={linkStatus && linkStatus.is_connected ? "on" : "off"}/>
     <Label text={link.name} style="width: 256px;"/>
     <Label text={getProtocolName(link.protocol)} style="width: 256px;"/>
     <div>

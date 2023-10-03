@@ -2,7 +2,7 @@
 import Label from "$components/controls/Label.svelte";
 import CommunicationLink from "$pages/settings/Communication/CommunicationLink.svelte";
 
-import { communicationLinks } from "$stores/links";
+import { links } from "$stores/communication";
 </script>
 
 <style>
@@ -19,7 +19,7 @@ import { communicationLinks } from "$stores/links";
 
 <div id="communication" class="panel">
     <Label text="Communication Links" />
-    {#each $communicationLinks as link}
+    {#each $links as link}
         <CommunicationLink link={link}/>
     {/each}
 </div>

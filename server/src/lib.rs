@@ -13,6 +13,7 @@ const DEFAULT_REST_ADDRESS: net::SocketAddr = net::SocketAddr::new(net::IpAddr::
 pub async fn start() -> std::io::Result<()> {
     println!("Starting Brygge server..");
 
+    // TODO: separate temp and persistent databases
     let persistence = Arc::new(db::persistence::Persistence::new().await
         .expect("Error establishing a database connection"));
 

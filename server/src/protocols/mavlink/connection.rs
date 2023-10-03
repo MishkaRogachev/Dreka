@@ -3,31 +3,31 @@ use tokio::time;
 use tokio_util::sync::CancellationToken;
 use mavlink;
 
-use crate::models::links;
+use crate::models::communication;
 
 const MAVLINK_POLL_INTERVAL: time::Duration = time::Duration::from_millis(100);
 
-impl links::LinkType {
+impl communication::LinkType {
     pub fn to_mavlink(&self) -> String {
         match self {
-            links::LinkType::Udp { address, port } => {
+            communication::LinkType::Udp { address, port } => {
                 return format!("udpout:{}:{}", address, port)
             },
-            links::LinkType::Tcp { address, port } => {
+            communication::LinkType::Tcp { address, port } => {
                 return format!("tcpout:{}:{}", address, port)
             },
-            links::LinkType::Serial { port, baud_rate } => {
+            communication::LinkType::Serial { port, baud_rate } => {
                 return format!("serial:{}:{}", port, baud_rate)
             },
         }
     }
 }
 
-impl links::MavlinkProtocolVersion {
+impl communication::MavlinkProtocolVersion {
     pub fn to_mavlink(&self) -> mavlink::MavlinkVersion {
         match self {
-            links::MavlinkProtocolVersion::MavlinkV1 => return mavlink::MavlinkVersion::V1,
-            links::MavlinkProtocolVersion::MavlinkV2 => return mavlink::MavlinkVersion::V2,
+            communication::MavlinkProtocolVersion::MavlinkV1 => return mavlink::MavlinkVersion::V1,
+            communication::MavlinkProtocolVersion::MavlinkV2 => return mavlink::MavlinkVersion::V2,
         }
     }
 }
@@ -39,7 +39,7 @@ pub struct MavlinkConnection {
 }
 
 impl MavlinkConnection {
-    pub fn new(link_type: &links::LinkType, protocol: &links::MavlinkProtocolVersion) -> MavlinkConnection {
+    pub fn new(link_type: &communication::LinkType, protocol: &communication::MavlinkProtocolVersion) -> MavlinkConnection {
         MavlinkConnection { mav_address: link_type.to_mavlink(), mav_version: protocol.to_mavlink(), token: None }
     }
 }

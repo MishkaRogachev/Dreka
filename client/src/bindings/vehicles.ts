@@ -1,3 +1,5 @@
+import { type Idd } from "$bindings/common";
+
 import unknownIcon from "$assets/svg/unknown.svg"
 import autoIcon from "$assets/svg/auto.svg"
 import fixedWingIcon from "$assets/svg/fixed_wing.svg"
@@ -21,10 +23,10 @@ export enum VehicleFeatures {
 }
 
 export interface VehicleDescription {
-    id: [string, string] | null,
+    id: Idd | null,
     name: string,
     protocol_id: string,
-    online: boolean,
+    online: boolean, // TODO: to VehicleStatus
     vehicle_type: VehicleType,
     features: Array<VehicleFeatures>
 }

@@ -1,3 +1,4 @@
+import { type Idd } from "$bindings/common";
 
 export type LinkType =
     { "Udp": { address: string, port: number, } } |
@@ -17,8 +18,13 @@ export type LinkProtocol = {
 };
 
 export interface LinkDescription {
-    id: [string, string] | null,
+    id: Idd | null,
     protocol: LinkProtocol,
     enabled: boolean,
     name: String
 };
+
+export interface LinkStatus {
+    id: Idd,
+    is_connected: boolean,
+}

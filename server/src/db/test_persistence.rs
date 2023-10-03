@@ -41,7 +41,7 @@ async fn test_crud_operations() {
     let updated = updated.unwrap();
     assert_eq!(created, updated);
 
-    let read = db.read::<User>("test_users", created.id.unwrap().id).await;
+    let read = db.read::<User>("test_users", created.id.unwrap()).await;
     if let Err(err) = read {
         panic!("Read error: {}", err)
     }
@@ -49,6 +49,6 @@ async fn test_crud_operations() {
     assert!(read.is_some());
     assert_eq!(updated, read.unwrap());
 
-    let removed = db.remove::<User>("test_users", updated.id.unwrap().id).await;
+    let removed = db.remove::<User>("test_users", updated.id.unwrap()).await;
     assert!(removed.is_ok());
 }

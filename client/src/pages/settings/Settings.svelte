@@ -23,8 +23,7 @@ let selectedPage: number = 0
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 16px;
-    margin-left: 8px;
+    padding: 8px;
 }
 
 #content {
@@ -32,12 +31,11 @@ let selectedPage: number = 0
     width: 75%;
     height: 90%;
     display: flex;
-    align-items: center;
 }
 </style>
 
 <div id="settingsPanel" style={visible ? "" : "display: none"}>
-    <div id="buttons">
+    <div id="buttons" class="panel">
     {#each settingsPages as page, index}
         <Button style="width:100%" selected={index == selectedPage} text={page} on:click={() => { selectedPage = index }}/>
     {/each}

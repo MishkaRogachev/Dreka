@@ -20,7 +20,7 @@ availableVehicles.subscribe((vehicles: Array<VehicleDescription>) => {
 export const selectedVehicle: Writable<VehicleDescription | null> = writable(null)
 
 export async function addNewVehicle() {
-    let vehicle = await VehiclesService.addVehicle({
+    let vehicle = await VehiclesService.saveVehicle({
         id: null,
         name: "Vehicle " + (get(availableVehicles).length + 1),
         protocol_id: "",
