@@ -16,7 +16,7 @@ export type LinkProtocol = {
 };
 
 export interface LinkDescription {
-    id: string | null,
+    id: string,
     protocol: LinkProtocol,
     enabled: boolean,
     name: String

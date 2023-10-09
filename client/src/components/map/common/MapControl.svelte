@@ -76,7 +76,7 @@ onMount(async () => {
     }, 50);
 })
 
-onDestroy(async () => { clearInterval(interval); });
+onDestroy(async () => { clearInterval(interval); })
 
 function resetCompas() { viewport.lookTo(0, -90, 2); }
 function coordsToClipboard() { navigator.clipboard.writeText(latitude + " " + longitude); }

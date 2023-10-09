@@ -11,14 +11,9 @@ export const links = readable(Array<LinkDescription>(), (set) => {
     return () => clearInterval(interval);
 })
 
-export let linkStatuses: Map<String, LinkStatus> = new Map()
-
-links.subscribe((links: Array<LinkDescription>) => {
-    links.forEach(link => {
-        CommunicationService.getLinkStatus(link.id!).then(status => {
-            if (!!status) {
-                linkStatuses.set(status?.id, status);
-            }
-        });
-    });
-})
+export async function getLinkStatus(id: string): Promise<LinkStatus> {
+    return await CommunicationService.getLinkStatus(id) || {
+        id: id,
+        is_connected: false
+    };
+}

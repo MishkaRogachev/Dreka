@@ -1,15 +1,18 @@
 <script lang="ts">
+import { onMount, onDestroy } from 'svelte';
+
 import Button from "$components/controls/Button.svelte";
 import Label from "$components/controls/Label.svelte";
 import Led from "$components/controls/Led.svelte";
 
-import { type LinkDescription, type LinkProtocol, type LinkStatus, MavlinkProtocolVersion } from "$bindings/communication";
-import { linkStatuses } from "$stores/communication";
+import { type LinkDescription, type LinkProtocol, MavlinkProtocolVersion, type LinkStatus } from "$bindings/communication";
+import { getLinkStatus } from "$stores/communication";
 
 export let link: LinkDescription
 
-// @ts-ignore
-$: linkStatus = linkStatuses.get(link.id)
+let status: LinkStatus | null = null
+
+let interval: any
 
 function getProtocolName(protocol: LinkProtocol): string {
     let name: string = "";
@@ -28,6 +31,17 @@ function getProtocolName(protocol: LinkProtocol): string {
     }
     return name
 }
+
+onMount(async () => {
+    interval = setInterval(async () => {
+        status = await getLinkStatus(link.id)
+        console.log(status)
+    }, 250);
+})
+
+
+onDestroy(async () => { clearInterval(interval); });
+
 </script>
 
 <style>
@@ -42,7 +56,7 @@ function getProtocolName(protocol: LinkProtocol): string {
 </style>
 
 <div id="link" class="frame">
-    <Led state={linkStatus && linkStatus.is_connected ? "on" : "off"}/>
+    <Led state={ status && status?.is_connected ? "on" : "off"}/>
     <Label text={link.name} style="width: 256px;"/>
     <Label text={getProtocolName(link.protocol)} style="width: 256px;"/>
     <div>
