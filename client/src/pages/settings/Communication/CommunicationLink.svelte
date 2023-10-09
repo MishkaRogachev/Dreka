@@ -9,7 +9,7 @@ import { linkStatuses } from "$stores/communication";
 export let link: LinkDescription
 
 // @ts-ignore
-let linkStatus: LinkStatus = $linkStatuses[link.id.id.String]
+$: linkStatus = linkStatuses.get(link.id)
 
 function getProtocolName(protocol: LinkProtocol): string {
     let name: string = "";

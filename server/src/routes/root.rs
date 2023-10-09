@@ -1,4 +1,4 @@
-use crate::db::persistence;
+use crate::datasource::db;
 
 use std::{sync::Arc, net::SocketAddr};
 use actix_cors::Cors;
@@ -9,7 +9,7 @@ async fn ping() -> impl Responder {
     HttpResponse::Ok().json("ok")
 }
 
-pub async fn serve(persistence: Arc<persistence::Persistence>, address: &SocketAddr) -> std::io::Result<()> {
+pub async fn serve(repo: Arc<db::Repository>, address: &SocketAddr) -> std::io::Result<()> {
     let result = HttpServer::new(move || {
         let cors = Cors::permissive();
 
@@ -23,7 +23,7 @@ pub async fn serve(persistence: Arc<persistence::Persistence>, address: &SocketA
             .service(super::communication::update_description)
             .service(super::communication::remove_description)
             .service(super::communication::get_status)
-            .app_data(Data::new(persistence.clone()))
+            .app_data(Data::new(repo.clone()))
     }).bind(address)?.run();
 
     println!("Listening REST on {}", address);

@@ -11,16 +11,14 @@ export const links = readable(Array<LinkDescription>(), (set) => {
     return () => clearInterval(interval);
 })
 
-export const linkStatuses = derived(links,
-    ($links) => {
-        let statuses = new Map()
-        $links.forEach(link => {
-            CommunicationService.getLinkStatus(link.id!).then(status => {
-                if (!!status) {
-                    statuses.set(status?.id.id.String, status);
-                }
-            });
+export let linkStatuses: Map<String, LinkStatus> = new Map()
+
+links.subscribe((links: Array<LinkDescription>) => {
+    links.forEach(link => {
+        CommunicationService.getLinkStatus(link.id!).then(status => {
+            if (!!status) {
+                linkStatuses.set(status?.id, status);
+            }
         });
-        return statuses;
-    }
-);
+    });
+})

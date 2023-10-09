@@ -1,9 +1,8 @@
-use std::str::FromStr;
 use std::sync::Arc;
 use std::collections::HashMap;
 use tokio::time;
 
-use crate::db::persistence;
+use crate::datasource::db;
 use crate::models::communication;
 use crate::protocols::mavlink;
 use super::common;
@@ -13,33 +12,32 @@ type LinkConnections = HashMap<String, LickConnection>;
 
 const REFRERSH_CONNECTIONS_INTERVAL: time::Duration = time::Duration::from_secs(1);
 
-pub async fn start(persistence: Arc<persistence::Persistence>) {
+pub async fn start(repo: Arc<db::Repository>) {
     let mut interval = time::interval(REFRERSH_CONNECTIONS_INTERVAL);
     interval.tick().await;  // skip first tick
 
     let mut link_connections: LinkConnections = HashMap::new();
     loop {
         tokio::time::sleep(REFRERSH_CONNECTIONS_INTERVAL).await;
-        refresh_connections(&persistence, &mut link_connections).await;
+        refresh_connections(&repo, &mut link_connections).await;
     }
 }
 
-async fn refresh_connections(persistence: &Arc<persistence::Persistence>, link_connections: &mut LinkConnections) {
-    let response = persistence.read_all::<communication::LinkDescription>("links").await;
+async fn refresh_connections(repo: &Arc<db::Repository>, link_connections: &mut LinkConnections) {
+    let response = repo.read_all::<communication::LinkDescription>("link_descriptions").await;
     match response {
         Ok(links) => {
             let mut link_ids: Vec<String> = Vec::new();
             for link in links {
-                let link_id = &link.id.clone().unwrap().to_string();
-                link_ids.push(link_id.to_owned());
+                link_ids.push(link.id.clone());
 
                 // Add connections for (new) links
-                if !link_connections.contains_key(link_id) {
-                    link_connections.insert(link_id.to_owned(), create_connection(&link));
+                if !link_connections.contains_key(&link.id) {
+                    link_connections.insert(link.id.clone(), create_connection(&link));
                 }
 
                 // Update connection status for link connections
-                let connection = link_connections.get_mut(link_id).unwrap();
+                let connection = link_connections.get_mut(&link.id).unwrap();
                 if link.enabled && !connection.is_connected() {
                     if let Err(err) = connection.connect().await {
                         println!("Connect error: {}", err.to_string());
@@ -60,20 +58,22 @@ async fn refresh_connections(persistence: &Arc<persistence::Persistence>, link_c
                 // Update link status
                 } else {
                     let status = communication::LinkStatus {
-                        id: Some(surrealdb::sql::Thing::from_str(link_id).unwrap()),
+                        id: link_id.clone(),
                         is_connected: connection.is_connected()
                     };
-                    let result = persistence.update("links", &status).await;
+
+                    let result = repo.create_or_update("link_statuses", &status).await;
                     if let Err(err) = result {
                         println!("Save connection status error: {}", err.to_string());
                     }
+                    println!("-----> {:?}", status);
                 }
             }
 
             // Remove connections for deleted links
             link_connections.retain(|link_id, _| link_ids.contains(&link_id));
         },
-        Err(err) => panic!("Persistence error: {}", err.to_string()),
+        Err(err) => panic!("Repository error: {}", err.to_string()),
     }
 }
 

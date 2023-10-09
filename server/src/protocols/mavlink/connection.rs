@@ -69,7 +69,7 @@ impl crate::protocols::common::Connection for MavlinkConnection {
         tokio::task::spawn(async move { loop {
             match cloned_mav.recv() {
                 Ok((header, msg)) => {
-                    println!("Got mavlink message: {:?}:{:?}", &header, &msg);
+                    //println!("Got mavlink message: {:?}:{:?}", &header, &msg);
                 },
                 Err(mavlink::error::MessageReadError::Io(err)) => {
                     if let std::io::ErrorKind::WouldBlock = err.kind() {

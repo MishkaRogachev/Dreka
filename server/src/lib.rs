@@ -1,4 +1,4 @@
-mod db;
+mod datasource;
 mod models;
 mod protocols;
 mod routes;
@@ -14,13 +14,13 @@ pub async fn start() -> std::io::Result<()> {
     println!("Starting Brygge server..");
 
     // TODO: separate temp and persistent databases
-    let persistence = Arc::new(db::persistence::Persistence::new().await
+    let db = Arc::new(datasource::db::Repository::new().await
         .expect("Error establishing a database connection"));
 
-    protocols::links::check_and_create_links(&persistence).await?;
-    let hub = tokio::spawn(protocols::hub::start(persistence.clone()));
+    protocols::links::check_and_create_links(&db).await?;
+    let hub = tokio::spawn(protocols::hub::start(db.clone()));
 
-    let rest = routes::root::serve(persistence, &DEFAULT_REST_ADDRESS);
+    let rest = routes::root::serve(db, &DEFAULT_REST_ADDRESS);
 
     tokio::select! {
         _ = hub => {}

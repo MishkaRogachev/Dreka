@@ -1,4 +1,3 @@
-import { iddToString, type Idd } from "$bindings/common";
 import type { LinkDescription, LinkStatus } from "$bindings/communication";
 import { send_request, default_headers } from "$datasource/rest";
 
@@ -7,8 +6,8 @@ export class CommunicationService {
         return await send_request("/comm/links", { method: "GET" }) || [];
     }
 
-    static async getLinkStatus(linkId: Idd): Promise<LinkStatus | null> {
-        return await send_request("/comm/links/status/" + iddToString(linkId!), { method: "GET" }) || null;
+    static async getLinkStatus(linkId: string): Promise<LinkStatus | null> {
+        return await send_request("/comm/links/status/" + linkId, { method: "GET" }) || null;
     }
 
     static async saveLink(link: LinkDescription): Promise<LinkDescription | null> {

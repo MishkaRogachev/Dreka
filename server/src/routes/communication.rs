@@ -1,12 +1,11 @@
-use std::str::FromStr;
 use std::sync::Arc;
 use actix_web::{get, post, delete, web, Responder, HttpResponse};
 
-use crate::{db::persistence, models::communication::{LinkDescription, LinkStatus}};
+use crate::{datasource::db, models::communication::{LinkDescription, LinkStatus}};
 
 #[get("/comm/links")]
-pub async fn list_descriptions(persistence: web::Data<Arc<persistence::Persistence>>) -> impl Responder {
-    let response = persistence.read_all::<LinkDescription>("links").await;
+pub async fn list_descriptions(repo: web::Data<Arc<db::Repository>>) -> impl Responder {
+    let response = repo.read_all::<LinkDescription>("link_descriptions").await;
     match response {
         Ok(links) => return HttpResponse::Ok().json(links),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
@@ -14,8 +13,8 @@ pub async fn list_descriptions(persistence: web::Data<Arc<persistence::Persisten
 }
 
 #[post("/comm/links/create")]
-pub async fn add_description(persistence: web::Data<Arc<persistence::Persistence>>, new_link: web::Json<LinkDescription>) -> impl Responder {
-    let result = persistence.create("links", &new_link.into_inner()).await;
+pub async fn add_description(repo: web::Data<Arc<db::Repository>>, new_link: web::Json<LinkDescription>) -> impl Responder {
+    let result = repo.create("link_descriptions", &new_link.into_inner()).await;
     match result {
         Ok(link) => HttpResponse::Ok().json(link),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
@@ -23,8 +22,8 @@ pub async fn add_description(persistence: web::Data<Arc<persistence::Persistence
 }
 
 #[post("/comm/links/update")]
-pub async fn update_description(persistence: web::Data<Arc<persistence::Persistence>>, link: web::Json<LinkDescription>) -> impl Responder {
-    let result = persistence.update("links", &link.into_inner()).await;
+pub async fn update_description(repo: web::Data<Arc<db::Repository>>, link: web::Json<LinkDescription>) -> impl Responder {
+    let result = repo.update("link_descriptions", &link.into_inner()).await;
     match result {
         Ok(link) => HttpResponse::Ok().json(link),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
@@ -32,13 +31,8 @@ pub async fn update_description(persistence: web::Data<Arc<persistence::Persiste
 }
 
 #[delete("/comm/links/remove/{link_id}")]
-pub async fn remove_description(persistence: web::Data<Arc<persistence::Persistence>>, path: web::Path<String>) -> impl Responder {
-    let link_id = surrealdb::sql::Thing::from_str(&path.into_inner());
-    if let Err(_) = link_id {
-        return HttpResponse::InternalServerError().body("Error converting to internal id");
-    }
-
-    let result = persistence.remove::<LinkDescription>("links", link_id.unwrap()).await;
+pub async fn remove_description(repo: web::Data<Arc<db::Repository>>, path: web::Path<String>) -> impl Responder {
+    let result = repo.remove("link_descriptions", &path.into_inner()).await;
     match result {
         Ok(link) => HttpResponse::Ok().json(link),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
@@ -46,15 +40,13 @@ pub async fn remove_description(persistence: web::Data<Arc<persistence::Persiste
 }
 
 #[get("/comm/links/status/{link_id}")]
-pub async fn get_status(persistence: web::Data<Arc<persistence::Persistence>>, path: web::Path<String>) -> impl Responder {
-    let link_id = surrealdb::sql::Thing::from_str(&path.into_inner());
-    if let Err(_) = link_id {
-        return HttpResponse::InternalServerError().body("Error converting to internal id");
-    }
+pub async fn get_status(repo: web::Data<Arc<db::Repository>>, path: web::Path<String>) -> impl Responder {
+    let response = repo.read::<LinkStatus>("link_statuses", &path.into_inner()).await;
 
-    let response = persistence.read::<LinkStatus>("links", link_id.unwrap()).await;
     match response {
-        Ok(link_status) => return HttpResponse::Ok().json(link_status),
+        Ok(link_status) => {
+            return HttpResponse::Ok().json(link_status);
+        },
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
