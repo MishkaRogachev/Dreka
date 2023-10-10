@@ -3,6 +3,9 @@ import Label from "$components/controls/Label.svelte";
 import CommunicationLink from "$pages/settings/Communication/CommunicationLink.svelte";
 
 import { links } from "$stores/communication";
+
+let expandedIndex = -1
+
 </script>
 
 <style>
@@ -19,7 +22,11 @@ import { links } from "$stores/communication";
 
 <div id="communication" class="panel">
     <Label text="Communication Links" />
-    {#each $links as link}
-        <CommunicationLink link={link}/>
+    {#each $links as link, i}
+        <CommunicationLink
+            link={link}
+            expanded={expandedIndex === i}
+            on:expand = {() => { expandedIndex = i; }}
+            on:collapse = {() => { expandedIndex = -1; }}/>
     {/each}
 </div>

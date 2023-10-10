@@ -9,11 +9,13 @@ export let style: string = ""
 #label {
     display: inline-flex;
     text-align: center;
-    margin-top: 6px;
     padding: 0px;
+    vertical-align: middle;
+    line-height: 24px; /* <-- adjust this */
 }
+
 </style>
 
-<div id="label" style={style}>
+<div id="label" class="noselect" style={style}>
     {text}
 </div>
