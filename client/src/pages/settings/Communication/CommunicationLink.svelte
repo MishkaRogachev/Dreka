@@ -56,7 +56,7 @@ onDestroy(async () => { clearInterval(interval); });
 </style>
 
 <div id="link" class="frame">
-    <Led state={ status && status?.is_connected ? "on" : "off"}/>
+    <Led state={ status && status?.is_connected ? status?.is_online ? "on" : "warning" : "off"}/>
     <Label text={link.name} style="width: 256px;"/>
     <Label text={getProtocolName(link.protocol)} style="width: 256px;"/>
     <div>

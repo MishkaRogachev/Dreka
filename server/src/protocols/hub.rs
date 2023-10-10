@@ -5,9 +5,9 @@ use tokio::time;
 use crate::datasource::db;
 use crate::models::communication;
 use crate::protocols::mavlink;
-use super::common;
+use super::traits;
 
-type LickConnection = Box<dyn common::Connection + Send + Sync>;
+type LickConnection = Box<dyn traits::IConnection + Send + Sync>;
 type LinkConnections = HashMap<String, LickConnection>;
 
 const REFRERSH_CONNECTIONS_INTERVAL: time::Duration = time::Duration::from_secs(1);
@@ -59,7 +59,8 @@ async fn refresh_connections(repo: &Arc<db::Repository>, link_connections: &mut 
                 } else {
                     let status = communication::LinkStatus {
                         id: link_id.clone(),
-                        is_connected: connection.is_connected()
+                        is_connected: connection.is_connected(),
+                        is_online: connection.is_online()
                     };
 
                     let result = repo.create_or_update("link_statuses", &status).await;

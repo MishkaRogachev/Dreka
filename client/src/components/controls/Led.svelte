@@ -16,6 +16,11 @@ export let state: string = "off";
     background-color: turquoise;
 }
 
+.warning {
+    box-shadow: 0 0 2px 2px rgb(141, 78, 2);
+    background-color: rgb(224, 139, 64);
+}
+
 .error {
     box-shadow: 0 0 2px 2px rgb(104, 4, 40);
     background-color: rgb(224, 64, 72);

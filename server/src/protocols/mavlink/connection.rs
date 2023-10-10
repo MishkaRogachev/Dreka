@@ -1,11 +1,12 @@
-use std::sync::Arc;
+use std::{sync::{Arc, Mutex}, time::{Instant, Duration}};
 use tokio::time;
 use tokio_util::sync::CancellationToken;
 use mavlink;
 
 use crate::models::communication;
 
-const MAVLINK_POLL_INTERVAL: time::Duration = time::Duration::from_millis(5);
+const MAVLINK_POLL_INTERVAL: Duration = Duration::from_millis(5);
+const ONLINE_INTERVAL: Duration = Duration::from_millis(2000);
 
 impl communication::LinkType {
     pub fn to_mavlink(&self) -> String {
@@ -35,17 +36,23 @@ impl communication::MavlinkProtocolVersion {
 pub struct MavlinkConnection {
     mav_address: String,
     mav_version: mavlink::MavlinkVersion,
-    token: Option<CancellationToken>
+    token: Option<CancellationToken>,
+    last_recieved: Arc<Mutex<Instant>>,
 }
 
 impl MavlinkConnection {
     pub fn new(link_type: &communication::LinkType, protocol: &communication::MavlinkProtocolVersion) -> MavlinkConnection {
-        MavlinkConnection { mav_address: link_type.to_mavlink(), mav_version: protocol.to_mavlink(), token: None }
+        MavlinkConnection {
+            mav_address: link_type.to_mavlink(),
+            mav_version: protocol.to_mavlink(),
+            token: None,
+            last_recieved: Arc::new(Mutex::new(Instant::now()))
+        }
     }
 }
 
 #[async_trait::async_trait]
-impl crate::protocols::common::Connection for MavlinkConnection {
+impl crate::protocols::traits::IConnection for MavlinkConnection {
     async fn connect(&mut self) -> std::io::Result<()> {
         if let Some(token) = &self.token {
             if !token.is_cancelled() {
@@ -65,11 +72,16 @@ impl crate::protocols::common::Connection for MavlinkConnection {
         let cloned_token = token.clone();
         self.token = Some(token);
 
+        let last_recieved = self.last_recieved.clone();
         let cloned_mav = mav.clone();
         tokio::task::spawn(async move { loop {
             match cloned_mav.recv() {
                 Ok((header, msg)) => {
+                    let mut time = last_recieved.lock().unwrap();
+                    *time = Instant::now();
+
                     //println!("Got mavlink message: {:?}:{:?}", &header, &msg);
+                    // TODO: read telemetry
                 },
                 Err(mavlink::error::MessageReadError::Io(err)) => {
                     if let std::io::ErrorKind::WouldBlock = err.kind() {
@@ -114,6 +126,15 @@ impl crate::protocols::common::Connection for MavlinkConnection {
             }
         }
         false
+    }
+
+    fn is_online(&self) -> bool {
+        let last_recieved_time = self.last_recieved.lock().unwrap();
+        if Instant::now().duration_since(*last_recieved_time) < ONLINE_INTERVAL {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
