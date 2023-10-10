@@ -12,20 +12,12 @@ pub async fn list_descriptions(repo: web::Data<Arc<db::Repository>>) -> impl Res
     }
 }
 
-#[post("/comm/links/create")]
-pub async fn add_description(repo: web::Data<Arc<db::Repository>>, new_link: web::Json<LinkDescription>) -> impl Responder {
-    let result = repo.create("link_descriptions", &new_link.into_inner()).await;
+#[post("/comm/links/save")]
+pub async fn save_description(repo: web::Data<Arc<db::Repository>>, link: web::Json<LinkDescription>) -> impl Responder {
+    let link = &link.into_inner();
+    let result = repo.create_or_update("link_descriptions", link).await;
     match result {
-        Ok(link) => HttpResponse::Ok().json(link),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
-    }
-}
-
-#[post("/comm/links/update")]
-pub async fn update_description(repo: web::Data<Arc<db::Repository>>, link: web::Json<LinkDescription>) -> impl Responder {
-    let result = repo.update("link_descriptions", &link.into_inner()).await;
-    match result {
-        Ok(link) => HttpResponse::Ok().json(link),
+        Ok(()) => HttpResponse::Ok().json(link),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

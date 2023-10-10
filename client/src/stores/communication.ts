@@ -1,4 +1,4 @@
-import { readable, derived } from 'svelte/store';
+import { readable } from 'svelte/store';
 
 import { type LinkDescription, type LinkStatus } from '$bindings/communication';
 import { CommunicationService } from '$services/communication';
@@ -17,4 +17,8 @@ export async function getLinkStatus(id: string): Promise<LinkStatus> {
         is_connected: false,
         is_online: false
     };
+}
+
+export async function saveLink(link: LinkDescription) {
+    return await CommunicationService.saveLink(link);
 }

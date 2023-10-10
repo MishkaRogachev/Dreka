@@ -6,13 +6,20 @@ import Label from "$components/controls/Label.svelte";
 import Led from "$components/controls/Led.svelte";
 
 import { type LinkDescription, type LinkProtocol, MavlinkProtocolVersion, type LinkStatus } from "$bindings/communication";
-import { getLinkStatus } from "$stores/communication";
+import { getLinkStatus, saveLink } from "$stores/communication";
 
 export let link: LinkDescription
 
 let status: LinkStatus | null = null
 
 let interval: any
+let blocked: boolean = false
+
+onMount(async () => {
+    interval = setInterval(async () => { status = await getLinkStatus(link.id); }, 250);
+})
+
+onDestroy(async () => { clearInterval(interval); });
 
 function getProtocolName(protocol: LinkProtocol): string {
     let name: string = "";
@@ -29,18 +36,19 @@ function getProtocolName(protocol: LinkProtocol): string {
                 break;
         }
     }
-    return name
+    return name;
 }
 
-onMount(async () => {
-    interval = setInterval(async () => {
-        status = await getLinkStatus(link.id)
-        console.log(status)
-    }, 250);
-})
+async function setLinkEnabled(link: LinkDescription, enabled: boolean) {
+    link.enabled = enabled;
+    blocked = true;
 
-
-onDestroy(async () => { clearInterval(interval); });
+    let linkBack = await saveLink(link);
+    if (linkBack) {
+        link = linkBack;
+        blocked = false;
+    }
+}
 
 </script>
 
@@ -60,7 +68,9 @@ onDestroy(async () => { clearInterval(interval); });
     <Label text={link.name} style="width: 256px;"/>
     <Label text={getProtocolName(link.protocol)} style="width: 256px;"/>
     <div>
-        <Button disabled={link.enabled} text="Connect" right_cropped={true}/>
-        <Button disabled={!link.enabled} text="Disconnect" left_cropped={true}/>
+        <Button disabled={link.enabled || blocked} text="Connect" right_cropped={true}
+            on:click={() => { setLinkEnabled(link, true) }}/>
+        <Button disabled={!link.enabled || blocked} text="Disconnect" left_cropped={true}
+            on:click={() => { setLinkEnabled(link, false) }}/>
     </div>
 </div>

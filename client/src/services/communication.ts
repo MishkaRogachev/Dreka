@@ -11,9 +11,7 @@ export class CommunicationService {
     }
 
     static async saveLink(link: LinkDescription): Promise<LinkDescription | null> {
-        let request = !link.id ? "/comm/links/create" : "/comm/links/update"
-
-        return await send_request(request, {
+        return await send_request("/comm/links/save", {
             method: "POST",
             body: JSON.stringify(link),
             headers: default_headers
