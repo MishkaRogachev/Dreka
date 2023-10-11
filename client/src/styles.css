@@ -41,28 +41,6 @@ body,
     top: -999em;
 }
 
-button {
-    background: rgba(0, 0, 0, 0.85);
-    min-width: 24px;
-    height: 24px;
-    color: white;
-    padding: 0px 0px;
-    text-align: center;
-    align-items: center;
-    text-decoration: none;
-    border: none;
-    border-radius: 5px;
-    transition-duration: 0.2s;
-}
-
-button:hover:not([disabled]) {
-    background: rgba(42, 42, 42, 0.85);
-}
-
-button:focus {
-    outline: none;
-}
-
 .flat {
     background: transparent
 }
@@ -215,7 +193,6 @@ input[type=checkbox]:focus {
     opacity: 1.0;
 }
 
-button,
 .noselect {
     -webkit-touch-callout: none;
     -webkit-user-select: none;

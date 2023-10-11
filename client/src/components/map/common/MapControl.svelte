@@ -1,9 +1,14 @@
 <script lang="ts">
 import { onMount, onDestroy } from 'svelte';
 
-import Button from "$components/controls/Button.svelte";
+import Fab from '@smui/fab';
+import Button, { Group } from '@smui/button';
+import { Text } from '@smui/list';
+
+import SvgIcon from '$components/controls/SvgIcon.svelte';
 import OverlayButton from '$components/controls/OverlayButton.svelte';
-import MapLayersView from '../common/MapLayers.svelte';
+
+import MapLayersView from './MapLayersView.svelte';
 
 import { degreesToDmsString, roundTo125 } from "$lib/common/formats";
 import type { MapViewport, MapInteraction, MapRuler, MapGraticule, MapLayers } from "$lib/interfaces/map";
@@ -26,8 +31,6 @@ export let layers: MapLayers;
 
 const scaleFactor: number = 10
 
-const btnStyle = "display: inline; margin: 0px 2px; float: left;"
-
 let scaleWidth: number = 0.0;
 let zoomInPressed: boolean = false;
 let zoomOutPressed: boolean = false;
@@ -49,6 +52,7 @@ let rulerLength: number = 0.0;
 let gridMode: boolean = false;
 
 let interval: any;
+let layersView: MapLayersView
 
 onMount(async () => {
     // Update UI every 50ms
@@ -79,43 +83,34 @@ onMount(async () => {
 onDestroy(async () => { clearInterval(interval); })
 
 function resetCompas() { viewport.lookTo(0, -90, 2); }
+function switchCrossMode() { crossMode = !crossMode; }
 function coordsToClipboard() { navigator.clipboard.writeText(latitude + " " + longitude); }
 function switchRulerMode() {
     rulerMode = !rulerMode;
     ruler.setEnabled(rulerMode);
 }
-
 function switchGridMode() {
     gridMode = !gridMode;
     graticule.setEnabled(gridMode);
 }
-
-function clearRuler() {
-    ruler.clear();
-}
+function clearRuler() { ruler.clear(); }
+function openCloseMapLayers() { layersView.setOpen(!layersView.isOpened()) }
 </script>
 
 <style>
 #mapControlPanel {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
-    height: 24px;
+    width: 50%;
+    bottom: 16px;
+    left: 16px;
+    gap: 8px;
     background: transparent;
-    display: inline;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: stretch;
 }
-button {
-    display: inline;
-    margin: 0px 2px;
-    float: left;
-}
-#compas-button {
-    padding: 0px 0px;
-    width: 32px;
-    height: 32px;
-    border-radius: 16px;
-    margin: -5px 2px;
-}
+
 #cross-aim {
     position: absolute;
     top: 50%;
@@ -123,58 +118,87 @@ button {
 }
 #scale {
     width: 128px;
-    float: left;
     border-bottom: 2px solid white;
-    margin-left: -1px;
-    margin-right: -1px;
+    font-size: medium;
 }
-#ruler-label {
-    width: 96px;
-    line-height: 24px;
-    float: left;
-    margin-left: -1px;
-    margin-right: -1px;
-}
+
 .scale-tick {
     position: absolute;
     border-left: 2px solid white;
     height: 6px;
     bottom: 0px;
 }
+
+#ruler-label {
+    width: 96px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: medium;
+}
+
 </style>
 
 <img id=cross-aim src={crossIcon} width=24px height=24px alt="Cross" hidden={!crossMode} />
 
 <div id="mapControlPanel">
-    <button id="compas-button" on:click={resetCompas}>
-        <img src={compasIcon} alt="Compas" style="transform:rotate({heading}deg);" />
-    </button>
-    <Button style={btnStyle} right_cropped={true} icon={crossMode === true ? crossIcon : cursorIcon}
-        on:click={() => { crossMode = !crossMode }}/>
-    <Button style={btnStyle + "width: 216px; margin-left: -1px;"} left_cropped={true} text={latitude + ", " + longitude}
-        on:click={coordsToClipboard}/>
-    <Button style={btnStyle} right_cropped={true} icon={minusIcon}
-        on:mousedown="{() => zoomOutPressed = true}"
-        on:mouseup="{() => zoomOutPressed = false}"
-        on:mouseleave="{() => zoomOutPressed = false}"/>
-    <div id="scale" class="pane noselect left-cropped right-cropped" bind:clientWidth={scaleWidth}>
-        {metersRounded > 1000 ? (metersRounded / 1000 + " km") : (metersRounded + " m")}
-        <div class="scale-tick" style ="left: 0%"></div>
-        <div class="scale-tick" style ="left: {metersRounded / metersInWidth * 100}%"></div>
-    </div>
-    <Button style={btnStyle} left_cropped={true} icon={plusIcon}
-        on:mousedown="{() => zoomInPressed = true}"
-        on:mouseup="{() => zoomInPressed = false}"
-        on:mouseleave="{() => zoomInPressed = false}"/>
-    <Button style={btnStyle} right_cropped={rulerLength > 0} selected={rulerMode} icon={rulerIcon} on:click={switchRulerMode}/>
-    {#if rulerLength > 0}
-        <div id="ruler-label" class="pane noselect left-cropped right-cropped">
-            {rulerLength > 1000 ? ((Math.round(rulerLength / 100) / 10).toString() + " km") : (rulerLength + " m")}
+    <!-- Compass -->
+    <Fab color="secondary" on:click={resetCompas}>
+        <SvgIcon src={compasIcon} rotation={heading} size={48}/>
+    </Fab>
+
+    <!-- Coordinates -->
+    <Group>
+        <Button color="secondary" on:click={switchCrossMode} variant="raised">
+            <SvgIcon src={crossMode === true ? crossIcon : cursorIcon}/>
+        </Button>
+        <Button color="secondary" on:click={coordsToClipboard} variant="raised">
+            <Text>{latitude + ", " + longitude}</Text>
+        </Button>
+    </Group>
+
+    <!-- Map scale -->
+    <Group>
+        <Button color="secondary" variant="raised"
+        on:mousedown={() => zoomOutPressed = true} on:mouseup={() => zoomOutPressed = false} on:mouseleave={() => zoomOutPressed = false}>
+            <SvgIcon src={minusIcon}/>
+        </Button>
+        <div id="scale" class="pane noselect left-cropped right-cropped" bind:clientWidth={scaleWidth}>
+            {metersRounded > 1000 ? (metersRounded / 1000 + " km") : (metersRounded + " m")}
+            <div class="scale-tick" style ="left: 0%"></div>
+            <div class="scale-tick" style ="left: {metersRounded / metersInWidth * 100}%"></div>
         </div>
-        <Button style={btnStyle} left_cropped={true} icon={closeIcon} on:click={clearRuler}/>
-    {/if}
-    <Button style={btnStyle} selected={gridMode} icon={gridIcon} on:click={switchGridMode}/>
-    <OverlayButton style={btnStyle} icon={layersIcon} position="top-left">
-        <MapLayersView layers={layers}/>
-    </OverlayButton>
+        <Button color="secondary" variant="raised"
+        on:mousedown={() => zoomInPressed = true} on:mouseup={() => zoomInPressed = false} on:mouseleave={() => zoomInPressed = false}>
+            <SvgIcon src={plusIcon}/>
+        </Button>
+    </Group>
+
+    <!-- Ruler Tool -->
+    <Group>
+        <Button color={rulerMode ? "primary" : "secondary"} on:click={switchRulerMode} variant="raised">
+            <SvgIcon src={rulerIcon}/>
+        </Button>
+        {#if rulerLength > 0}
+            <div id="ruler-label" class="pane noselect left-cropped right-cropped">
+                {rulerLength > 1000 ? ((Math.round(rulerLength / 100) / 10).toString() + " km") : (rulerLength + " m")}
+            </div>
+            <Button color="secondary" on:click={clearRuler} variant="raised">
+                <SvgIcon src={closeIcon}/>
+            </Button>
+        {/if}
+    </Group>
+
+    <!-- Grid Tool -->
+    <Button color={gridMode ? "primary" : "secondary"} on:click={switchGridMode} variant="raised">
+        <SvgIcon src={gridIcon}/>
+    </Button>
+
+    <!-- Map Layers -->
+    <div>
+    <Button color="secondary" on:click={openCloseMapLayers} variant="raised">
+        <SvgIcon src={layersIcon}/>
+    </Button>
+    <MapLayersView layers={layers} bind:this={layersView} />
+    </div>
 </div>

@@ -1,6 +1,6 @@
 <script lang="ts">
 import Label from "$components/controls/Label.svelte";
-import CommunicationLink from "$pages/settings/Communication/CommunicationLink.svelte";
+import CommunicationLink from "$pages/communication/CommunicationLink.svelte";
 
 import { links } from "$stores/communication";
 

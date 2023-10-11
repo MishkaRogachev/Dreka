@@ -1,4 +1,4 @@
-import unknownIcon from "$assets/svg/unknown.svg"
+import unknownIcon from "$assets/svg/about.svg"
 import autoIcon from "$assets/svg/auto.svg"
 import fixedWingIcon from "$assets/svg/fixed_wing.svg"
 import rotaryWingIcon from "$assets/svg/rotary_wing.svg"
