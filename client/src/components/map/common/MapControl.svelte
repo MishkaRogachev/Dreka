@@ -5,23 +5,20 @@ import Fab from '@smui/fab';
 import Button, { Group } from '@smui/button';
 import { Text } from '@smui/list';
 
-import SvgIcon from '$components/controls/SvgIcon.svelte';
-import OverlayButton from '$components/controls/OverlayButton.svelte';
-
 import MapLayersView from './MapLayersView.svelte';
 
 import { degreesToDmsString, roundTo125 } from "$lib/common/formats";
 import type { MapViewport, MapInteraction, MapRuler, MapGraticule, MapLayers } from "$lib/interfaces/map";
 
-import layersIcon from "$assets/svg/layers.svg"
-import crossIcon from "$assets/svg/cross.svg";
-import compasIcon from "$assets/svg/compas.svg";
-import cursorIcon from "$assets/svg/cursor.svg";
-import minusIcon from "$assets/svg/minus.svg";
-import plusIcon from "$assets/svg/plus.svg";
-import rulerIcon from "$assets/svg/ruler.svg";
-import closeIcon from "$assets/svg/close.svg";
-import gridIcon from "$assets/svg/grid.svg";
+import compasImg from "$assets/svg/compas.svg";
+import layersIcon from "$assets/svg/layers.svg?raw"
+import crossIcon from "$assets/svg/cross.svg?raw";
+import cursorIcon from "$assets/svg/cursor.svg?raw";
+import minusIcon from "$assets/svg/minus.svg?raw";
+import plusIcon from "$assets/svg/plus.svg?raw";
+import rulerIcon from "$assets/svg/ruler.svg?raw";
+import closeIcon from "$assets/svg/close.svg?raw";
+import gridIcon from "$assets/svg/grid.svg?raw";
 
 export let viewport: MapViewport;
 export let interaction: MapInteraction;
@@ -100,7 +97,7 @@ function openCloseMapLayers() { layersView.setOpen(!layersView.isOpened()) }
 <style>
 #mapControlPanel {
     position: absolute;
-    width: 50%;
+    width: 60%;
     bottom: 16px;
     left: 16px;
     gap: 8px;
@@ -108,7 +105,6 @@ function openCloseMapLayers() { layersView.setOpen(!layersView.isOpened()) }
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: stretch;
 }
 
 #cross-aim {
@@ -139,20 +135,20 @@ function openCloseMapLayers() { layersView.setOpen(!layersView.isOpened()) }
 
 </style>
 
-<img id=cross-aim src={crossIcon} width=24px height=24px alt="Cross" hidden={!crossMode} />
+<div id=cross-aim hidden={!crossMode}>{@html crossIcon}</div>
 
 <div id="mapControlPanel">
     <!-- Compass -->
     <Fab color="secondary" on:click={resetCompas}>
-        <SvgIcon src={compasIcon} rotation={heading} size={48}/>
+        <img width=42px src={compasImg} alt="Compas" style="transform:rotate({heading}deg);" />
     </Fab>
 
     <!-- Coordinates -->
     <Group>
         <Button color="secondary" on:click={switchCrossMode} variant="raised">
-            <SvgIcon src={crossMode === true ? crossIcon : cursorIcon}/>
+            {@html crossMode === true ? crossIcon : cursorIcon}
         </Button>
-        <Button color="secondary" on:click={coordsToClipboard} variant="raised">
+        <Button style="width: 280px" color="secondary" on:click={coordsToClipboard} variant="raised">
             <Text>{latitude + ", " + longitude}</Text>
         </Button>
     </Group>
@@ -160,8 +156,8 @@ function openCloseMapLayers() { layersView.setOpen(!layersView.isOpened()) }
     <!-- Map scale -->
     <Group>
         <Button color="secondary" variant="raised"
-        on:mousedown={() => zoomOutPressed = true} on:mouseup={() => zoomOutPressed = false} on:mouseleave={() => zoomOutPressed = false}>
-            <SvgIcon src={minusIcon}/>
+            on:mousedown={() => zoomOutPressed = true} on:mouseup={() => zoomOutPressed = false} on:mouseleave={() => zoomOutPressed = false}>
+            {@html minusIcon}
         </Button>
         <div id="scale" class="pane noselect left-cropped right-cropped" bind:clientWidth={scaleWidth}>
             {metersRounded > 1000 ? (metersRounded / 1000 + " km") : (metersRounded + " m")}
@@ -170,34 +166,34 @@ function openCloseMapLayers() { layersView.setOpen(!layersView.isOpened()) }
         </div>
         <Button color="secondary" variant="raised"
         on:mousedown={() => zoomInPressed = true} on:mouseup={() => zoomInPressed = false} on:mouseleave={() => zoomInPressed = false}>
-            <SvgIcon src={plusIcon}/>
+            {@html plusIcon}
         </Button>
     </Group>
 
     <!-- Ruler Tool -->
     <Group>
         <Button color={rulerMode ? "primary" : "secondary"} on:click={switchRulerMode} variant="raised">
-            <SvgIcon src={rulerIcon}/>
+            {@html rulerIcon }
         </Button>
         {#if rulerLength > 0}
             <div id="ruler-label" class="pane noselect left-cropped right-cropped">
                 {rulerLength > 1000 ? ((Math.round(rulerLength / 100) / 10).toString() + " km") : (rulerLength + " m")}
             </div>
             <Button color="secondary" on:click={clearRuler} variant="raised">
-                <SvgIcon src={closeIcon}/>
+                {@html closeIcon}
             </Button>
         {/if}
     </Group>
 
     <!-- Grid Tool -->
     <Button color={gridMode ? "primary" : "secondary"} on:click={switchGridMode} variant="raised">
-        <SvgIcon src={gridIcon}/>
+        {@html gridIcon}
     </Button>
 
     <!-- Map Layers -->
     <div>
     <Button color="secondary" on:click={openCloseMapLayers} variant="raised">
-        <SvgIcon src={layersIcon}/>
+        {@html layersIcon}
     </Button>
     <MapLayersView layers={layers} bind:this={layersView} />
     </div>

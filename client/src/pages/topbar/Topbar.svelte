@@ -2,9 +2,9 @@
 import { createEventDispatcher } from "svelte";
 
 import Button from '@smui/button';
-import SvgIcon from '$components/controls/SvgIcon.svelte';
 import VehicleSelector from "$pages/topbar/VehicleSelector.svelte";
-import burgerIcon from "$assets/svg/burger.svg";
+
+import burgerIcon from "$assets/svg/burger.svg?raw";
 
 const dispatch = createEventDispatcher()
 
@@ -22,7 +22,7 @@ function openDrawer() { dispatch('openDrawer', {}); }
 
 <div id="topBar">
     <!-- Left -->
-    <Button on:click={openDrawer}><SvgIcon src={burgerIcon}/></Button>
+    <Button on:click={openDrawer}>{@html burgerIcon}</Button>
     <!-- Middle -->
     <!-- Right -->
     <VehicleSelector/>

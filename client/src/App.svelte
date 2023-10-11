@@ -2,17 +2,15 @@
 import Drawer, { Content, Header, Title, Subtitle, Scrim } from '@smui/drawer';
 import List, { Item, Text, Separator, Subheader } from '@smui/list';
 
-import SvgIcon from '$components/controls/SvgIcon.svelte';
-
 import Topbar from '$pages/topbar/Topbar.svelte';
 
 import Flight from '$pages/flight/FlightPage.svelte';
 import Communication from '$pages/communication/CommunicationPage.svelte'
 import About from '$pages/about/AboutPage.svelte';
 
-import fleetIcon from "$assets/svg/fleet.svg";
-import connectIcon from "$assets/svg/connect.svg";
-import aboutIcon from "$assets/svg/about.svg";
+import fleetIcon from "$assets/svg/fleet.svg?raw";
+import connectIcon from "$assets/svg/connect.svg?raw";
+import aboutIcon from "$assets/svg/about.svg?raw";
 
 enum Pages {
     Flight = "Flight",
@@ -29,6 +27,12 @@ function setPage(page: Pages) { currentPage = page; open = false }
 
 </script>
 
+<style>
+.drawer-icon {
+    width: 48px;
+}
+</style>
+
 <Drawer variant="modal" fixed={false} bind:open>
     <Header>
         <Title>Dreaka</Title>
@@ -37,15 +41,15 @@ function setPage(page: Pages) { currentPage = page; open = false }
     <Content>
         <List>
         <Item on:click={() => { setPage(Pages.Flight); }}>
-            <SvgIcon src={fleetIcon}/><Text>Flight</Text>
+            <div class="drawer-icon">{@html fleetIcon}</div> <Text>Flight</Text>
         </Item>
         <Separator />
         <Subheader tag="h6">Settings</Subheader>
         <Item on:click={() => { setPage(Pages.Communication); }}>
-            <SvgIcon src={connectIcon}/><Text>Communication</Text>
+            <div class="drawer-icon">{@html connectIcon}</div> <Text>Communication</Text>
         </Item>
         <Item on:click={() => { setPage(Pages.About); }}>
-            <SvgIcon src={aboutIcon}/><Text>About</Text></Item>
+            <div class="drawer-icon">{@html aboutIcon}</div> <Text>About</Text></Item>
         </List>
     </Content>
 </Drawer>
