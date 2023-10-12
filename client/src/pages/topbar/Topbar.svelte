@@ -1,29 +1,11 @@
 <script lang="ts">
-import { createEventDispatcher } from "svelte";
-
-import Button from '@smui/button';
-import VehicleSelector from "$pages/topbar/VehicleSelector.svelte";
-
-import burgerIcon from "$assets/svg/burger.svg?raw";
-
-const dispatch = createEventDispatcher()
-
-function openDrawer() { dispatch('openDrawer', {}); }
-
+import Menu from "./Menu.svelte";
+import VehicleSelector from "./VehicleSelector.svelte";
 </script>
 
-<style>
-#topBar {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-</style>
-
-<div id="topBar">
-    <!-- Left -->
-    <Button on:click={openDrawer}>{@html burgerIcon}</Button>
-    <!-- Middle -->
-    <!-- Right -->
-    <VehicleSelector/>
+<div class="navbar bg-base-100 btn-sm">
+    <Menu/>
+    <div class="flex-none">
+        <!-- TODO: <VehicleSelector/> -->
+    </div>
 </div>

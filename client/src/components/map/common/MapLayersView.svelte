@@ -1,10 +1,5 @@
 
 <script lang="ts">
-import MenuSurface from '@smui/menu-surface';
-import Checkbox from '@smui/checkbox';
-import Button from '@smui/button';
-import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
-import { Text } from '@smui/list';
 
 import type { MapLayers, ImageryLayer } from "$lib/interfaces/map";
 
@@ -14,11 +9,6 @@ import downIcon from "$assets/svg/down.svg?raw"
 export let layers: MapLayers
 
 let imageryLayers = layers.imageryLayers();
-
-let surface: MenuSurface
-
-export function setOpen(open: boolean) { surface.setOpen(open); }
-export function isOpened() { return surface.isOpen(); }
 
 async function switchLayerVisibility(imageryLayer: ImageryLayer) {
     imageryLayer.visibility = !imageryLayer.visibility;
@@ -51,34 +41,31 @@ async function lowerLayer(imageryLayer: ImageryLayer) {
 }
 </script>
 
-<MenuSurface bind:this={surface} anchorCorner="BOTTOM_START" style="width: 400px">
-    <DataTable style="width: 100%;">
-        <Head>
-            <Row>
-                <Cell>Visible</Cell>
-                <Cell>Layer</Cell>
-                <!-- <Cell>Move</Cell> -->
-                <Cell>Opacity</Cell>
-            </Row>
-        </Head>
-        <Body>
-            {#each imageryLayers as imageryLayer}
-            <Row>
-                <Cell><Checkbox checked={imageryLayer.visibility} on:click={ () => { switchLayerVisibility(imageryLayer) }} /></Cell>
-                <Cell><Text>{imageryLayer.name}</Text></Cell>
-                <!-- <Cell>
-                    <IconButton disabled={imageryLayer.index < 2} on:click={ () => { raiseLayer(imageryLayer) }} size="mini">
-                        {@html downIcon}</IconButton>
-                    <IconButton disabled={imageryLayer.index > imageryLayers.length - 1} on:click={ () => { lowerLayer(imageryLayer) }} size="mini">
-                        {@html upIcon}</IconButton>
-                </Cell> -->
-                <Cell><Button on:click={ () => { switchLayerOpacity(imageryLayer) }}>
-                    <Text>{Math.round(imageryLayer.opacity * 100) + "%"}</Text>
-                </Button></Cell> 
-            </Row>
-            {/each}
-        </Body>
-    </DataTable>
-</MenuSurface>
-
+<table class="table" style="width: 600px">
+    <thead>
+        <tr>
+            <td>Visible</td>
+            <td>Layer</td>
+            <td>Move</td>
+            <td>Opacity</td>
+        </tr>
+    </thead>
+    <tbody>
+        {#each imageryLayers as imageryLayer}
+        <tr>
+            <td><input type="checkbox" class="checkbox" checked={imageryLayer.visibility} on:click={ () => { switchLayerVisibility(imageryLayer) }} /></td>
+            <td>{imageryLayer.name}</td>
+            <td class="join">
+                <button class="btn btn-sm btn-ghost px-1 join-item" disabled={imageryLayer.index > 1} on:click={ () => { raiseLayer(imageryLayer) }}>
+                    {@html downIcon}</button>
+                <button class="btn btn-sm btn-ghost px-1 join-item" disabled={imageryLayer.index < imageryLayers.length - 2} on:click={ () => { lowerLayer(imageryLayer) }}>
+                    {@html upIcon}</button>
+            </td>
+            <td><button on:click={ () => { switchLayerOpacity(imageryLayer) }}>
+                {Math.round(imageryLayer.opacity * 100) + "%"}
+            </button></td> 
+        </tr>
+        {/each}
+    </tbody>
+</table>
 <!-- / TODO: Map layers order like here https://sandcastle.cesium.com/index.html?src=Imagery%2520Layers%2520Manipulation.html -->

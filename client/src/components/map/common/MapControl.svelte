@@ -1,10 +1,6 @@
 <script lang="ts">
 import { onMount, onDestroy } from 'svelte';
 
-import Fab from '@smui/fab';
-import Button, { Group } from '@smui/button';
-import { Text } from '@smui/list';
-
 import MapLayersView from './MapLayersView.svelte';
 
 import { degreesToDmsString, roundTo125 } from "$lib/common/formats";
@@ -49,7 +45,6 @@ let rulerLength: number = 0.0;
 let gridMode: boolean = false;
 
 let interval: any;
-let layersView: MapLayersView
 
 onMount(async () => {
     // Update UI every 50ms
@@ -91,7 +86,6 @@ function switchGridMode() {
     graticule.setEnabled(gridMode);
 }
 function clearRuler() { ruler.clear(); }
-function openCloseMapLayers() { layersView.setOpen(!layersView.isOpened()) }
 </script>
 
 <style>
@@ -114,8 +108,13 @@ function openCloseMapLayers() { layersView.setOpen(!layersView.isOpened()) }
 }
 #scale {
     width: 128px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: medium;
     border-bottom: 2px solid white;
     font-size: medium;
+    border-radius: 0px;
 }
 
 .scale-tick {
@@ -139,62 +138,61 @@ function openCloseMapLayers() { layersView.setOpen(!layersView.isOpened()) }
 
 <div id="mapControlPanel">
     <!-- Compass -->
-    <Fab color="secondary" on:click={resetCompas}>
+    <button class="btn btn-lg btn-circle" on:click={resetCompas}>
         <img width=42px src={compasImg} alt="Compas" style="transform:rotate({heading}deg);" />
-    </Fab>
+    </button>
 
     <!-- Coordinates -->
-    <Group>
-        <Button color="secondary" on:click={switchCrossMode} variant="raised">
+    <div class="join" >
+        <button class="btn btn-sm join-item px-1 ml-2" on:click={switchCrossMode}>
             {@html crossMode === true ? crossIcon : cursorIcon}
-        </Button>
-        <Button style="width: 280px" color="secondary" on:click={coordsToClipboard} variant="raised">
-            <Text>{latitude + ", " + longitude}</Text>
-        </Button>
-    </Group>
+        </button>
+        <button class="btn btn-sm btn-wide join-item" on:click={coordsToClipboard}>
+            {latitude + ", " + longitude}
+        </button>
+    </div>
 
     <!-- Map scale -->
-    <Group>
-        <Button color="secondary" variant="raised"
+    <div class="join bg-base-200">
+        <button class="btn btn-sm px-1 join-item"
             on:mousedown={() => zoomOutPressed = true} on:mouseup={() => zoomOutPressed = false} on:mouseleave={() => zoomOutPressed = false}>
             {@html minusIcon}
-        </Button>
-        <div id="scale" class="pane noselect left-cropped right-cropped" bind:clientWidth={scaleWidth}>
+        </button>
+        <div id="scale" class="" bind:clientWidth={scaleWidth}>
             {metersRounded > 1000 ? (metersRounded / 1000 + " km") : (metersRounded + " m")}
             <div class="scale-tick" style ="left: 0%"></div>
             <div class="scale-tick" style ="left: {metersRounded / metersInWidth * 100}%"></div>
         </div>
-        <Button color="secondary" variant="raised"
-        on:mousedown={() => zoomInPressed = true} on:mouseup={() => zoomInPressed = false} on:mouseleave={() => zoomInPressed = false}>
+        <button class="btn btn-sm px-1 join-item"
+            on:mousedown={() => zoomInPressed = true} on:mouseup={() => zoomInPressed = false} on:mouseleave={() => zoomInPressed = false}>
             {@html plusIcon}
-        </Button>
-    </Group>
+        </button>
+    </div>
 
     <!-- Ruler Tool -->
-    <Group>
-        <Button color={rulerMode ? "primary" : "secondary"} on:click={switchRulerMode} variant="raised">
+    <div class="join bg-base-200">
+        <button class={"btn btn-sm px-2 " + (rulerMode ? "btn-accent " : "") + (rulerLength > 0 ? "join-item" : "")} 
+            on:click={switchRulerMode}>
             {@html rulerIcon }
-        </Button>
+        </button>
         {#if rulerLength > 0}
-            <div id="ruler-label" class="pane noselect left-cropped right-cropped">
-                {rulerLength > 1000 ? ((Math.round(rulerLength / 100) / 10).toString() + " km") : (rulerLength + " m")}
-            </div>
-            <Button color="secondary" on:click={clearRuler} variant="raised">
-                {@html closeIcon}
-            </Button>
+        <div id="ruler-label" class="">
+            {rulerLength > 1000 ? ((Math.round(rulerLength / 100) / 10).toString() + " km") : (rulerLength + " m")}
+        </div>
+        <button class="btn btn-sm px-1 join-item" on:click={clearRuler}>
+            {@html closeIcon}
+        </button>
         {/if}
-    </Group>
+    </div>
 
     <!-- Grid Tool -->
-    <Button color={gridMode ? "primary" : "secondary"} on:click={switchGridMode} variant="raised">
-        {@html gridIcon}
-    </Button>
+    <button class={"btn btn-sm px-1 " + (gridMode ? "btn-accent" : "")} on:click={switchGridMode}>{@html gridIcon}</button>
 
     <!-- Map Layers -->
-    <div>
-    <Button color="secondary" on:click={openCloseMapLayers} variant="raised">
-        {@html layersIcon}
-    </Button>
-    <MapLayersView layers={layers} bind:this={layersView} />
+    <div tabindex="0" class="dropdown dropdown-top dropdown-end">
+        <label tabindex="0" class="btn btn-sm px-2">{@html layersIcon}</label>
+        <ul class="dropdown-content z-[1] menu p-2 my-2 shadow bg-base-100 rounded-box">
+            <MapLayersView layers={layers} /> 
+        </ul>
     </div>
 </div>

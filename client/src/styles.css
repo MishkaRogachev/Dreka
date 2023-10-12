@@ -22,7 +22,6 @@ body,
     padding: 0;
     overflow: hidden;
     font-family: sans-serif;
-    color: #000000;
 }
 
 .cesium-viewer-toolbar,
@@ -40,3 +39,7 @@ body,
     position: absolute;
     top: -999em;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
