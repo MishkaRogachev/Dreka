@@ -12,6 +12,9 @@
     -webkit-text-size-adjust: 100%;
 }
 
+
+/* Cesium stuff */
+
 html,
 body,
 #app,
@@ -40,8 +43,22 @@ body,
     top: -999em;
 }
 
+
+/* Paint SVGs globaly */
+
 svg {
     fill: currentColor;
+}
+
+
+/* Remove selection globaly */
+
+* {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 @tailwind base;

@@ -9,7 +9,7 @@ import aboutIcon from "$assets/svg/about.svg?raw";
 </script>
 
 <div class="dropdown">
-    <label tabindex="0" class="btn btn-ghost btn-sx rounded-btn">{@html burgerIcon}</label>
+    <label tabindex="0" class="btn btn-ghost btn-sm rounded-btn">{@html burgerIcon}</label>
     <ul tabindex="0" class="dropdown-content menu z-[1] p-2 shadow bg-base-100 rounded-box my-1">
         <h4>Main</h4>
         <li class="btn-wide"><a on:click={() => {$currentPage = Pages.Flight}}>{@html fleetIcon} Flight</a></li>

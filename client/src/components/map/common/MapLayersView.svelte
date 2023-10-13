@@ -61,7 +61,7 @@ async function lowerLayer(imageryLayer: ImageryLayer) {
                 <button class="btn btn-sm btn-ghost px-1 join-item" disabled={imageryLayer.index < imageryLayers.length - 2} on:click={ () => { lowerLayer(imageryLayer) }}>
                     {@html upIcon}</button>
             </td>
-            <td><button on:click={ () => { switchLayerOpacity(imageryLayer) }}>
+            <td><button class="btn btn-sm btn-ghost px-1" on:click={ () => { switchLayerOpacity(imageryLayer) }}>
                 {Math.round(imageryLayer.opacity * 100) + "%"}
             </button></td> 
         </tr>

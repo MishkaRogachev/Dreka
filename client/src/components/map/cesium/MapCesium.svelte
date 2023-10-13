@@ -63,12 +63,15 @@ onMount(async () => {
         layers.resetImageryLayers();
     }
 
+    // TODO: await cesium loaded
     ready = true;
 });
 
 onDestroy(async () => { clearInterval(interval); ready = false; });
 
 </script>
+
+<span class="loading loading-ring loading-lg" style={visible && !ready ? "" : "display: none"}></span>
 
 <div id="cesiumContainer" style={ready && visible ? "" : "display: none"}>
 {#if ready && visible}

@@ -9,8 +9,9 @@ import { Pages, currentPage } from '$stores/app';
 
 </script>
 
-<div id="app" style="background-color:black">
-    <Topbar/>
+<Topbar/>
+
+<div id="app" class="flex items-center justify-center h-screen">
     <!-- Main modes, never suspend -->
     <FlightPage visible={$currentPage === Pages.Flight}/>
 

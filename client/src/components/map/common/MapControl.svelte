@@ -119,15 +119,15 @@ function clearRuler() { ruler.clear(); }
     justify-content: center;
     align-items: center;
     font-size: medium;
-    border-bottom: 2px solid currentColor;
+    border-bottom: 3px solid currentColor;
     font-size: medium;
     border-radius: 0px;
 }
 
 .scale-tick {
     position: absolute;
-    border-left: 2px solid currentColor;
-    height: 6px;
+    border-left: 3px solid currentColor;
+    height: 8px;
     bottom: 0px;
 }
 
