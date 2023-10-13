@@ -6,6 +6,8 @@ import MapLayersView from './MapLayersView.svelte';
 import { degreesToDmsString, roundTo125 } from "$lib/common/formats";
 import type { MapViewport, MapInteraction, MapRuler, MapGraticule, MapLayers } from "$lib/interfaces/map";
 
+import { userPreferences } from '$stores/preferences';
+
 import crossImg from "$assets/svg/cross.svg";
 
 import compasIcon from "$assets/svg/compas.svg?raw";
@@ -71,6 +73,9 @@ onMount(async () => {
         if (zoomOutPressed) {
             viewport.zoomOut(pixelScale * scaleFactor);
         }
+
+        $userPreferences.set("map/viewport", JSON.stringify(viewport.save()));
+        $userPreferences.set("map/imagery_layers", JSON.stringify(layers.imageryLayers()));
     }, 50);
 })
 

@@ -1,5 +1,6 @@
 <script lang="ts">
-import { Pages, currentPage, darkMode } from '$stores/app';
+import { Pages, currentPage, Themes, theme } from '$stores/app';
+import { userPreferences } from '$stores/preferences';
 
 import burgerIcon from "$assets/svg/burger.svg?raw";
 import fleetIcon from "$assets/svg/fleet.svg?raw";
@@ -15,7 +16,8 @@ import aboutIcon from "$assets/svg/about.svg?raw";
         <h4>Settings</h4>
         <li class="btn-wide"><label class="label cursor-pointer">
             <span class="label-text">Dark Mode</span> 
-            <input type="checkbox" class="toggle" checked={$darkMode} on:change={()=>{$darkMode = !$darkMode}} />
+            <input type="checkbox" class="toggle" checked={$theme === Themes.Dark} on:change={()=>{
+                $theme = $theme === Themes.Dark ? Themes.Light : Themes.Dark }} />
         </label></li>
         <li class="btn-wide"><a on:click={() => {$currentPage = Pages.Communication}}>{@html connectIcon} Communication</a></li> 
         <li class="btn-wide"><a on:click={() => {$currentPage = Pages.About}}>{@html aboutIcon} About</a></li> 

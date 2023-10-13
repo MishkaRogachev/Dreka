@@ -3,7 +3,8 @@ import { onMount, onDestroy } from 'svelte';
 
 import * as Cesium from 'cesium';
 
-import { preferences } from "$lib/preferences";
+import { userPreferences } from '$stores/preferences';
+
 import { MapViewportCesium } from '$lib/map/cesium/viewport';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
 import { MapRulerCesium } from '$lib/map/cesium/ruler';
@@ -45,7 +46,7 @@ onMount(async () => {
     });
 
     viewport = new MapViewportCesium(cesium);
-    const viewportSettings = preferences.read("user/map/viewport")
+    const viewportSettings = $userPreferences.get("map/viewport")
     if (!!viewportSettings) {
         viewport.restore(JSON.parse(viewportSettings));
     }
@@ -55,7 +56,7 @@ onMount(async () => {
     graticule = new MapGraticuleCesium(cesium);
     
     layers = new MapLayersCesium(cesium);
-    const layerSettings = preferences.read("user/map/imagery_layers");
+    const layerSettings = $userPreferences.get("map/imagery_layers");
     if (!!layerSettings) {
         layers.addImageryLayers(JSON.parse(layerSettings));
     } else {
@@ -63,12 +64,6 @@ onMount(async () => {
     }
 
     ready = true;
-
-    // Save map settings every second
-    interval = setInterval(() => {
-        preferences.write("user/map/viewport", JSON.stringify(viewport.save()));
-        preferences.write("user/map/imagery_layers", JSON.stringify(layers.imageryLayers()));
-    }, 1000);
 });
 
 onDestroy(async () => { clearInterval(interval); ready = false; });
