@@ -40,6 +40,10 @@ body,
     top: -999em;
 }
 
+svg {
+    fill: currentColor;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

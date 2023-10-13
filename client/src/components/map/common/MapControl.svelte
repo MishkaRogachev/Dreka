@@ -6,7 +6,9 @@ import MapLayersView from './MapLayersView.svelte';
 import { degreesToDmsString, roundTo125 } from "$lib/common/formats";
 import type { MapViewport, MapInteraction, MapRuler, MapGraticule, MapLayers } from "$lib/interfaces/map";
 
-import compasImg from "$assets/svg/compas.svg";
+import crossImg from "$assets/svg/cross.svg";
+
+import compasIcon from "$assets/svg/compas.svg?raw";
 import layersIcon from "$assets/svg/layers.svg?raw"
 import crossIcon from "$assets/svg/cross.svg?raw";
 import cursorIcon from "$assets/svg/cursor.svg?raw";
@@ -112,14 +114,14 @@ function clearRuler() { ruler.clear(); }
     justify-content: center;
     align-items: center;
     font-size: medium;
-    border-bottom: 2px solid white;
+    border-bottom: 2px solid currentColor;
     font-size: medium;
     border-radius: 0px;
 }
 
 .scale-tick {
     position: absolute;
-    border-left: 2px solid white;
+    border-left: 2px solid currentColor;
     height: 6px;
     bottom: 0px;
 }
@@ -134,12 +136,12 @@ function clearRuler() { ruler.clear(); }
 
 </style>
 
-<div id=cross-aim hidden={!crossMode}>{@html crossIcon}</div>
+<img id=cross-aim hidden={!crossMode} src={crossImg} />
 
 <div id="mapControlPanel">
     <!-- Compass -->
-    <button class="btn btn-lg btn-circle" on:click={resetCompas}>
-        <img width=42px src={compasImg} alt="Compas" style="transform:rotate({heading}deg);" />
+    <button class="btn btn-lg btn-circle"  on:click={resetCompas}>
+        <div style="transform:rotate({heading}deg);">{@html compasIcon}</div>
     </button>
 
     <!-- Coordinates -->
