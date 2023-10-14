@@ -7,6 +7,7 @@ import { degreesToDmsString, roundTo125 } from "$lib/common/formats";
 import type { MapViewport, MapInteraction, MapRuler, MapGraticule, MapLayers } from "$lib/interfaces/map";
 
 import { userPreferences } from '$stores/preferences';
+import { i18n } from '$stores/i18n';
 
 import crossImg from "$assets/svg/cross.svg";
 
@@ -115,13 +116,7 @@ function clearRuler() { ruler.clear(); }
 }
 #scale {
     width: 128px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: medium;
     border-bottom: 3px solid currentColor;
-    font-size: medium;
-    border-radius: 0px;
 }
 
 .scale-tick {
@@ -131,12 +126,11 @@ function clearRuler() { ruler.clear(); }
     bottom: 0px;
 }
 
-#ruler-label {
+#ruler {
     width: 96px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: medium;
 }
 
 </style>
@@ -145,61 +139,79 @@ function clearRuler() { ruler.clear(); }
 
 <div id="mapControlPanel">
     <!-- Compass -->
-    <button class="btn btn-lg btn-circle"  on:click={resetCompas}>
-        <div style="transform:rotate({heading}deg);">{@html compasIcon}</div>
-    </button>
+    <div class="tooltip" data-tip={ $i18n.t("To North") }>
+        <button class="btn btn-lg btn-circle" on:click={resetCompas}>
+            <div style="transform:rotate({heading}deg);">{@html compasIcon}</div>
+        </button>
+    </div>
 
     <!-- Coordinates -->
-    <div class="join" >
-        <button class="btn btn-sm join-item px-1 ml-2" on:click={switchCrossMode}>
-            {@html crossMode === true ? crossIcon : cursorIcon}
-        </button>
+    <div class="join btn-sm p-0" >
+        <div class="tooltip" data-tip={ crossMode ? $i18n.t("Cross coordinates") : $i18n.t("Mouse coordinates") }>
+            <button class="btn btn-sm join-item px-1 ml-2" on:click={switchCrossMode}>
+                {@html (crossMode ? crossIcon : cursorIcon)}
+            </button>
+        </div>
+        <div class="tooltip" data-tip={ $i18n.t("Copy to clipboard") }>
         <button class="btn btn-sm btn-wide join-item" on:click={coordsToClipboard}>
             {latitude + ", " + longitude}
         </button>
+        </div>
     </div>
 
     <!-- Map scale -->
-    <div class="join bg-base-200">
-        <button class="btn btn-sm px-1 join-item"
-            on:mousedown={() => zoomOutPressed = true} on:mouseup={() => zoomOutPressed = false} on:mouseleave={() => zoomOutPressed = false}>
-            {@html minusIcon}
-        </button>
-        <div id="scale" class="" bind:clientWidth={scaleWidth}>
-            {metersRounded > 1000 ? (metersRounded / 1000 + " km") : (metersRounded + " m")}
+    <div class="join btn-sm p-0">
+        <div class="tooltip" data-tip={ $i18n.t("Zoom out") }>
+            <button class="btn btn-sm px-1 join-item"
+                on:mousedown={() => zoomOutPressed = true} on:mouseup={() => zoomOutPressed = false} on:mouseleave={() => zoomOutPressed = false}>
+                {@html minusIcon}
+            </button>
+        </div>
+        <div id="scale" class="btn-sm bg-base-200 px-1 join-item" bind:clientWidth={scaleWidth}>
+            {metersRounded > 1000 ? (metersRounded / 1000 + $i18n.t(" km")) : (metersRounded + " m")}
             <div class="scale-tick" style ="left: 0%"></div>
             <div class="scale-tick" style ="left: {metersRounded / metersInWidth * 100}%"></div>
         </div>
-        <button class="btn btn-sm px-1 join-item"
-            on:mousedown={() => zoomInPressed = true} on:mouseup={() => zoomInPressed = false} on:mouseleave={() => zoomInPressed = false}>
-            {@html plusIcon}
-        </button>
+        <div class="tooltip" data-tip={ $i18n.t("Zoom in") }>
+            <button class="btn btn-sm px-1 join-item"
+                on:mousedown={() => zoomInPressed = true} on:mouseup={() => zoomInPressed = false} on:mouseleave={() => zoomInPressed = false}>
+                {@html plusIcon}
+            </button>
+        </div>
     </div>
 
     <!-- Ruler Tool -->
-    <div class="join bg-base-200">
-        <button class={"btn btn-sm px-2 " + (rulerMode ? "btn-accent " : "") + (rulerLength > 0 ? "join-item" : "")} 
-            on:click={switchRulerMode}>
-            {@html rulerIcon }
-        </button>
-        {#if rulerLength > 0}
-        <div id="ruler-label" class="">
-            {rulerLength > 1000 ? ((Math.round(rulerLength / 100) / 10).toString() + " km") : (rulerLength + " m")}
+    <div class="join btn-sm p-0">
+        <div class="tooltip" data-tip={ rulerMode ? $i18n.t("Disable ruler") : $i18n.t("Enable ruler") }>
+            <button class={"btn btn-sm px-2 " + (rulerMode ? "btn-accent " : "") + (rulerLength > 0 ? "join-item" : "")}
+                on:click={switchRulerMode}>
+                {@html rulerIcon }
+            </button>
         </div>
-        <button class="btn btn-sm px-1 join-item" on:click={clearRuler}>
-            {@html closeIcon}
-        </button>
+        {#if rulerLength > 0}
+        <div id="ruler" class="btn-sm bg-base-200 px-1 join-item">
+            {rulerLength > 1000 ? ((Math.round(rulerLength / 100) / 10).toString() + $i18n.t(" km")) : (rulerLength + $i18n.t(" m"))}
+        </div>
+        <div class="tooltip" data-tip={ $i18n.t("Clear ruler") }>
+            <button class="btn btn-sm px-1 join-item" on:click={clearRuler}>
+                {@html closeIcon}
+            </button>
+        </div>
         {/if}
     </div>
 
     <!-- Grid Tool -->
-    <button class={"btn btn-sm px-1 " + (gridMode ? "btn-accent" : "")} on:click={switchGridMode}>{@html gridIcon}</button>
+    <div class="tooltip" data-tip={ gridMode ? $i18n.t("Disable grid") : $i18n.t("Enable grid") }>
+        <button class={"btn btn-sm px-2 " + (gridMode ? "btn-accent" : "")} on:click={switchGridMode}>{@html gridIcon}</button>
+    </div>
 
     <!-- Map Layers -->
-    <div tabindex="0" class="dropdown dropdown-top dropdown-end">
-        <label tabindex="0" class="btn btn-sm px-2">{@html layersIcon}</label>
-        <ul class="dropdown-content z-[1] menu p-2 my-2 shadow bg-base-100 rounded-box">
-            <MapLayersView layers={layers} /> 
-        </ul>
+    <div class="tooltip" data-tip={ $i18n.t("Map layers") }>
+        <div tabindex="0" class="dropdown dropdown-top dropdown-end">
+            <label tabindex="0" class="btn btn-sm px-2">{@html layersIcon}</label>
+            <ul class="dropdown-content z-[1] menu p-2 my-2 shadow bg-base-100 rounded-box">
+                <MapLayersView layers={layers} />
+            </ul>
+        </div>
     </div>
 </div>

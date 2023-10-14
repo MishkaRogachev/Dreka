@@ -1,5 +1,7 @@
 {
     "translation": {
+        " m": " м",
+        " km": " км",
         "Main": "Основной",
         "Flight": "Полёт",
         "Configure": "Конфигурация",
@@ -8,6 +10,18 @@
         "Dark mode": "Темный режим",
         "Scale": "Масштаб",
         "Locale": "Локаль",
-        "About": "О программе"
+        "About": "О программе",
+        "To North": "На Север",
+        "Cross coordinates": "Координаты перекрестия",
+        "Mouse coordinates": "Кординаты указателя",
+        "Copy to clipboard": "Копировать в буфер",
+        "Zoom out": "Отдалить",
+        "Zoom in": "Увеличить",
+        "Enable ruler": "Включить линейку",
+        "Disable ruler": "Выключить линейку",
+        "Clear ruler": "Очистить линейку",
+        "Enable grid": "Включить сетку",
+        "Disable grid": "Выключить сетку",
+        "Map layers": "Слои карты"
     }
 }

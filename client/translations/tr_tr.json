@@ -1,5 +1,6 @@
 {
     "translation": {
+        " km": " km",
         "Main": "Ana",
         "Flight": "Uçuş",
         "Configure": "Yapılandır",
@@ -8,6 +9,18 @@
         "Dark mode": "Koyu mod",
         "Scale": "Ölçek",
         "Locale": "Yerel",
-        "About": "Hakkında"
+        "About": "Hakkında",
+        "To North": "Kuzey'e",
+        "Cross coordinates": "Crosshair koordinatları",
+        "Mouse coordinates": "Fare koordinatları",
+        "Copy to clipboard": "Panoya kopyala",
+        "Zoom out": "Uzaklaştır",
+        "Zoom in": "Yakınlaştır",
+        "Enable ruler": "Cetveli etkinleştir",
+        "Disable ruler": "Cetveli devre dışı bırak",
+        "Clear ruler": "Cetveli temizle",
+        "Enable grid": "Izgarayı etkinleştir",
+        "Disable grid": "Izgarayı devre dışı bırak",
+        "Map layers": "Harita katmanları"
     }
 }

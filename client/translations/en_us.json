@@ -1,5 +1,7 @@
 {
     "translation": {
+        " m": " m",
+        " km": " km",
         "Main": "Main",
         "Flight": "Flight",
         "Configure": "Configure",
@@ -8,6 +10,18 @@
         "Dark mode": "Dark mode",
         "Scale": "Scale",
         "Locale": "Locale",
-        "About": "About"
+        "About": "About",
+        "To North": "To North",
+        "Cross coordinates": "Cross coordinates",
+        "Mouse coordinates": "Mouse coordinates",
+        "Copy to clipboard": "Copy to clipboard",
+        "Zoom out": "Zoom out",
+        "Zoom in": "Zoom in",
+        "Enable ruler": "Enable ruler",
+        "Disable ruler": "Disable ruler",
+        "Clear ruler": "Clear ruler",
+        "Enable grid": "Enable grid",
+        "Disable grid": "Disable grid",
+        "Map layers": "Map layers"
     }
 }

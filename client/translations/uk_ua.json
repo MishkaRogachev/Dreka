@@ -1,5 +1,7 @@
 {
     "translation": {
+        " m": " м",
+        " km": " км",
         "Main": "Головний",
         "Flight": "Політ",
         "Configure": "Налаштування",
@@ -8,6 +10,18 @@
         "Dark mode": "Темний режим",
         "Scale": "Масштаб",
         "Locale": "Локаль",
-        "About": "Про програму"
+        "About": "Про програму",
+        "To North": "На Північ",
+        "Cross coordinates": "Координати перехрестя",
+        "Mouse coordinates": "Кординати покажчика",
+        "Copy to clipboard": "Копіювати в буфер",
+        "Zoom out": "Зменшити",
+        "Zoom in": "Збільшити",
+        "Enable ruler": "Увімкнути лінійку",
+        "Disable ruler": "Вимкнути лінійку",
+        "Clear ruler": "Очистити лінійку",
+        "Enable grid": "Увімкнути сітку",
+        "Disable grid": "Вимкнути сітку",
+        "Map layers": "Шари мапи"
     }
 }
