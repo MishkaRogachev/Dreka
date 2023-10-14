@@ -15,6 +15,13 @@
     "@jridgewell/gen-mapping" "^0.3.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
+"@babel/runtime@^7.22.5":
+  version "7.23.2"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.23.2.tgz#062b0ac103261d68a966c4c7baf2ae3e62ec3885"
+  integrity sha512-mM8eg4yl5D6i3lu2QKPuPH4FArvJ8KhTofbE7jwMUv9KX5mBvwPAqnV3MlyBNqdp9RyRKP6Yck8TrfYrPvX3bg==
+  dependencies:
+    regenerator-runtime "^0.14.0"
+
 "@cesium/engine@^5.0.0":
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/@cesium/engine/-/engine-5.0.0.tgz#2ae1b73af7b4002dc21b6435b17905f9cbe9cf66"
@@ -2726,6 +2733,13 @@ humps@^1.1.0:
   resolved "https://registry.yarnpkg.com/humps/-/humps-1.1.0.tgz#99a05cc80b13ae754a3d1e1a92182f271ef1d98f"
   integrity sha512-Ed8wQ/Ip3+LAeOhx1dpNWRlAaPjV/q9RRDvKlz1Upm3r/XY76hpa//VJzkrk2cmMR9oeMGUINhyZovN3mnk6Dw==
 
+i18next@^23.5.1:
+  version "23.5.1"
+  resolved "https://registry.yarnpkg.com/i18next/-/i18next-23.5.1.tgz#7f7c35ffaa907618d9489f106d5006b09fbca3d3"
+  integrity sha512-JelYzcaCoFDaa+Ysbfz2JsGAKkrHiMG6S61+HLBUEIPaF40WMwW9hCPymlQGrP+wWawKxKPuSuD71WZscCsWHg==
+  dependencies:
+    "@babel/runtime" "^7.22.5"
+
 img-stats@^0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/img-stats/-/img-stats-0.5.2.tgz#c203496c42f2d9eb2e5ab8232fa756bab32c9e2b"
@@ -4626,6 +4640,11 @@ reduce-function-call@^1.0.1:
   dependencies:
     balanced-match "^1.0.0"
 
+regenerator-runtime@^0.14.0:
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.14.0.tgz#5e19d68eb12d486f797e15a3c6a918f7cec5eb45"
+  integrity sha512-srw17NI0TUWHuGa5CFGGmhfNIeja30WMBfbslPNhf6JrqQlLN5gcrvig1oqPxiVaXb0oW0XRKtH6Nngs5lKCIA==
+
 regex-not@^1.0.0, regex-not@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/regex-not/-/regex-not-1.0.2.tgz#1f4ece27e00b0b65e0247a6810e6a85d83a5752c"
@@ -5167,6 +5186,11 @@ svelte-hmr@^0.15.3:
   version "0.15.3"
   resolved "https://registry.yarnpkg.com/svelte-hmr/-/svelte-hmr-0.15.3.tgz#df54ccde9be3f091bf5f18fc4ef7b8eb6405fbe6"
   integrity sha512-41snaPswvSf8TJUhlkoJBekRrABDXDMdpNpT2tfHIv4JuhgvHqLMhEPGtaQn0BmbNSTkuz2Ed20DF2eHw0SmBQ==
+
+svelte-i18next@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/svelte-i18next/-/svelte-i18next-2.2.0.tgz#59b235337c04c367cea530baf52730ae9894f493"
+  integrity sha512-orjHGfdTypoztEog6w0H8BhyrITJXSNUlg1hHL6LmDUNK4xBLmX/Imxp5GLhXu5xh7ug2ezlvUDw7+bVpMzNsA==
 
 svelte-overlay@^1.4.1:
   version "1.4.1"

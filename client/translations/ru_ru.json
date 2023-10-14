@@ -1,0 +1,13 @@
+{
+    "translation": {
+        "Main": "Основной",
+        "Flight": "Полёт",
+        "Configure": "Конфигурация",
+        "Communication": "Связь",
+        "Misc": "Прочее",
+        "Dark mode": "Темный режим",
+        "Scale": "Масштаб",
+        "Locale": "Локаль",
+        "About": "О программе"
+    }
+}

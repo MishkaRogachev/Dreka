@@ -16,6 +16,7 @@
     "isolatedModules": true,
     "paths": {
       "$assets/*": ["./assets/*"],
+      "$translations/*": ["./translations/*"],
       "$lib/*": ["./src/lib/*"],
       "$components/*": ["./src/components/*"],
       "$pages/*": ["./src/pages/*"],
