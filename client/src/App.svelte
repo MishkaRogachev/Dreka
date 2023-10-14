@@ -5,7 +5,7 @@ import FlightPage from '$pages/flight/FlightPage.svelte';
 import Communication from '$pages/communication/CommunicationPage.svelte'
 import About from '$pages/about/AboutPage.svelte';
 
-import { Page, currentPage } from '$stores/app';
+import { Page, currentPage, Modal, currentModal } from '$stores/app';
 
 </script>
 
@@ -14,8 +14,9 @@ import { Page, currentPage } from '$stores/app';
 <div id="app" class="flex items-center justify-center h-screen">
     <!-- Main modes, never suspend -->
     <FlightPage visible={$currentPage === Page.Flight}/>
-
-    <!-- Aux modes -->
-    {#if $currentPage === Page.Communication} <Communication/> {/if}
-    {#if $currentPage === Page.About} <About/> {/if}
 </div>
+
+<!-- Aux modes -->
+{#if $currentModal === Modal.Communication} <Communication/> {/if}
+{#if $currentModal === Modal.About} <About/> {/if}
+

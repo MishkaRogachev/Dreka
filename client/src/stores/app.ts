@@ -4,7 +4,11 @@ import { AppService } from '$services/app';
 import { userPreferences } from '$stores/preferences';
 
 export enum Page {
-    Flight = "Flight",
+    Flight = "Flight"
+}
+
+export enum Modal {
+    None = "",
     Communication = "Communication",
     About = "About"
 }
@@ -14,8 +18,11 @@ export enum Theme {
     Dark = "dark",
 }
 
-export const pages = [Page.Flight, Page.Communication, Page.About];
+export const pages = [Page.Flight];
 export const currentPage = writable(Page.Flight);
+
+export const modals = [Modal.Communication, Modal.About];
+export const currentModal = writable(Modal.None);
 
 export const theme = writable(getTheme())
 
@@ -59,12 +66,16 @@ scale.subscribe(scaleValue => {
     get(userPreferences).set("ui/scale", scaleValue.toString());
 });
 
+export function closeModal() {
+    currentModal.set(Modal.None);
+}
+
 export const isServerOnline = readable(false, (set) => {
     const pingInterval = setInterval(() => {
         AppService.pingServer().then((onlineStatus: any) => {
-            set(onlineStatus as boolean)
+            set(onlineStatus as boolean);
         });
     }, 1000);
 
-    return () => clearInterval(pingInterval)
+    return () => clearInterval(pingInterval);
 })
