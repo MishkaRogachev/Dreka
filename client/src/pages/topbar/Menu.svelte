@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Page, currentPage, Modal, currentModal, Theme, theme, scale, scales } from '$stores/app';
+import { Page, currentPage, Theme, theme, scale, scales } from '$stores/app';
 import { locale, locales } from '$stores/i18n';
 
 import { clickOutside } from '$lib/common/click-outside';
@@ -15,6 +15,11 @@ function closeDropdown() {
     document.getElementById("menuDropdown")?.removeAttribute("open");
 }
 
+function openModal(id: string) {
+    // @ts-ignore
+    document.getElementById(id)?.showModal();
+}
+
 </script>
 
 <details id="menuDropdown" class="dropdown" use:clickOutside={closeDropdown}>
@@ -28,11 +33,10 @@ function closeDropdown() {
                 }}>{@html fleetIcon} { $i18n.t("Flight") }</a>
         </li>
         <h4>{ $i18n.t("Configure") }</h4>
-        <li class={"btn-wide" + ($currentModal === Modal.Communication ? " disabled" : ""  )}>
-            <a on:click={() => {
-                $currentModal = Modal.Communication;
-                closeDropdown();
-                }}>{@html connectIcon} { $i18n.t("Communication") }</a></li>
+        <li class="btn-wide"><a on:click={() => {
+            openModal("communication_modal");
+            closeDropdown(); 
+        }}>{@html connectIcon} { $i18n.t("Communication") }</a></li>
         <h4>{ $i18n.t("Misc") }</h4>
         <li class="btn-wide">
             <label class="label cursor-pointer">

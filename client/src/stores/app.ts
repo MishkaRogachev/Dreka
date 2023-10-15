@@ -7,12 +7,6 @@ export enum Page {
     Flight = "Flight"
 }
 
-export enum Modal {
-    None = "",
-    Communication = "Communication",
-    About = "About"
-}
-
 export enum Theme {
     Light = "light",
     Dark = "dark",
@@ -20,9 +14,6 @@ export enum Theme {
 
 export const pages = [Page.Flight];
 export const currentPage = writable(Page.Flight);
-
-export const modals = [Modal.Communication, Modal.About];
-export const currentModal = writable(Modal.None);
 
 export const theme = writable(getTheme())
 
@@ -65,10 +56,6 @@ scale.subscribe(scaleValue => {
     applyScale(scaleValue)
     get(userPreferences).set("ui/scale", scaleValue.toString());
 });
-
-export function closeModal() {
-    currentModal.set(Modal.None);
-}
 
 export const isServerOnline = readable(false, (set) => {
     const pingInterval = setInterval(() => {

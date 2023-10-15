@@ -5,7 +5,7 @@ import FlightPage from '$pages/flight/FlightPage.svelte';
 import Communication from '$pages/communication/CommunicationPage.svelte'
 import About from '$pages/about/AboutPage.svelte';
 
-import { Page, currentPage, Modal, currentModal } from '$stores/app';
+import { Page, currentPage } from '$stores/app';
 
 </script>
 
@@ -17,6 +17,6 @@ import { Page, currentPage, Modal, currentModal } from '$stores/app';
 </div>
 
 <!-- Aux modes -->
-{#if $currentModal === Modal.Communication} <Communication/> {/if}
-{#if $currentModal === Modal.About} <About/> {/if}
+<Communication/>
+<!-- <About/> -->
 

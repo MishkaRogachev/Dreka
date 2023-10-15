@@ -1,29 +1,17 @@
 <script lang="ts">
-import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-
-import TextEdit from '$components/controls/TextEdit.svelte';
-import Button from "$components/controls/Button.svelte";
-import Label from "$components/controls/Label.svelte";
-import Led from "$components/controls/Led.svelte";
+import { onMount, onDestroy } from 'svelte';
 
 import { type LinkDescription, type LinkProtocol, MavlinkProtocolVersion, type LinkStatus } from "$bindings/communication";
 import { getLinkStatus, saveLink } from "$stores/communication";
 
-import upIcon from "$assets/svg/up.svg";
-import downIcon from "$assets/svg/down.svg";
+import { i18n } from "$stores/i18n";
 
 export let link: LinkDescription
-export let expanded: boolean = false
 
 let status: LinkStatus | null = null
 
 let interval: any
 let blocked: boolean = false
-
-const dispatch = createEventDispatcher()
-
-function expand() { dispatch('expand', {}); }
-function collapse() { dispatch('collapse', {}); }
 
 onMount(async () => {
     interval = setInterval(async () => { status = await getLinkStatus(link.id); }, 250);
@@ -62,36 +50,8 @@ async function setLinkEnabled(link: LinkDescription, enabled: boolean) {
 
 </script>
 
-<style>
-#link {
-    width: 100%;
-    min-height: 42px;
-    gap: 8px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.row {
-    width: 100%;
-    margin-top: 4px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
-.header-buttons {
-    width: 20%;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-}
-</style>
-
-<div id="link" class="frame">
-
 <!-- Link Preview -->
-<div class="row">
+<!-- <div class="row">
     <Led state={ status && status?.is_connected ? status?.is_online ? "on" : "warning" : "off"}/>
     <Label text={link.name} style="width: 256px;"/>
     <Label text={getProtocolName(link.protocol)} style="width: 256px;"/>
@@ -105,10 +65,10 @@ async function setLinkEnabled(link: LinkDescription, enabled: boolean) {
         <Button left_cropped={expanded} icon={ expanded ? upIcon : downIcon }
             on:click={expanded ? collapse : expand }/>
     </div>
-</div>
+</div> -->
 
 <!-- Link Editor -->
-{#if expanded}
+<!-- {#if expanded}
 <table style="width: 256px">
     <colgroup>
         <col span="1" style="width: 35%;">
@@ -123,4 +83,31 @@ async function setLinkEnabled(link: LinkDescription, enabled: boolean) {
 </table>
 {/if}
 
+</div> -->
+
+
+<div class="collapse bg-base-200">
+    <input type="radio" name="my-accordion-2" />
+    <div class="collapse-title flex flex-row gap-4">
+        <div class="indicator">
+            <span class={"indicator-item badge badge-xs indicator-start indicator-middle " + 
+                (status && status?.is_connected ? status?.is_online ? "bg-success" : "bg-warning" : "bg-neutral-content")} >
+            </span>
+            <h1 class="text-l font-medium ml-8">{link.name}</h1>
+        </div>
+    </div>
+    <div class="collapse-content container">
+        link.id
+        <!-- TODO: REMOVE -->
+        <div class="join btn-sm p-0 w-full">
+            <button class="btn btn-sm px-1 join-item" disabled={ link.enabled || blocked }
+                on:click={() => { setLinkEnabled(link, true) }}>
+                { $i18n.t("Connect") }
+            </button>
+            <button class="btn btn-sm px-1 join-item" disabled={ !link.enabled || blocked }
+                on:click={() => { setLinkEnabled(link, false) }}>
+                { $i18n.t("Disconnect") }
+            </button>
+        </div>
+    </div>
 </div>
