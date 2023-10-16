@@ -8,7 +8,7 @@ import { i18n } from '$stores/i18n';
 
 import burgerIcon from "$assets/svg/burger.svg?raw";
 import fleetIcon from "$assets/svg/fleet.svg?raw";
-import connectIcon from "$assets/svg/connect.svg?raw";
+import commIcon from "$assets/svg/comm.svg?raw";
 import aboutIcon from "$assets/svg/about.svg?raw";
 
 function closeDropdown() {
@@ -36,7 +36,7 @@ function openModal(id: string) {
         <li class="btn-wide"><a on:click={() => {
             openModal("communication_modal");
             closeDropdown(); 
-        }}>{@html connectIcon} { $i18n.t("Communication") }</a></li>
+        }}>{@html commIcon} { $i18n.t("Communication") }</a></li>
         <h4>{ $i18n.t("Misc") }</h4>
         <li class="btn-wide">
             <label class="label cursor-pointer">

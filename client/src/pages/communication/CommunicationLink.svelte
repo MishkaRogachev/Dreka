@@ -50,64 +50,28 @@ async function setLinkEnabled(link: LinkDescription, enabled: boolean) {
 
 </script>
 
-<!-- Link Preview -->
-<!-- <div class="row">
-    <Led state={ status && status?.is_connected ? status?.is_online ? "on" : "warning" : "off"}/>
-    <Label text={link.name} style="width: 256px;"/>
-    <Label text={getProtocolName(link.protocol)} style="width: 256px;"/>
-    <div class="header-buttons">
-        {#if !expanded}
-        <Button disabled={link.enabled || blocked} text="Connect" right_cropped={true}
-            on:click={() => { setLinkEnabled(link, true) }}/>
-        <Button disabled={!link.enabled || blocked} text="Disconnect" right_cropped={true} left_cropped={true}
-            on:click={() => { setLinkEnabled(link, false) }}/>
-        {/if}
-        <Button left_cropped={expanded} icon={ expanded ? upIcon : downIcon }
-            on:click={expanded ? collapse : expand }/>
-    </div>
-</div> -->
-
-<!-- Link Editor -->
-<!-- {#if expanded}
-<table style="width: 256px">
-    <colgroup>
-        <col span="1" style="width: 35%;">
-        <col span="1" style="width: 65%;">
-    </colgroup>
-    <tr><td>
-        <Label text="Name"/>
-    </td>
-    <td>
-        <TextEdit style="width:100%"/>
-    </td></tr>
-</table>
-{/if}
-
-</div> -->
-
-
-<div class="collapse bg-base-200">
+<div class="collapse collapse-arrow bg-base-200">
     <input type="radio" name="my-accordion-2" />
     <div class="collapse-title flex flex-row gap-4">
-        <div class="indicator">
+        <div class="indicator w-full">
             <span class={"indicator-item badge badge-xs indicator-start indicator-middle " + 
                 (status && status?.is_connected ? status?.is_online ? "bg-success" : "bg-warning" : "bg-neutral-content")} >
             </span>
             <h1 class="text-l font-medium ml-8">{link.name}</h1>
         </div>
-    </div>
-    <div class="collapse-content container">
-        link.id
-        <!-- TODO: REMOVE -->
-        <div class="join btn-sm p-0 w-full">
-            <button class="btn btn-sm px-1 join-item" disabled={ link.enabled || blocked }
+        <div class="join btn-sm p-0 z-[1]">
+            <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ link.enabled || blocked }
                 on:click={() => { setLinkEnabled(link, true) }}>
                 { $i18n.t("Connect") }
             </button>
-            <button class="btn btn-sm px-1 join-item" disabled={ !link.enabled || blocked }
+            <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ !link.enabled || blocked }
                 on:click={() => { setLinkEnabled(link, false) }}>
                 { $i18n.t("Disconnect") }
             </button>
         </div>
+    </div>
+    <div class="collapse-content container">
+        link.id
+        <!-- TODO: REMOVE -->
     </div>
 </div>
