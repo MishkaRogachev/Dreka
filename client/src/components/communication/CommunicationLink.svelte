@@ -4,7 +4,7 @@ import { onMount, onDestroy } from 'svelte';
 import MavlinkEdit from './MavlinkEdit.svelte';
 
 import { type LinkDescription, type LinkStatus } from "$bindings/communication";
-import { getLinkStatus, saveLink } from "$stores/communication";
+import { getLinkStatus, saveLink, removeLink } from "$stores/communication";
 
 import { i18n } from "$stores/i18n";
 
@@ -66,6 +66,11 @@ async function setLinkEnabled(link: LinkDescription, enabled: boolean) {
             <MavlinkEdit protocol={link.protocol.Mavlink} />
         {/if}
 
-        <!-- TODO: REMOVE, UNDO, SAVE -->
+
+        <button disabled={link.enabled} class="btn btn-sm btn-secondary join-item px-1 ml-2" on:click={()=>{ removeLink(link.id || "") }}>
+            { $i18n.t("Remove") }
+        </button>
+
+            <!-- TODO: UNDO, SAVE -->
     </div>
 </div>

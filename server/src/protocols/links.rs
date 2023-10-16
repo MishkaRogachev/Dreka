@@ -19,7 +19,7 @@ pub async fn check_and_create_links(repo: &Arc<db::Repository>) -> std::io::Resu
     }
 
     create_link(repo, &communication::LinkDescription {
-        id: "default_udp_link".into(),
+        id: Some("default_udp_link".into()),
         name: "Default Mavlink UDP".into(),
         protocol: communication::LinkProtocol::Mavlink {
             link_type: communication::LinkType::Udp {
@@ -32,7 +32,7 @@ pub async fn check_and_create_links(repo: &Arc<db::Repository>) -> std::io::Resu
     }).await?;
 
     create_link(repo, &communication::LinkDescription {
-        id: "default_tcp_link".into(),
+        id: Some("default_tcp_link".into()),
         name: "Default Mavlink TCP".into(),
         protocol: communication::LinkProtocol::Mavlink {
             link_type: communication::LinkType::Tcp {

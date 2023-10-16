@@ -15,4 +15,5 @@ mavlink = "0.12.0"
 ts-rs = "7.0.0"
 
 surrealdb = { version = "1.0.0", features = ["kv-mem", "kv-rocksdb"] }
+serde_with = { version = "3.3.0", features = ["json"] }
 

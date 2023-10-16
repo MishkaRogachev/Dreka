@@ -29,15 +29,16 @@ async fn refresh_connections(repo: &Arc<db::Repository>, link_connections: &mut 
         Ok(links) => {
             let mut link_ids: Vec<String> = Vec::new();
             for link in links {
-                link_ids.push(link.id.clone());
+                let link_id = link.id.clone().unwrap();
+                link_ids.push(link_id.clone());
 
                 // Add connections for (new) links
-                if !link_connections.contains_key(&link.id) {
-                    link_connections.insert(link.id.clone(), create_connection(&link));
+                if !link_connections.contains_key(&link_id) {
+                    link_connections.insert(link_id.clone(), create_connection(&link));
                 }
 
                 // Update connection status for link connections
-                let connection = link_connections.get_mut(&link.id).unwrap();
+                let connection = link_connections.get_mut(&link_id).unwrap();
                 if link.enabled && !connection.is_connected() {
                     if let Err(err) = connection.connect().await {
                         println!("Connect error: {}", err.to_string());

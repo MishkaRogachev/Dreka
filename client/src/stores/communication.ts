@@ -22,3 +22,7 @@ export async function getLinkStatus(id: string): Promise<LinkStatus> {
 export async function saveLink(link: LinkDescription) {
     return await CommunicationService.saveLink(link);
 }
+
+export async function removeLink(linkId: string)  {
+    return await CommunicationService.removeLink(linkId);
+}

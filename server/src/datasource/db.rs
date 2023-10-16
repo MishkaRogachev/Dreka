@@ -12,6 +12,7 @@ pub enum DbError {
     JSon(serde_json::Error),
 
     NoIdSpecified,
+    IdIsEmpty,
     NoData
 }
 
@@ -50,6 +51,10 @@ impl Repository {
     async fn create_impl(&self, table: &str, data: &serde_json::Value, id: Option<String>) -> Result<(), DbError> {
         match id {
             Some(id) => {
+                if id.is_empty() {
+                    return Err(DbError::IdIsEmpty);
+                }
+
                 let response = self.db.query("CREATE type::thing($tb, $uid) CONTENT $data")
                 .bind(("tb", table))
                 .bind(("uid", id))
@@ -60,10 +65,13 @@ impl Repository {
                 Ok(())
             },
             None => {
-                self.db.query("CREATE type::thing($tb) CONTENT $data")
+                let json_data = serde_json::json!(data);
+                let response = self.db.query("CREATE type::table($tb) CONTENT $data")
                     .bind(("tb", table))
-                    .bind(("data", serde_json::json!(data)))
+                    .bind(("data", &json_data))
                     .await?;
+
+                response.check()?;
             Ok(())
             },
         }
@@ -111,7 +119,9 @@ impl Repository {
                     return self.create_impl(table, &data, Some(id.to_owned())).await;
                 }
             },
-            None => Err(DbError::NoIdSpecified)
+            None => {
+                return self.create_impl(table, &data, None).await;
+            }
         }
     }
 
@@ -149,10 +159,12 @@ impl Repository {
     }
 
     pub async fn remove(&self, table: &str, id: &str) -> Result<(), DbError> {
-        self.db.query("DELETE ONLY type::thing($tb, $uid)")
+        let response = self.db.query("DELETE type::thing($tb, $uid)")
             .bind(("tb", table))
             .bind(("uid", id))
             .await?;
+
+        response.check()?;
         Ok(())
     }
 
@@ -182,6 +194,7 @@ impl std::fmt::Display for DbError {
             DbError::Surreal(err) => write!(f, "{}", err),
             DbError::JSon(err) => write!(f, "{}", err),
             DbError::NoIdSpecified => write!(f, "No id was specified"),
+            DbError::IdIsEmpty => write!(f, "Id is empty"),
             DbError::NoData => write!(f, "No data")
         }
     }

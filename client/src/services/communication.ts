@@ -17,4 +17,8 @@ export class CommunicationService {
             headers: default_headers
         }) || null;
     }
+
+    static async removeLink(linkId: string): Promise<string | null> {
+        return await send_request("/comm/links/remove/" + linkId, { method: "DELETE" }) || null;
+    }
 }

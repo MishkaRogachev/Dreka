@@ -3,7 +3,7 @@ import CommunicationLink from "$components/communication/CommunicationLink.svelt
 
 import { type LinkDescription, MavlinkProtocolVersion } from "$bindings/communication";
 
-import { links } from "$stores/communication";
+import { links, saveLink } from "$stores/communication";
 import { i18n } from "$stores/i18n";
 
 const linksForCreation: Array<LinkDescription> = [
@@ -66,10 +66,10 @@ const linksForCreation: Array<LinkDescription> = [
                 <label tabindex="0" class="btn m-1">{ $i18n.t("New Link") }</label>
                 <ul tabindex="0" class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
                     {#each linksForCreation as link, i}
-                        <li value={i}><a>{ link.name }</a></li>
+                        <li on:click={() => { saveLink(link); }} value={i}><a>{ link.name }</a></li>
                     {/each}
                 </ul>
-                </div>
+            </div>
         </form>
         <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Communication Links") }</h3>
 

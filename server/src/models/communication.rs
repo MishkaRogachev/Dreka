@@ -24,8 +24,9 @@ pub enum LinkProtocol {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
+#[serde_with::skip_serializing_none]
 pub struct LinkDescription {
-    pub id: String,
+    pub id: Option<String>,
     pub protocol: LinkProtocol,
     pub enabled: bool,
     pub name: String
