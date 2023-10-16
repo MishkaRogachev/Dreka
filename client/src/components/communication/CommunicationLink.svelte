@@ -1,7 +1,9 @@
 <script lang="ts">
 import { onMount, onDestroy } from 'svelte';
 
-import { type LinkDescription, type LinkProtocol, MavlinkProtocolVersion, type LinkStatus } from "$bindings/communication";
+import MavlinkEdit from './MavlinkEdit.svelte';
+
+import { type LinkDescription, type LinkStatus } from "$bindings/communication";
 import { getLinkStatus, saveLink } from "$stores/communication";
 
 import { i18n } from "$stores/i18n";
@@ -14,28 +16,11 @@ let interval: any
 let blocked: boolean = false
 
 onMount(async () => {
-    interval = setInterval(async () => { status = await getLinkStatus(link.id); }, 250);
+    interval = setInterval(async () => { status = link.id ? await getLinkStatus(link.id) : null; }, 250);
 })
 
 onDestroy(async () => { clearInterval(interval); });
 
-function getProtocolName(protocol: LinkProtocol): string {
-    let name: string = "";
-    if (protocol.Mavlink !== null ) {
-        name += "MAVLink";
-        switch (protocol.Mavlink.protocol_version) {
-            case MavlinkProtocolVersion.MavlinkV1:
-                name += ":V1";
-                break;
-            case MavlinkProtocolVersion.MavlinkV2:
-                name += ":V2";
-                break;
-            default:
-                break;
-        }
-    }
-    return name;
-}
 
 async function setLinkEnabled(link: LinkDescription, enabled: boolean) {
     link.enabled = enabled;
@@ -57,7 +42,7 @@ async function setLinkEnabled(link: LinkDescription, enabled: boolean) {
             <span class={"indicator-item badge badge-xs indicator-start indicator-middle " + 
                 (status && status?.is_connected ? status?.is_online ? "bg-success" : "bg-warning" : "bg-neutral-content")} >
             </span>
-            <h1 class="text-l font-medium ml-8">{link.name}</h1>
+            <h1 class="font-medium ml-8 my-2">{link.name}</h1>
         </div>
         <div class="join btn-sm p-0 z-[1]">
             <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ link.enabled || blocked }
@@ -70,8 +55,17 @@ async function setLinkEnabled(link: LinkDescription, enabled: boolean) {
             </button>
         </div>
     </div>
-    <div class="collapse-content container">
-        link.id
-        <!-- TODO: REMOVE -->
+    <div class="collapse-content grid grid-cols-2 gap-2">
+        <!-- Name -->
+        <h1 class="font-medium my-2 w-full">{ $i18n.t("Name") }</h1>
+        <input type="text" placeholder={ $i18n.t("Name cannot be empty") } class="input w-full"
+            bind:value={link.name}/>
+
+        <!-- Protocol -->
+        {#if link.protocol.Mavlink}
+            <MavlinkEdit protocol={link.protocol.Mavlink} />
+        {/if}
+
+        <!-- TODO: REMOVE, UNDO, SAVE -->
     </div>
 </div>

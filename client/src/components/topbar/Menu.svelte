@@ -47,7 +47,7 @@ function openModal(id: string) {
         <li class="btn-wide">
             <label class="label cursor-pointer">
             <span class="label-text">{ $i18n.t("Scale") }</span>
-            <select class="select select-bordered select-sm w-full max-w-xs" bind:value={$scale}>
+            <select class="select select-sm w-full max-w-xs" bind:value={$scale}>
                 {#each scales as scaleOption}
                     <option value={scaleOption}>{Math.ceil(scaleOption * 100) + "%"}</option>
                 {/each}
@@ -55,7 +55,7 @@ function openModal(id: string) {
         <li class="btn-wide">
             <label class="label cursor-pointer">
             <span class="label-text">{ $i18n.t("Locale") }</span>
-            <select class="select select-bordered select-sm w-full max-w-xs" bind:value={$locale}>
+            <select class="select select-sm w-full max-w-xs" bind:value={$locale}>
                 {#each locales as localeOption}
                     <option value={localeOption}>{ $i18n.t(localeOption) }</option>
                 {/each}

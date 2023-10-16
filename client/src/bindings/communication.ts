@@ -1,22 +1,28 @@
-export type LinkType =
-    { "Udp": { address: string, port: number, } } |
-    { "Tcp": { address: string, port: number, } } |
-    { "Serial": { port: string, baud_rate: number, } };
+export interface SocketData { address: string, port: number }
+export interface SerialData { port: string, baud_rate: number }
+
+export type LinkType = {
+    Udp?: SocketData,
+    Tcp?: SocketData,
+    Serial?: SerialData
+};
 
 export enum MavlinkProtocolVersion {
     MavlinkV1 = "MavlinkV1",
     MavlinkV2 = "MavlinkV2",
 }
 
+export interface MavlinkProtocol {
+    link_type: LinkType,
+    protocol_version: MavlinkProtocolVersion
+}
+
 export type LinkProtocol = {
-    Mavlink: {
-        link_type: LinkType,
-        protocol_version: MavlinkProtocolVersion,
-    }
+    Mavlink?: MavlinkProtocol
 };
 
 export interface LinkDescription {
-    id: string,
+    id?: string,
     protocol: LinkProtocol,
     enabled: boolean,
     name: String
