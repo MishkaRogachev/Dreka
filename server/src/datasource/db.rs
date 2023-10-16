@@ -48,7 +48,16 @@ impl Repository {
         Ok(Repository { db })
     }
 
-    async fn create_impl(&self, table: &str, data: &serde_json::Value, id: Option<String>) -> Result<(), DbError> {
+    fn parse_one(&self, mut response: surrealdb::Response) -> Result<serde_json::Value, DbError> {
+        let json: Option<serde_json::Value> = response.take(0)?;
+        if let Some(mut json) = json {
+            replace_surreal_id(&mut json);
+            return Ok(json);
+        }
+        Err(DbError::NoData)
+    }
+
+    async fn create_impl(&self, table: &str, data: &serde_json::Value, id: Option<String>) -> Result<serde_json::Value, DbError> {
         match id {
             Some(id) => {
                 if id.is_empty() {
@@ -56,13 +65,12 @@ impl Repository {
                 }
 
                 let response = self.db.query("CREATE type::thing($tb, $uid) CONTENT $data")
-                .bind(("tb", table))
-                .bind(("uid", id))
-                .bind(("data", serde_json::json!(data)))
-                .await?;
+                    .bind(("tb", table))
+                    .bind(("uid", &id))
+                    .bind(("data", serde_json::json!(data)))
+                    .await?;
 
-                response.check()?;
-                Ok(())
+                return self.parse_one(response);
             },
             None => {
                 let json_data = serde_json::json!(data);
@@ -71,56 +79,63 @@ impl Repository {
                     .bind(("data", &json_data))
                     .await?;
 
-                response.check()?;
-            Ok(())
+                return self.parse_one(response);
             },
         }
     }
 
-    async fn update_impl(&self, table: &str, data: &serde_json::Value, id: &str) -> Result<(), DbError> {
+    async fn update_impl(&self, table: &str, data: &serde_json::Value, id: &str) -> Result<serde_json::Value, DbError> {
         let response = self.db.query("UPDATE type::thing($tb, $uid) CONTENT $data")
-        .bind(("tb", table))
-        .bind(("uid", id))
-        .bind(("data", serde_json::json!(data)))
-        .await?;
+            .bind(("tb", table))
+            .bind(("uid", &id))
+            .bind(("data", serde_json::json!(data)))
+            .await?;
 
-        response.check()?;
-        Ok(())
+        return self.parse_one(response);
     }
 
-    pub async fn create<D>(&self, table: &str, data: &D) -> Result<(), DbError>
-    where D: serde::ser::Serialize + ?Sized {
+    pub async fn create<D>(&self, table: &str, data: &D) -> Result<D, DbError>
+    where D: serde::ser::Serialize + Sized + for<'de> serde::Deserialize<'de> {
         let mut data = serde_json::to_value(data)?;
         let id = extract_id(&mut data);
-        return self.create_impl(table, &data, id).await;
+        let data = self.create_impl(table, &data, id).await?;
+        let result: D = serde_json::from_value(data)?;
+        return Ok(result);
     }
 
-    pub async fn update<D>(&self, table: &str, data: &D) -> Result<(), DbError>
-    where D: serde::ser::Serialize + ?Sized {
+    pub async fn update<D>(&self, table: &str, data: &D) -> Result<D, DbError>
+    where D: serde::ser::Serialize + ?Sized + for<'de> serde::Deserialize<'de> {
         let mut data = serde_json::to_value(data)?;
         match extract_id(&mut data) {
             Some(id) => {
-                return self.update_impl(table, &data, &id).await;
+                let data = self.update_impl(table, &data, &id).await?;
+                let result: D = serde_json::from_value(data)?;
+                return Ok(result);
             },
             None => Err(DbError::NoIdSpecified)
         }
     }
 
-    pub async fn create_or_update<D>(&self, table: &str, data: &D) -> Result<(), DbError>
-    where D: serde::ser::Serialize + ?Sized {
+    pub async fn create_or_update<D>(&self, table: &str, data: &D) -> Result<D, DbError>
+    where D: serde::ser::Serialize + ?Sized + for<'de> serde::Deserialize<'de> {
         let mut data = serde_json::to_value(data)?;
         let id = extract_id(&mut data);
         match id {
             Some(id) => {
                 let contains = self.contains(table, &id).await?;
+                let data_back: serde_json::Value;
                 if contains {
-                    return self.update_impl(table, &data, &id).await;
+                    data_back = self.update_impl(table, &data, &id).await?;
                 } else {
-                    return self.create_impl(table, &data, Some(id.to_owned())).await;
+                    data_back = self.create_impl(table, &data, Some(id.to_owned())).await?;
                 }
+                let result: D = serde_json::from_value(data_back)?;
+                return Ok(result);
             },
             None => {
-                return self.create_impl(table, &data, None).await;
+                let data = self.create_impl(table, &data, None).await?;
+                let result: D = serde_json::from_value(data)?;
+                return Ok(result);
             }
         }
     }

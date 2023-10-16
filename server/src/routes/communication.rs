@@ -15,11 +15,13 @@ pub async fn list_descriptions(repo: web::Data<Arc<db::Repository>>) -> impl Res
 
 #[post("/comm/links/save")]
 pub async fn save_description(repo: web::Data<Arc<db::Repository>>, link: web::Json<LinkDescription>) -> impl Responder {
-    let link = &link.into_inner();
-    let result = repo.create_or_update("link_descriptions", link).await;
+    let link = link.into_inner();
+    let result = repo.create_or_update("link_descriptions", &link).await;
 
     match result {
-        Ok(()) => HttpResponse::Ok().json(link),
+        Ok(link) => {
+            HttpResponse::Ok().json(link)
+        },
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
