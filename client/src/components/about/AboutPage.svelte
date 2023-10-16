@@ -1,5 +1,5 @@
 <script lang="ts">
-import Label from "$components/controls/Label.svelte";
+
 </script>
 
 <style>
@@ -15,5 +15,4 @@ import Label from "$components/controls/Label.svelte";
 </style>
 
 <div id="about" class="panel">
-    <Label text="About" />
 </div>

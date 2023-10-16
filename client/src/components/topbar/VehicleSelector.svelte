@@ -1,8 +1,4 @@
 <script lang="ts">
-import Button from "$components/controls/Button.svelte"
-import OverlayButton from "$components/controls/OverlayButton.svelte";
-import Led from "$components/controls/Led.svelte";
-import VehicleSelectorItem from "$pages/topbar/VehicleSelectorItem.svelte";
 
 import { availableVehicles, selectedVehicle } from "$stores/vehicles";
 import { iconFromVehicleType } from "$bindings/vehicles";
@@ -10,7 +6,7 @@ import { iconFromVehicleType } from "$bindings/vehicles";
 let overlay: any
 
 </script>
-
+<!-- 
 <OverlayButton
     bind:this={overlay}
     style="width: 216px; height: 24px"
@@ -24,4 +20,4 @@ let overlay: any
         {/each}
     </div>
     <Led slot="decoration" state={$selectedVehicle && $selectedVehicle.online ? "on" : "off"} />
-</OverlayButton>
+</OverlayButton> -->

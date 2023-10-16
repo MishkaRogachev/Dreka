@@ -1,6 +1,6 @@
 <script lang="ts">
 
-import CommunicationLink from "$pages/communication/CommunicationLink.svelte";
+import CommunicationLink from "$components/communication/CommunicationLink.svelte";
 
 import { links } from "$stores/communication";
 import { i18n } from "$stores/i18n";

@@ -25,7 +25,6 @@ export default defineConfig(async () => ({
       $translations: path.resolve('./translations'),
       $lib: path.resolve('./src/lib'),
       $components: path.resolve('./src/components'),
-      $pages: path.resolve('./src/pages'),
       $bindings: path.resolve('./src/bindings'),
       $stores: path.resolve('./src/stores'),
       $services: path.resolve('./src/services'),

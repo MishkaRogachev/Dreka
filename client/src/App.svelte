@@ -1,9 +1,9 @@
 <script lang="ts">
-import Topbar from '$pages/topbar/Topbar.svelte';
+import Topbar from '$components/topbar/Topbar.svelte';
 
-import FlightPage from '$pages/flight/FlightPage.svelte';
-import Communication from '$pages/communication/CommunicationPage.svelte'
-import About from '$pages/about/AboutPage.svelte';
+import FlightPage from '$components/flight/FlightPage.svelte';
+import Communication from '$components/communication/CommunicationPage.svelte'
+import About from '$components/about/AboutPage.svelte';
 
 import { Page, currentPage } from '$stores/app';
 

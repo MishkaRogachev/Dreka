@@ -19,7 +19,6 @@
       "$translations/*": ["./translations/*"],
       "$lib/*": ["./src/lib/*"],
       "$components/*": ["./src/components/*"],
-      "$pages/*": ["./src/pages/*"],
       "$bindings/*": ["./src/bindings/*"],
       "$stores/*": ["./src/stores/*"],
       "$services/*": ["./src/services/*"],
