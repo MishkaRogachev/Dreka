@@ -3,7 +3,7 @@ import CommunicationLink from "$components/communication/CommunicationLink.svelt
 
 import { type LinkDescription, MavlinkProtocolVersion } from "$bindings/communication";
 
-import { links, saveLink } from "$stores/communication";
+import { all_links, saveLink } from "$stores/communication";
 import { i18n } from "$stores/i18n";
 
 const linksForCreation: Array<LinkDescription> = [
@@ -54,10 +54,18 @@ const linksForCreation: Array<LinkDescription> = [
     }
 ]
 
+export let selectedLinkId = ""
+
 </script>
 
+<style>
+.max-scroll-area-height {
+    max-height: 70vh;
+}
+</style>
+
 <dialog id="communication_modal" class="modal">
-    <div class="modal-box w-11/12 max-w-5xl">
+    <div class="modal-box w-11/12 max-w-5xl container overflow-hidden">
         <form method="dialog">
             <!-- CLOSE -->
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
@@ -73,9 +81,9 @@ const linksForCreation: Array<LinkDescription> = [
         </form>
         <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Communication Links") }</h3>
 
-        <div class="grid gap-y-2 my-4">
-        {#each $links as link, i}
-            <CommunicationLink link={link}/>
+        <div class="grid gap-y-2 my-4 max-scroll-area-height overflow-y-auto">
+        {#each $all_links.values() as link, i}
+            <CommunicationLink link={link} bind:selectedLinkId={selectedLinkId}/>
         {/each}
         </div>
 

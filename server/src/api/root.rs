@@ -19,9 +19,11 @@ pub async fn serve(repo: Arc<db::Repository>, address: &SocketAddr) -> std::io::
             .service(super::vehicles::list_vehicles)
             .service(super::vehicles::add_vehicle)
             .service(super::communication::list_descriptions)
+            .service(super::communication::link_description)
             .service(super::communication::save_description)
             .service(super::communication::remove_description)
             .service(super::communication::get_status)
+            .service(super::communication::set_link_enabled)
             .app_data(Data::new(repo.clone()))
     }).bind(address)?.run();
 

@@ -21,4 +21,12 @@ export class CommunicationService {
     static async removeLink(linkId: string): Promise<string | null> {
         return await send_request("/comm/links/remove/" + linkId, { method: "DELETE" }) || null;
     }
+
+    static async setLinkEnabled(linkId: string, enabled: boolean) {
+        await send_request("/comm/links/set_enabled/" + linkId, {
+            method: "PUT",
+            body: JSON.stringify(enabled),
+            headers: default_headers
+        }) || null;
+    }
 }

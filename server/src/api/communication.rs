@@ -1,11 +1,22 @@
 use std::sync::Arc;
-use actix_web::{get, post, delete, web, Responder, HttpResponse};
+use actix_web::{get, post, put, delete, web, Responder, HttpResponse};
 
 use crate::{datasource::db, models::communication::{LinkDescription, LinkStatus}};
 
 #[get("/comm/links")]
 pub async fn list_descriptions(repo: web::Data<Arc<db::Repository>>) -> impl Responder {
     let result = repo.read_all::<LinkDescription>("link_descriptions").await;
+
+    match result {
+        Ok(links) => return HttpResponse::Ok().json(links),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
+#[get("/comm/link/{link_id}")]
+pub async fn link_description(repo: web::Data<Arc<db::Repository>>, path: web::Path<String>) -> impl Responder {
+    let id = &path.into_inner();
+    let result = repo.read::<LinkDescription>("link_descriptions", id).await;
 
     match result {
         Ok(links) => return HttpResponse::Ok().json(links),
@@ -44,6 +55,27 @@ pub async fn get_status(repo: web::Data<Arc<db::Repository>>, path: web::Path<St
     match result {
         Ok(link_status) => {
             return HttpResponse::Ok().json(link_status);
+        },
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
+#[put("/comm/links/set_enabled/{link_id}")]
+pub async fn set_link_enabled(repo: web::Data<Arc<db::Repository>>, path: web::Path<String>, enabled: web::Json<bool>) -> impl Responder {
+    let id = &path.into_inner();
+    let enabled = enabled.into_inner();
+    println!("SET LINK {} to {}", &id, &enabled);
+
+    // TODO: connect & disconnect links without DB, add autoconnect property
+    let result = repo.read::<LinkDescription>("link_descriptions", id).await;
+    match result {
+        Ok(mut link) => {
+            link.enabled = enabled;
+            if let Err(err) = repo.update("link_descriptions", &link).await {
+                return HttpResponse::InternalServerError().body(err.to_string());
+            }
+
+            return HttpResponse::Ok().json(link);
         },
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
