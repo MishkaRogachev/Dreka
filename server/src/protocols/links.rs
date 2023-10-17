@@ -24,7 +24,7 @@ pub async fn check_and_create_links(repo: &Arc<db::Repository>) -> std::io::Resu
         protocol: communication::LinkProtocol::Mavlink {
             link_type: communication::LinkType::Udp {
                 address: String::from("127.0.0.1"),
-                port: 14540
+                port: 14550
             },
             protocol_version: communication::MavlinkProtocolVersion::MavlinkV2
         },
