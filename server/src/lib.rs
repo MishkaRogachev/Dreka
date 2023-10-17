@@ -1,7 +1,7 @@
 mod datasource;
 mod models;
 mod protocols;
-mod routes;
+mod api;
 
 use std::sync::Arc;
 use std::net;
@@ -20,7 +20,7 @@ pub async fn start() -> std::io::Result<()> {
     protocols::links::check_and_create_links(&db).await?;
     let hub = tokio::spawn(protocols::hub::start(db.clone()));
 
-    let rest = routes::root::serve(db, &DEFAULT_REST_ADDRESS);
+    let rest = api::root::serve(db, &DEFAULT_REST_ADDRESS);
 
     tokio::select! {
         _ = hub => {}
