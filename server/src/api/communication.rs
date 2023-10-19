@@ -39,24 +39,30 @@ pub async fn save_description(shared: web::Data<Shared>, link: web::Json<LinkDes
 
 #[delete("/comm/links/remove/{link_id}")]
 pub async fn remove_description(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
-    let id = &path.into_inner();
-    let result = shared.repository.remove("link_descriptions", &id).await;
+    let link_id = &path.into_inner();
+    let result = shared.repository.remove("link_descriptions", &link_id).await;
 
     match result {
-        Ok(()) => HttpResponse::Ok().json(id),
+        Ok(()) => HttpResponse::Ok().json(link_id),
         Err(err) => HttpResponse::InternalServerError().json(err.to_string()),
     }
 }
 
 #[get("/comm/links/status/{link_id}")]
 pub async fn get_status(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
-    let result = shared.repository.read::<LinkStatus>("link_statuses", &path.into_inner()).await;
+    let link_id: String = path.into_inner();
+    let result = shared.repository.read::<LinkStatus>("link_statuses", &link_id).await;
 
     match result {
         Ok(link_status) => {
             return HttpResponse::Ok().json(link_status);
         },
-        Err(err) => HttpResponse::InternalServerError().json(err.to_string())
+        Err(err) => {
+            if let crate::datasource::db::DbError::NoData = err {
+                return HttpResponse::Ok().json(LinkStatus::default_for_id(&link_id))
+            }
+            return HttpResponse::InternalServerError().json(err.to_string())
+        }
     }
 }
 

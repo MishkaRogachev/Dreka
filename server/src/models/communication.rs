@@ -41,3 +41,16 @@ pub struct LinkStatus {
     pub bytes_received: usize,
     pub bytes_sent: usize
 }
+
+
+impl LinkStatus {
+    pub fn default_for_id(link_id: &str) -> Self {
+        Self {
+            id: link_id.into(),
+            is_connected: false,
+            is_online: false,
+            bytes_received: 0,
+            bytes_sent: 0
+        }
+    }
+}

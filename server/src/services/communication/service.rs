@@ -1,7 +1,7 @@
 use std::{sync::Arc, collections::HashMap};
 use tokio::{sync::broadcast, time};
 
-use crate::{datasource::db, models::{self, communication::{self, LinkDescription}, events::ClentEvent}};
+use crate::{datasource::db, models::{self, communication::{self, LinkDescription, LinkStatus}, events::ClentEvent}};
 use super::{default_links::create_dafault_links, traits, mavlink::connection::MavlinkConnection};
 
 type LickConnection = Box<dyn traits::IConnection + Send + Sync>;
@@ -33,7 +33,7 @@ impl Service {
         for link in links {
             let link_id = link.id.clone().expect("Link must have an id");
             // Default status on start
-            let status = create_default_status(&link_id);
+            let status = LinkStatus::default_for_id(&link_id);
             let result = self.repository.create_or_update("link_statuses", &status).await;
             if let Err(err) = result {
                 return Err(ServiceError::Db(err));
@@ -129,7 +129,7 @@ impl Service {
             return Err(ServiceError::Connection(err))
         }
 
-        let status = create_default_status(&link_id);
+        let status = LinkStatus::default_for_id(&link_id);
         let result = self.repository.create_or_update("link_statuses", &status).await;
         if let Err(err) = result {
             return Err(ServiceError::Db(err));
@@ -156,16 +156,6 @@ fn create_connection(link: &communication::LinkDescription) -> LickConnection {
             Box::new(MavlinkConnection::new(link_type, protocol_version))
         },
         // NOTE: other protocols should be handled here
-    }
-}
-
-fn create_default_status(link_id: &str) -> communication::LinkStatus {
-    communication::LinkStatus {
-        id: link_id.into(),
-        is_connected: false,
-        is_online: false,
-        bytes_received: 0,
-        bytes_sent: 0
     }
 }
 

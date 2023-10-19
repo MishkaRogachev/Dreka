@@ -143,7 +143,7 @@ impl Repository {
 
     pub async fn read<D>(&self, table: &str, id: &str) -> Result<D, DbError>
     where D: for<'de> serde::Deserialize<'de> {
-        let mut response = self.db.query("SELECT * FROM ONLY type::thing($tb, $uid)")
+        let mut response = self.db.query("SELECT * FROM type::thing($tb, $uid)")
             .bind(("tb", table))
             .bind(("uid", id)).await?;
 
