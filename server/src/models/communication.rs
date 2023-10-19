@@ -28,8 +28,8 @@ pub enum LinkProtocol {
 pub struct LinkDescription {
     pub id: Option<String>,
     pub protocol: LinkProtocol,
-    pub enabled: bool,
-    pub name: String
+    pub name: String,
+    pub autoconnect: bool
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, TS)]

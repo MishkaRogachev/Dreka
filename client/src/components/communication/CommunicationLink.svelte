@@ -4,7 +4,7 @@ import { onMount, onDestroy, afterUpdate } from 'svelte';
 import MavlinkEdit from './MavlinkEdit.svelte';
 
 import { type LinkDescription, type LinkStatus } from "$bindings/communication";
-import { getLinkStatus, saveLink, removeLink, setLinkEnabled } from "$stores/communication";
+import { getLinkStatus, saveLink, removeLink, setLinkConnected } from "$stores/communication";
 
 import { i18n } from "$stores/i18n";
 
@@ -32,7 +32,6 @@ afterUpdate(async () => {
     }
 });
 
-
 </script>
 
 <div class="collapse collapse-arrow bg-base-200">
@@ -45,12 +44,12 @@ afterUpdate(async () => {
             <h1 class="font-medium ml-8 my-2">{link.name}</h1>
         </div>
         <div class="join btn-sm p-0 z-[1]">
-            <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ link.enabled }
-                on:click={() => { setLinkEnabled(link.id, true) }}>
+            <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ status?.is_connected }
+                on:click={() => { setLinkConnected(link.id || "", true) }}>
                 { $i18n.t("Connect") }
             </button>
-            <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ !link.enabled }
-                on:click={() => { setLinkEnabled(link.id, false) }}>
+            <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ !status?.is_connected }
+                on:click={() => { setLinkConnected(link.id || "", false) }}>
                 { $i18n.t("Disconnect") }
             </button>
         </div>
@@ -64,12 +63,12 @@ afterUpdate(async () => {
 
             <!-- Protocol -->
             {#if linkCopy.protocol.Mavlink}
-                <MavlinkEdit bind:protocol={linkCopy.protocol.Mavlink} disabled={ link.enabled }/>
+                <MavlinkEdit bind:protocol={linkCopy.protocol.Mavlink} disabled={ status?.is_connected || true }/>
             {/if}
         </div>
 
         <div class="w-full btn-sm mt-4 flex">
-            <button disabled={link.enabled} class="btn btn-sm btn-wide btn-secondary px-1 ml-2"
+            <button disabled={status?.is_connected} class="btn btn-sm btn-wide btn-secondary px-1 ml-2"
                 on:click={() => { removeLink(link.id || "") }}>
                 { $i18n.t("Remove") }
             </button>

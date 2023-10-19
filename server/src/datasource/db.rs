@@ -5,7 +5,6 @@ pub struct Repository {
     db: Surreal<surrealdb::engine::local::Db>
 }
 
-/// An error originating from the SurrealDB client library
 #[derive(Debug)]
 pub enum DbError {
     Surreal(surrealdb::Error),
@@ -203,6 +202,7 @@ impl From<serde_json::Error> for DbError {
         DbError::JSon(err)
     }
 }
+
 impl std::fmt::Display for DbError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {

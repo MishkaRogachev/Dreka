@@ -1,82 +1,77 @@
-use std::sync::Arc;
 use actix_web::{get, post, put, delete, web, Responder, HttpResponse};
 
-use crate::{datasource::db, models::communication::{LinkDescription, LinkStatus}};
+use crate::models::{communication::{LinkDescription, LinkStatus}, events::ClentEvent};
+use super::shared::Shared;
 
 #[get("/comm/links")]
-pub async fn list_descriptions(repo: web::Data<Arc<db::Repository>>) -> impl Responder {
-    let result = repo.read_all::<LinkDescription>("link_descriptions").await;
+pub async fn list_descriptions(shared: web::Data<Shared>) -> impl Responder {
+    let result = shared.repository.read_all::<LinkDescription>("link_descriptions").await;
 
     match result {
         Ok(links) => return HttpResponse::Ok().json(links),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(err.to_string()),
     }
 }
 
 #[get("/comm/link/{link_id}")]
-pub async fn link_description(repo: web::Data<Arc<db::Repository>>, path: web::Path<String>) -> impl Responder {
+pub async fn link_description(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
     let id = &path.into_inner();
-    let result = repo.read::<LinkDescription>("link_descriptions", id).await;
+    let result = shared.repository.read::<LinkDescription>("link_descriptions", id).await;
 
     match result {
         Ok(links) => return HttpResponse::Ok().json(links),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(err.to_string()),
     }
 }
 
 #[post("/comm/links/save")]
-pub async fn save_description(repo: web::Data<Arc<db::Repository>>, link: web::Json<LinkDescription>) -> impl Responder {
+pub async fn save_description(shared: web::Data<Shared>, link: web::Json<LinkDescription>) -> impl Responder {
     let link = link.into_inner();
-    let result = repo.create_or_update("link_descriptions", &link).await;
+    let result = shared.repository.create_or_update("link_descriptions", &link).await;
 
     match result {
         Ok(link) => {
             HttpResponse::Ok().json(link)
         },
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(err.to_string()),
     }
 }
 
 #[delete("/comm/links/remove/{link_id}")]
-pub async fn remove_description(repo: web::Data<Arc<db::Repository>>, path: web::Path<String>) -> impl Responder {
+pub async fn remove_description(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
     let id = &path.into_inner();
-    let result = repo.remove("link_descriptions", &id).await;
+
+    if let Err(err) = shared.tx.send(ClentEvent::ForgetConnection { link_id: id.to_owned() }) {
+        return HttpResponse::InternalServerError().json(err.to_string());
+    }
+
+    let result = shared.repository.remove("link_descriptions", &id).await;
 
     match result {
         Ok(()) => HttpResponse::Ok().json(id),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(err.to_string()),
     }
 }
 
 #[get("/comm/links/status/{link_id}")]
-pub async fn get_status(repo: web::Data<Arc<db::Repository>>, path: web::Path<String>) -> impl Responder {
-    let result = repo.read::<LinkStatus>("link_statuses", &path.into_inner()).await;
+pub async fn get_status(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
+    let result = shared.repository.read::<LinkStatus>("link_statuses", &path.into_inner()).await;
 
     match result {
         Ok(link_status) => {
             return HttpResponse::Ok().json(link_status);
         },
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(err.to_string())
     }
 }
 
-#[put("/comm/links/set_enabled/{link_id}")]
-pub async fn set_link_enabled(repo: web::Data<Arc<db::Repository>>, path: web::Path<String>, enabled: web::Json<bool>) -> impl Responder {
+#[put("/comm/links/set_connected/{link_id}")]
+pub async fn set_link_enabled(shared: web::Data<Shared>, path: web::Path<String>, enabled: web::Json<bool>) -> impl Responder {
     let id = &path.into_inner();
-    let enabled = enabled.into_inner();
-    println!("SET LINK {} to {}", &id, &enabled);
+    let connected = enabled.into_inner();
 
-    // TODO: connect & disconnect links without DB, add autoconnect property
-    let result = repo.read::<LinkDescription>("link_descriptions", id).await;
-    match result {
-        Ok(mut link) => {
-            link.enabled = enabled;
-            if let Err(err) = repo.update("link_descriptions", &link).await {
-                return HttpResponse::InternalServerError().body(err.to_string());
-            }
-
-            return HttpResponse::Ok().json(link);
-        },
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    match shared.tx.send(ClentEvent::SetLinkConnected { link_id: id.to_owned(), connected }) {
+        Ok(_) => HttpResponse::Ok(),
+        Err(_) => HttpResponse::InternalServerError()
     }
 }

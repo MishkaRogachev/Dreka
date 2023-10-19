@@ -33,10 +33,9 @@ export async function removeLink(linkId: string) {
     all_links.set(links);
 }
 
-export async function setLinkEnabled(linkId: string, enabled: boolean) {
-    await CommunicationService.setLinkEnabled(linkId, enabled);
+export async function setLinkConnected(linkId: string, connected: boolean) {
+    await CommunicationService.setLinkConnected(linkId, connected);
 }
-
 
 // Refresh comm links every second
 setInterval(() => {

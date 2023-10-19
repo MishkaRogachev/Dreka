@@ -22,10 +22,10 @@ export class CommunicationService {
         return await send_request("/comm/links/remove/" + linkId, { method: "DELETE" }) || null;
     }
 
-    static async setLinkEnabled(linkId: string, enabled: boolean) {
-        await send_request("/comm/links/set_enabled/" + linkId, {
+    static async setLinkConnected(linkId: string, connected: boolean) {
+        await send_request("/comm/links/set_connected/" + linkId, {
             method: "PUT",
-            body: JSON.stringify(enabled),
+            body: JSON.stringify(connected),
             headers: default_headers
         }) || null;
     }

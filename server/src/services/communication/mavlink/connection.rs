@@ -3,34 +3,10 @@ use tokio_util::sync::CancellationToken;
 use mavlink;
 
 use crate::models::communication;
+use crate::services::communication::traits;
 
 const MAVLINK_POLL_INTERVAL: Duration = Duration::from_millis(5);
 const ONLINE_INTERVAL: Duration = Duration::from_millis(2000);
-
-impl communication::LinkType {
-    pub fn to_mavlink(&self) -> String {
-        match self {
-            communication::LinkType::Udp { address, port } => {
-                return format!("udpout:{}:{}", address, port)
-            },
-            communication::LinkType::Tcp { address, port } => {
-                return format!("tcpout:{}:{}", address, port)
-            },
-            communication::LinkType::Serial { port, baud_rate } => {
-                return format!("serial:{}:{}", port, baud_rate)
-            },
-        }
-    }
-}
-
-impl communication::MavlinkProtocolVersion {
-    pub fn to_mavlink(&self) -> mavlink::MavlinkVersion {
-        match self {
-            communication::MavlinkProtocolVersion::MavlinkV1 => return mavlink::MavlinkVersion::V1,
-            communication::MavlinkProtocolVersion::MavlinkV2 => return mavlink::MavlinkVersion::V2,
-        }
-    }
-}
 
 pub struct MavlinkConnection {
     mav_address: String,
@@ -51,18 +27,23 @@ impl MavlinkConnection {
 }
 
 #[async_trait::async_trait]
-impl crate::protocols::traits::IConnection for MavlinkConnection {
-    async fn connect(&mut self) -> std::io::Result<()> {
+impl traits::IConnection for MavlinkConnection {
+    async fn connect(&mut self) -> Result<bool, traits::ConnectionError> {
         if let Some(token) = &self.token {
             if !token.is_cancelled() {
                 println!("MAVLink {:?}:{:?} is already connected", &self.mav_address, &self.mav_version);
-                return Ok(());
+                return Ok(false);
             }
         }
 
         println!("MAVLink connect to {:?}:{:?}", &self.mav_address, &self.mav_version);
 
-        let mut mav_connection = mavlink::connect::<mavlink::common::MavMessage>(&self.mav_address)?;
+        let connectioned = mavlink::connect::<mavlink::common::MavMessage>(&self.mav_address);
+        if let Err(err) = connectioned {
+            return Err(traits::ConnectionError::Io(err));
+        }
+
+        let mut mav_connection = connectioned.unwrap();
         mav_connection.set_protocol_version(self.mav_version);
 
         let mav = Arc::new(mav_connection);
@@ -101,21 +82,21 @@ impl crate::protocols::traits::IConnection for MavlinkConnection {
             }
         }});
 
-        Ok(())
+        Ok(true)
     }
 
-    async fn disconnect(&mut self) -> std::io::Result<()> {
+    async fn disconnect(&mut self) -> Result<bool, traits::ConnectionError> {
         if let Some(token) = &self.token {
             if !token.is_cancelled() {
                 println!("MAVLink disconnect from {:?}:{:?}", &self.mav_address, &self.mav_version);
                 token.cancel();
                 self.token = None;
-                return Ok(())
+                return Ok(true);
             }
         }
 
         println!("MAVLink {:?}:{:?} is already connected", &self.mav_address, &self.mav_version);
-        return Ok(());
+        return Ok(false);
     }
 
     fn is_connected(&self) -> bool {
@@ -141,6 +122,31 @@ impl Drop for MavlinkConnection {
     fn drop(&mut self) {
         if let Some(token) = &self.token {
             token.cancel();
+        }
+    }
+}
+
+impl communication::LinkType {
+    pub fn to_mavlink(&self) -> String {
+        match self {
+            communication::LinkType::Udp { address, port } => {
+                return format!("udpout:{}:{}", address, port)
+            },
+            communication::LinkType::Tcp { address, port } => {
+                return format!("tcpout:{}:{}", address, port)
+            },
+            communication::LinkType::Serial { port, baud_rate } => {
+                return format!("serial:{}:{}", port, baud_rate)
+            },
+        }
+    }
+}
+
+impl communication::MavlinkProtocolVersion {
+    pub fn to_mavlink(&self) -> mavlink::MavlinkVersion {
+        match self {
+            communication::MavlinkProtocolVersion::MavlinkV1 => return mavlink::MavlinkVersion::V1,
+            communication::MavlinkProtocolVersion::MavlinkV2 => return mavlink::MavlinkVersion::V2,
         }
     }
 }

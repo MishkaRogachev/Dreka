@@ -8,7 +8,7 @@ import { i18n } from "$stores/i18n";
 
 const linksForCreation: Array<LinkDescription> = [
     {
-        enabled: false,
+        autoconnect: false,
         name: $i18n.t("New UDP Link"),
         protocol: {
             Mavlink: {
@@ -23,7 +23,7 @@ const linksForCreation: Array<LinkDescription> = [
         }
     },
     {
-        enabled: false,
+        autoconnect: false,
         name: $i18n.t("New TCP Link"),
         protocol: {
             Mavlink: {
@@ -38,7 +38,7 @@ const linksForCreation: Array<LinkDescription> = [
         }
     },
     {
-        enabled: false,
+        autoconnect: false,
         name: $i18n.t("New Serial Link"),
         protocol: {
             Mavlink: {
