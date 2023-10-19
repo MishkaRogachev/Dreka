@@ -1,18 +1,28 @@
-use std::{sync::{Arc, Mutex}, time::{Instant, Duration}};
+use std::sync::{Arc, Mutex};
+use tokio::time;
 use tokio_util::sync::CancellationToken;
 use mavlink;
 
 use crate::models::communication;
 use crate::services::communication::traits;
 
-const MAVLINK_POLL_INTERVAL: Duration = Duration::from_millis(5);
-const ONLINE_INTERVAL: Duration = Duration::from_millis(2000);
+const MAVLINK_POLL_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(5);
+const RESET_STATS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(1000);
+const ONLINE_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(2000);
 
 pub struct MavlinkConnection {
     mav_address: String,
     mav_version: mavlink::MavlinkVersion,
     token: Option<CancellationToken>,
-    last_recieved: Arc<Mutex<Instant>>,
+    internal: Arc<Mutex<MavlinkConnectionInternal>>
+}
+
+struct MavlinkConnectionInternal {
+    last_recieved: time::Instant,
+    bytes_received_sec: usize,
+    bytes_sent_sec: usize,
+    bytes_received_current: usize,
+    bytes_sent_current: usize,
 }
 
 impl MavlinkConnection {
@@ -21,7 +31,13 @@ impl MavlinkConnection {
             mav_address: link_type.to_mavlink(),
             mav_version: protocol.to_mavlink(),
             token: None,
-            last_recieved: Arc::new(Mutex::new(Instant::now()))
+            internal: Arc::new(Mutex::new(MavlinkConnectionInternal {
+                last_recieved: time::Instant::now(),
+                bytes_received_sec: 0,
+                bytes_sent_sec: 0,
+                bytes_received_current: 0,
+                bytes_sent_current: 0
+            }))
         }
     }
 }
@@ -38,27 +54,42 @@ impl traits::IConnection for MavlinkConnection {
 
         println!("MAVLink connect to {:?}:{:?}", &self.mav_address, &self.mav_version);
 
-        let connectioned = mavlink::connect::<mavlink::common::MavMessage>(&self.mav_address);
-        if let Err(err) = connectioned {
+        let connected = mavlink::connect::<mavlink::common::MavMessage>(&self.mav_address);
+        if let Err(err) = connected {
             return Err(traits::ConnectionError::Io(err));
         }
 
-        let mut mav_connection = connectioned.unwrap();
+        let mut mav_connection = connected.unwrap();
         mav_connection.set_protocol_version(self.mav_version);
 
         let mav = Arc::new(mav_connection);
 
+        // Token to stop polling mavlink packets
         let token = CancellationToken::new();
         let cloned_token = token.clone();
         self.token = Some(token);
 
-        let last_recieved = self.last_recieved.clone();
+        let mut last_stats_reset = time::Instant::now();
+
+        let internal = self.internal.clone();
         let cloned_mav = mav.clone();
         tokio::task::spawn(async move { loop {
+            let now = time::Instant::now();
+            if now.checked_duration_since(last_stats_reset) > Some(RESET_STATS_INTERVAL) {
+                let mut lock = internal.lock().unwrap();
+                lock.bytes_received_sec = lock.bytes_received_current;
+                lock.bytes_sent_sec = lock.bytes_sent_current;
+                lock.bytes_received_current = 0;
+                lock.bytes_sent_current = 0;
+                last_stats_reset = time::Instant::now();
+            }
+
             match cloned_mav.recv() {
                 Ok((header, msg)) => {
-                    let mut time = last_recieved.lock().unwrap();
-                    *time = Instant::now();
+                    let mut lock = internal.lock().unwrap();
+                    // Log last recv time and bytes
+                    lock.last_recieved = now;
+                    lock.bytes_received_current = lock.bytes_received_current + std::mem::size_of_val(&msg);
 
                     //println!("Got mavlink message: {:?}:{:?}", &header, &msg);
                     // TODO: read telemetry
@@ -109,12 +140,20 @@ impl traits::IConnection for MavlinkConnection {
     }
 
     fn is_online(&self) -> bool {
-        let last_recieved_time = self.last_recieved.lock().unwrap();
-        if Instant::now().duration_since(*last_recieved_time) < ONLINE_INTERVAL {
+        let last_recieved_time = self.internal.lock().unwrap().last_recieved;
+        if time::Instant::now().checked_duration_since(last_recieved_time) < Some(ONLINE_INTERVAL) {
             return true;
         } else {
             return false;
         }
+    }
+
+    fn bytes_received(&self) -> usize {
+        return self.internal.lock().unwrap().bytes_received_sec;
+    }
+
+    fn bytes_sent(&self) -> usize {
+        return self.internal.lock().unwrap().bytes_sent_sec;
     }
 }
 

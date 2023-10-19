@@ -9,7 +9,9 @@ export async function getLinkStatus(id: string): Promise<LinkStatus> {
     return await CommunicationService.getLinkStatus(id) || {
         id: id,
         is_connected: false,
-        is_online: false
+        is_online: false,
+        bytes_received: 0.0,
+        bytes_sent: 0.0
     };
 }
 

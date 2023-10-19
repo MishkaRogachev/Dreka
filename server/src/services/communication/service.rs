@@ -1,4 +1,4 @@
-use std::{sync::Arc, collections::HashMap, time::Duration};
+use std::{sync::Arc, collections::HashMap};
 use tokio::{sync::broadcast, time};
 
 use crate::{datasource::db, models::{self, communication::{self, LinkDescription}, events::ClentEvent}};
@@ -7,7 +7,7 @@ use super::{default_links::create_dafault_links, traits, mavlink::connection::Ma
 type LickConnection = Box<dyn traits::IConnection + Send + Sync>;
 type LinkConnections = HashMap<String, LickConnection>;
 
-const CHECK_CONNECTIONS_INTERVAL: Duration = Duration::from_millis(100);
+const CHECK_CONNECTIONS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(100);
 
 pub struct Service {
     repository: Arc<db::Repository>,
@@ -33,14 +33,18 @@ impl Service {
         for link in links {
             let link_id = link.id.clone().expect("Link must have an id");
             // Default status on start
-            self.default_status(&link_id).await?;
+            let status = create_default_status(&link_id);
+            let result = self.repository.create_or_update("link_statuses", &status).await;
+            if let Err(err) = result {
+                return Err(ServiceError::Db(err));
+            }
 
             // Autoconect specified one
             if link.autoconnect {
                 self.connect_link(&link_id).await?;
             }
         }
-    
+
         let mut interval = time::interval(CHECK_CONNECTIONS_INTERVAL);
         interval.tick().await;  // skip first tick
 
@@ -63,18 +67,12 @@ impl Service {
             }
 
             // Collect link statistics
-            for (link_id, connection) in self.link_connections.iter_mut() {
-                let status = communication::LinkStatus {
-                    id: link_id.clone(),
-                    is_connected: connection.is_connected(),
-                    is_online: connection.is_online(),
-                };
-
+            for (link_id, connection) in  self.link_connections.iter_mut() {
+                let status = create_connection_status(link_id, connection);
                 let result = self.repository.create_or_update("link_statuses", &status).await;
                 if let Err(err) = result {
-                    return Err(ServiceError::Db(err));
+                    println!("Link status error: {}", err);
                 }
-                println!("-----> {:?}", status);
             }
         }
     }
@@ -97,29 +95,26 @@ impl Service {
     }
     
     async fn connect_link(&mut self, link_id: &str) -> Result<(), ServiceError> {
-        if !self.link_connections.contains_key(link_id) {
-            let link = self.repository.read("link_descriptions", link_id).await;
-            if let Err(err) = link {
-                return Err(ServiceError::Db(err));
-            }
-            self.link_connections.insert(link_id.to_string(), create_connection(&link.unwrap()));
+        if self.link_connections.contains_key(link_id) {
+            println!("Link is already connected {}", link_id);
+            return Ok(());
         }
 
-        let connection = self.link_connections.get_mut(link_id).unwrap();
+        let link = self.repository.read("link_descriptions", link_id).await;
+        if let Err(err) = link {
+            return Err(ServiceError::Db(err));
+        }
+        let mut connection = create_connection(&link.unwrap());
         if let Err(err) = connection.connect().await {
             return Err(ServiceError::Connection(err));
         }
 
-        let status = communication::LinkStatus {
-            id: link_id.into(),
-            is_connected: connection.is_connected(),
-            is_online: connection.is_online(),
-        };
-
+        let status = create_connection_status(&link_id, &connection);
         let result = self.repository.create_or_update("link_statuses", &status).await;
         if let Err(err) = result {
             return Err(ServiceError::Db(err));
         }
+        self.link_connections.insert(link_id.to_string(), connection);
         Ok(())
     }
 
@@ -129,12 +124,17 @@ impl Service {
             return Ok(());
         }
         
-        let connection = self.link_connections.get_mut(link_id).unwrap();
+        let mut connection = self.link_connections.remove(link_id).unwrap();
         if let Err(err) = connection.disconnect().await {
             return Err(ServiceError::Connection(err))
         }
 
-        return self.default_status(link_id).await;
+        let status = create_default_status(&link_id);
+        let result = self.repository.create_or_update("link_statuses", &status).await;
+        if let Err(err) = result {
+            return Err(ServiceError::Db(err));
+        }
+        Ok(())
     }
 
     async fn handle_event(&mut self, event: models::events::ClentEvent) -> Result<(), ServiceError> {
@@ -146,25 +146,7 @@ impl Service {
                     return self.disconnect_link(&link_id).await;
                 }
             }
-            ClentEvent::ForgetConnection { link_id } => {
-                self.link_connections.remove(&link_id);
-                return Ok(());
-            }
         }
-    }
-
-    async fn default_status(&self, link_id: &str) -> Result<(), ServiceError> {
-        let status = communication::LinkStatus {
-            id: link_id.into(),
-            is_connected: false,
-            is_online: false,
-        };
-
-        let result = self.repository.create_or_update("link_statuses", &status).await;
-        if let Err(err) = result {
-            return Err(ServiceError::Db(err));
-        }
-        Ok(())
     }
 }
 
@@ -177,6 +159,26 @@ fn create_connection(link: &communication::LinkDescription) -> LickConnection {
     }
 }
 
+fn create_default_status(link_id: &str) -> communication::LinkStatus {
+    communication::LinkStatus {
+        id: link_id.into(),
+        is_connected: false,
+        is_online: false,
+        bytes_received: 0,
+        bytes_sent: 0
+    }
+}
+
+fn create_connection_status(link_id: &str, connection: &LickConnection) -> communication::LinkStatus {
+    communication::LinkStatus {
+        id: link_id.into(),
+        is_connected: true, // NOTE: connection.is_connected may be wrong in this context
+        is_online: connection.is_online(),
+        bytes_received: connection.bytes_received(),
+        bytes_sent: connection.bytes_sent(),
+    }
+}
+
 impl std::fmt::Display for ServiceError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
@@ -185,100 +187,3 @@ impl std::fmt::Display for ServiceError {
         }
     }
 }
-
-
-
-// use std::collections::HashMap;
-// use tokio::time;
-
-// use crate::models::communication;
-// use super::traits;
-
-// type LickConnection = Box<dyn traits::IConnection + Send + Sync>;
-// type LinkConnections = HashMap<String, LickConnection>;
-
-
-    //services::links::check_and_create_links(&db).await?;
-    //let hub = tokio::spawn(services::hub::start(db.clone()));
-
-// const REFRERSH_CONNECTIONS_INTERVAL: time::Duration = time::Duration::from_secs(1);
-
-// pub async fn start(repo: Arc<db::Repository>) {
-//     let mut interval = time::interval(REFRERSH_CONNECTIONS_INTERVAL);
-//     interval.tick().await;  // skip first tick
-
-//     let mut link_connections: LinkConnections = HashMap::new();
-//     loop {
-//         tokio::time::sleep(REFRERSH_CONNECTIONS_INTERVAL).await;
-//         refresh_connections(&repo, &mut link_connections).await;
-//     }
-// }
-
-// // TODO: replace with:
-// // 1) connect_links_with_autoconnect (call once)
-// // 2) conect_disconnect link with channels/pubsub/etc
-// async fn refresh_connections(repo: &Arc<db::Repository>, link_connections: &mut LinkConnections) {
-//     let response = repo.read_all::<communication::LinkDescription>("link_descriptions").await;
-//     match response {
-//         Ok(links) => {
-//             let mut link_ids: Vec<String> = Vec::new();
-//             for link in links {
-//                 let link_id = link.id.clone().unwrap();
-//                 link_ids.push(link_id.clone());
-
-//                 // Add connections for (new) links
-//                 if !link_connections.contains_key(&link_id) {
-//                     link_connections.insert(link_id.clone(), create_connection(&link));
-//                 }
-
-//                 // Update connection status for link connections
-//                 let connection = link_connections.get_mut(&link_id).unwrap();
-//                 if link.enabled && !connection.is_connected() {
-//                     if let Err(err) = connection.connect().await {
-//                         println!("Connect error: {}", err.to_string());
-//                     }
-//                 } else if !link.enabled && connection.is_connected() {
-//                     if let Err(err) = connection.disconnect().await {
-//                         println!("Disconnect error: {}", err.to_string());
-//                     }
-//                 }
-//             }
-
-//             for (link_id, connection) in link_connections.iter_mut() {
-//                 // Disconnect removed links
-//                 if !link_ids.contains(&link_id) {
-//                     if let Err(err) = connection.disconnect().await {
-//                         println!("Disconnect (on remove) error: {}", err.to_string());
-//                     }
-//                 // Update link status
-//                 } else {
-//                     let status = communication::LinkStatus {
-//                         id: link_id.clone(),
-//                         is_connected: connection.is_connected(),
-//                         is_online: connection.is_online()
-//                     };
-
-//                     let result = repo.create_or_update("link_statuses", &status).await;
-//                     if let Err(err) = result {
-//                         println!("Save connection status error: {}", err.to_string());
-//                     }
-//                     println!("-----> {:?}", status);
-//                 }
-//             }
-
-//             // Remove connections for deleted links
-//             link_connections.retain(|link_id, _| link_ids.contains(&link_id));
-//         },
-//         Err(err) => panic!("Repository error: {}", err.to_string()),
-//     }
-// }
-
-// fn create_connection(link: &communication::LinkDescription) -> LickConnection {
-//     match &link.protocol {
-//         communication::LinkProtocol::Mavlink { link_type, protocol_version } => {
-//             Box::new(mavlink::connection::MavlinkConnection::new(link_type, protocol_version))
-//         },
-//         // NOTE: other protocols should be handled here
-//     }
-// }
-

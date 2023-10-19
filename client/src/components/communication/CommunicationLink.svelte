@@ -2,6 +2,7 @@
 import { onMount, onDestroy, afterUpdate } from 'svelte';
 
 import MavlinkEdit from './MavlinkEdit.svelte';
+import ConnectionChart from './ConnectionChart.svelte';
 
 import { type LinkDescription, type LinkStatus } from "$bindings/communication";
 import { getLinkStatus, saveLink, removeLink, setLinkConnected } from "$stores/communication";
@@ -42,9 +43,10 @@ afterUpdate(async () => {
                 (status && status?.is_connected ? status?.is_online ? "bg-success" : "bg-warning" : "bg-neutral-content")} >
             </span>
             <h1 class="font-medium ml-8 my-2">{link.name}</h1>
+            <ConnectionChart status={status} />
         </div>
         <div class="join btn-sm p-0 z-[1]">
-            <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ status?.is_connected }
+            <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ status?.is_connected || changed }
                 on:click={() => { setLinkConnected(link.id || "", true) }}>
                 { $i18n.t("Connect") }
             </button>
@@ -63,7 +65,7 @@ afterUpdate(async () => {
 
             <!-- Protocol -->
             {#if linkCopy.protocol.Mavlink}
-                <MavlinkEdit bind:protocol={linkCopy.protocol.Mavlink} disabled={ status?.is_connected || true }/>
+                <MavlinkEdit bind:protocol={linkCopy.protocol.Mavlink} disabled={ status?.is_connected == true }/>
             {/if}
         </div>
 

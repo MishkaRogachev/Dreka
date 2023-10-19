@@ -40,11 +40,6 @@ pub async fn save_description(shared: web::Data<Shared>, link: web::Json<LinkDes
 #[delete("/comm/links/remove/{link_id}")]
 pub async fn remove_description(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
     let id = &path.into_inner();
-
-    if let Err(err) = shared.tx.send(ClentEvent::ForgetConnection { link_id: id.to_owned() }) {
-        return HttpResponse::InternalServerError().json(err.to_string());
-    }
-
     let result = shared.repository.remove("link_descriptions", &id).await;
 
     match result {

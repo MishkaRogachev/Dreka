@@ -37,5 +37,7 @@ pub struct LinkDescription {
 pub struct LinkStatus {
     pub id: String,
     pub is_connected: bool,
-    pub is_online: bool
+    pub is_online: bool,
+    pub bytes_received: usize,
+    pub bytes_sent: usize
 }

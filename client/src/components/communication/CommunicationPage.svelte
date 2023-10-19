@@ -6,6 +6,8 @@ import { type LinkDescription, MavlinkProtocolVersion } from "$bindings/communic
 import { all_links, saveLink } from "$stores/communication";
 import { i18n } from "$stores/i18n";
 
+export let selectedLinkId = ""
+
 const linksForCreation: Array<LinkDescription> = [
     {
         autoconnect: false,
@@ -54,8 +56,6 @@ const linksForCreation: Array<LinkDescription> = [
     }
 ]
 
-export let selectedLinkId = ""
-
 </script>
 
 <style>
@@ -82,7 +82,7 @@ export let selectedLinkId = ""
         <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Communication Links") }</h3>
 
         <div class="grid gap-y-2 my-4 max-scroll-area-height overflow-y-auto">
-        {#each $all_links.values() as link, i}
+        {#each $all_links.values() as link}
             <CommunicationLink link={link} bind:selectedLinkId={selectedLinkId}/>
         {/each}
         </div>

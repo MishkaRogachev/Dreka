@@ -13,7 +13,8 @@ pub trait IConnection {
     fn is_connected(&self) -> bool;
     fn is_online(&self) -> bool;
 
-    // TODO: rx/tx connection statistics
+    fn bytes_received(&self) -> usize;
+    fn bytes_sent(&self) -> usize;
 }
 
 impl std::fmt::Display for ConnectionError {
