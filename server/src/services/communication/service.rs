@@ -41,7 +41,10 @@ impl Service {
 
             // Autoconect specified one
             if link.autoconnect {
-                self.connect_link(&link_id).await?;
+                let result = self.connect_link(&link_id).await;
+                if let Err(err) = result {
+                    println!("Autoconnect link event error: {}", err);
+                }
             }
         }
 

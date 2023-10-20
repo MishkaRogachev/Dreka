@@ -22,7 +22,12 @@ pub async fn start() -> std::io::Result<()> {
     let shared = api::shared::Shared::new(repository, tx);
 
     tokio::select! {
-        _ = comm_service.start() => {}
+        result = comm_service.start() => {
+            match result {
+                Ok(()) => {},
+                Err(err) => println!("Communication service start error: {}", err),
+            }
+        }
         _ = api::root::serve(shared, &DEFAULT_REST_ADDRESS) => {}
         _ = tokio::signal::ctrl_c() => {}
     }
