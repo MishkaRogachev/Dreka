@@ -7,8 +7,9 @@ import { clickOutside } from '$lib/common/click-outside';
 import { i18n } from '$stores/i18n';
 
 import burgerIcon from "$assets/svg/burger.svg?raw";
-import fleetIcon from "$assets/svg/fleet.svg?raw";
+import flightIcon from "$assets/svg/flight.svg?raw";
 import commIcon from "$assets/svg/comm.svg?raw";
+import fleetIcon from "$assets/svg/fleet.svg?raw";
 import aboutIcon from "$assets/svg/about.svg?raw";
 
 function closeDropdown() {
@@ -30,13 +31,17 @@ function openModal(id: string) {
             <a on:click={() => {
                 $currentPage = Page.Flight;
                 closeDropdown();
-                }}>{@html fleetIcon} { $i18n.t("Flight") }</a>
+                }}>{@html flightIcon} { $i18n.t("Flight") }</a>
         </li>
         <h4>{ $i18n.t("Configure") }</h4>
         <li class="btn-wide"><a on:click={() => {
             openModal("communication_modal");
-            closeDropdown(); 
+            closeDropdown();
         }}>{@html commIcon} { $i18n.t("Communication") }</a></li>
+        <li class="btn-wide"><a on:click={() => {
+            openModal("vehicles_modal");
+            closeDropdown();
+        }}>{@html fleetIcon} { $i18n.t("Vehicles") }</a></li>
         <h4>{ $i18n.t("Misc") }</h4>
         <li class="btn-wide">
             <label class="label cursor-pointer">

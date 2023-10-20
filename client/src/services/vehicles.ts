@@ -1,4 +1,4 @@
-import type { VehicleDescription } from "$bindings/vehicles";
+import type { VehicleDescription, VehicleStatus } from "$bindings/vehicles";
 import { send_request, default_headers } from "$datasource/rest";
 
 export class VehiclesService {
@@ -6,13 +6,19 @@ export class VehiclesService {
         return await send_request("/vehicles", { method: "GET" }) || [];
     }
 
-    static async saveVehicle(vehicle: VehicleDescription): Promise<VehicleDescription | null> {
-        let request = !vehicle.id ? "/vehicles/create" : "/vehicles/update"
+    static async getVehicleStatus(vehicleId: string): Promise<VehicleStatus | null> {
+        return await send_request("/vehicles/status/" + vehicleId, { method: "GET" }) || null;
+    }
 
-        return await send_request(request, {
+    static async saveVehicle(vehicle: VehicleDescription): Promise<VehicleDescription | null> {
+        return await send_request("/vehicles/save", {
             method: "POST",
             body: JSON.stringify(vehicle),
             headers: default_headers
         }) || null;
+    }
+
+    static async removeVehicle(vehicleId: string): Promise<string | null> {
+        return await send_request("/vehicles/remove/" + vehicleId, { method: "DELETE" }) || null;
     }
 }

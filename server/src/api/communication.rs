@@ -9,7 +9,10 @@ pub async fn list_descriptions(shared: web::Data<Shared>) -> impl Responder {
 
     match result {
         Ok(links) => return HttpResponse::Ok().json(links),
-        Err(err) => HttpResponse::InternalServerError().json(err.to_string()),
+        Err(err) => {
+            println!("REST error: {}", &err);
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
     }
 }
 
@@ -20,7 +23,10 @@ pub async fn link_description(shared: web::Data<Shared>, path: web::Path<String>
 
     match result {
         Ok(links) => return HttpResponse::Ok().json(links),
-        Err(err) => HttpResponse::InternalServerError().json(err.to_string()),
+        Err(err) => {
+            println!("REST error: {}", &err);
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
     }
 }
 
@@ -33,7 +39,10 @@ pub async fn save_description(shared: web::Data<Shared>, link: web::Json<LinkDes
         Ok(link) => {
             HttpResponse::Ok().json(link)
         },
-        Err(err) => HttpResponse::InternalServerError().json(err.to_string()),
+        Err(err) => {
+            println!("REST error: {}", &err);
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
     }
 }
 
@@ -44,7 +53,10 @@ pub async fn remove_description(shared: web::Data<Shared>, path: web::Path<Strin
 
     match result {
         Ok(()) => HttpResponse::Ok().json(link_id),
-        Err(err) => HttpResponse::InternalServerError().json(err.to_string()),
+        Err(err) => {
+            println!("REST error: {}", &err);
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
     }
 }
 
@@ -61,6 +73,7 @@ pub async fn get_status(shared: web::Data<Shared>, path: web::Path<String>) -> i
             if let crate::datasource::db::DbError::NoData = err {
                 return HttpResponse::Ok().json(LinkStatus::default_for_id(&link_id))
             }
+            println!("REST error: {}", &err);
             return HttpResponse::InternalServerError().json(err.to_string())
         }
     }

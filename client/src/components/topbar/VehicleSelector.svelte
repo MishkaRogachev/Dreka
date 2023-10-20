@@ -1,11 +1,11 @@
-<script lang="ts">
+<!-- <script lang="ts">
 
 import { availableVehicles, selectedVehicle } from "$stores/vehicles";
 import { iconFromVehicleType } from "$bindings/vehicles";
 
 let overlay: any
 
-</script>
+</script> -->
 <!-- 
 <OverlayButton
     bind:this={overlay}

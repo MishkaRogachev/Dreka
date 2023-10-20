@@ -15,7 +15,7 @@ export async function getLinkStatus(id: string): Promise<LinkStatus> {
     };
 }
 
-export async function saveLink(link: LinkDescription) {
+export async function saveLink(link: LinkDescription): Promise<LinkDescription | null> {
     let linkBack = await CommunicationService.saveLink(link);
     if (linkBack && linkBack.id) {
         let links = get(all_links);

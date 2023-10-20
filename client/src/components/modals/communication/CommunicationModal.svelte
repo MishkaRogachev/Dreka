@@ -1,5 +1,5 @@
 <script lang="ts">
-import CommunicationLink from "$components/communication/CommunicationLink.svelte";
+import CommunicationLink from "./CommunicationLink.svelte";
 
 import { type LinkDescription, MavlinkProtocolVersion } from "$bindings/communication";
 
@@ -56,6 +56,10 @@ const linksForCreation: Array<LinkDescription> = [
     }
 ]
 
+function closeDropdown() {
+    document.getElementById("newCommunicationLinkDropdown")?.removeAttribute("open");
+}
+
 </script>
 
 <style>
@@ -70,14 +74,14 @@ const linksForCreation: Array<LinkDescription> = [
             <!-- CLOSE -->
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
             <!-- ADD NEW -->
-            <div class="dropdown absolute left-2 top-2">
-                <label tabindex="0" class="btn m-1">{ $i18n.t("New Link") }</label>
-                <ul tabindex="0" class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
-                    {#each linksForCreation as link, i}
-                        <li on:click={() => { saveLink(link); }} value={i}><a>{ link.name }</a></li>
+            <details id="newCommunicationLinkDropdown" class="dropdown absolute left-2 top-2">
+                <summary class="btn m-1">{ $i18n.t("Add Link") }</summary>
+                <ul class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
+                    {#each linksForCreation as link}
+                        <li on:click={() => { saveLink(link); closeDropdown(); }}><a>{ link.name }</a></li>
                     {/each}
                 </ul>
-            </div>
+            </details>
         </form>
         <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Communication Links") }</h3>
 

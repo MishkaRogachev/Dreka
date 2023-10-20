@@ -2,8 +2,9 @@
 import Topbar from '$components/topbar/Topbar.svelte';
 
 import FlightPage from '$components/flight/FlightPage.svelte';
-import Communication from '$components/communication/CommunicationPage.svelte'
-import About from '$components/about/AboutPage.svelte';
+import CommunicationModal from '$components/modals/communication/CommunicationModal.svelte'
+import VehiclesModal from '$components/modals/vehicles/VehiclesModal.svelte';
+import About from '$components/modals/about/AboutModal.svelte';
 
 import { Page, currentPage } from '$stores/app';
 
@@ -17,6 +18,6 @@ import { Page, currentPage } from '$stores/app';
 </div>
 
 <!-- Aux modes -->
-<Communication/>
+<CommunicationModal/>
+<VehiclesModal/>
 <!-- <About/> -->
-

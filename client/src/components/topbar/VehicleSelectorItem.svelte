@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 import { createEventDispatcher } from "svelte"
 
 import { selectedVehicle } from "$stores/vehicles";
@@ -11,7 +11,7 @@ const dispatch = createEventDispatcher()
 function activate() { dispatch('activate', {}); }
 
 </script>
-<!-- 
+
 <Button
     style="width:100%"
     flat={true}
