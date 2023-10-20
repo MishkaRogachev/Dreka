@@ -10,7 +10,7 @@ pub trait IConnection {
     async fn connect(&mut self) -> Result<bool, ConnectionError>;
     async fn disconnect(&mut self) -> Result<bool, ConnectionError>;
 
-    fn is_connected(&self) -> bool;
+    fn is_healthy(&self) -> bool;
     fn is_online(&self) -> bool;
 
     fn bytes_received(&self) -> usize;

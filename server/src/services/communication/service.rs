@@ -69,13 +69,29 @@ impl Service {
                 }
             }
 
+            let mut links_to_disconnect = Vec::new();
             // Collect link statistics
-            for (link_id, connection) in  self.link_connections.iter_mut() {
-                let status = create_connection_status(link_id, connection);
+            for (link_id, connection) in self.link_connections.iter_mut() {
+                let status: LinkStatus;
+                if connection.is_healthy() {
+                    status = create_connection_status(link_id, connection);
+                } else {
+                    if let Err(err) = connection.disconnect().await {
+                        println!("Error disconnecting link: {}", err);
+                    }
+                    links_to_disconnect.push(link_id.to_owned());
+                    status = LinkStatus::default_for_id(&link_id);
+                }
+
                 let result = self.repository.create_or_update("link_statuses", &status).await;
                 if let Err(err) = result {
-                    println!("Link status error: {}", err);
+                    println!("Link update status error: {}", err);
                 }
+            }
+
+            // Remove faulted connections
+            for link_id in links_to_disconnect {
+                self.link_connections.remove(&link_id);
             }
         }
     }

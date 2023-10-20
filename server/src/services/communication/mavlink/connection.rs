@@ -130,7 +130,7 @@ impl traits::IConnection for MavlinkConnection {
         return Ok(false);
     }
 
-    fn is_connected(&self) -> bool {
+    fn is_healthy(&self) -> bool {
         if let Some(token) = &self.token {
             if !token.is_cancelled() {
                 return true;
