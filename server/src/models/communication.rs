@@ -42,7 +42,6 @@ pub struct LinkStatus {
     pub bytes_sent: usize
 }
 
-
 impl LinkStatus {
     pub fn default_for_id(link_id: &str) -> Self {
         Self {

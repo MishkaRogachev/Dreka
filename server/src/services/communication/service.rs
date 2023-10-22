@@ -73,8 +73,8 @@ impl Service {
             // Collect link statistics
             for (link_id, connection) in self.link_connections.iter_mut() {
                 let status: LinkStatus;
-                if connection.is_healthy() {
-                    status = create_connection_status(link_id, connection);
+                if connection.is_healthy().await {
+                    status = create_connection_status(link_id, connection).await;
                 } else {
                     if let Err(err) = connection.disconnect().await {
                         println!("Error disconnecting link: {}", err);
@@ -123,12 +123,12 @@ impl Service {
         if let Err(err) = link {
             return Err(ServiceError::Db(err));
         }
-        let mut connection = create_connection(&link.unwrap());
+        let mut connection = create_connection(self.repository.clone(),&link.unwrap());
         if let Err(err) = connection.connect().await {
             return Err(ServiceError::Connection(err));
         }
 
-        let status = create_connection_status(&link_id, &connection);
+        let status = create_connection_status(&link_id, &connection).await;
         let result = self.repository.create_or_update("link_statuses", &status).await;
         if let Err(err) = result {
             return Err(ServiceError::Db(err));
@@ -169,22 +169,22 @@ impl Service {
     }
 }
 
-fn create_connection(link: &communication::LinkDescription) -> LickConnection {
+fn create_connection(repository: Arc<db::Repository>, link: &communication::LinkDescription) -> LickConnection {
     match &link.protocol {
         communication::LinkProtocol::Mavlink { link_type, protocol_version } => {
-            Box::new(MavlinkConnection::new(link_type, protocol_version))
+            Box::new(MavlinkConnection::new(repository, link_type, protocol_version))
         },
         // NOTE: other protocols should be handled here
     }
 }
 
-fn create_connection_status(link_id: &str, connection: &LickConnection) -> communication::LinkStatus {
+async fn create_connection_status(link_id: &str, connection: &LickConnection) -> communication::LinkStatus {
     communication::LinkStatus {
         id: link_id.into(),
         is_connected: true, // NOTE: connection.is_connected may be wrong in this context
-        is_online: connection.is_online(),
-        bytes_received: connection.bytes_received(),
-        bytes_sent: connection.bytes_sent(),
+        is_online: connection.is_online().await,
+        bytes_received: connection.bytes_received().await,
+        bytes_sent: connection.bytes_sent().await,
     }
 }
 

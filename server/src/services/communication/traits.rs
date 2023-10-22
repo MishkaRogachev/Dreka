@@ -10,11 +10,11 @@ pub trait IConnection {
     async fn connect(&mut self) -> Result<bool, ConnectionError>;
     async fn disconnect(&mut self) -> Result<bool, ConnectionError>;
 
-    fn is_healthy(&self) -> bool;
-    fn is_online(&self) -> bool;
+    async fn is_healthy(&self) -> bool;
+    async fn is_online(&self) -> bool;
 
-    fn bytes_received(&self) -> usize;
-    fn bytes_sent(&self) -> usize;
+    async fn bytes_received(&self) -> usize;
+    async fn bytes_sent(&self) -> usize;
 }
 
 impl std::fmt::Display for ConnectionError {

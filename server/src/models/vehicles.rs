@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
 pub enum VehicleType {
     Unknown,
@@ -12,7 +12,7 @@ pub enum VehicleType {
     Copter
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
 pub enum VehicleFeatures {
     PetrolEngine,
@@ -20,14 +20,20 @@ pub enum VehicleFeatures {
     Lidar
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
+#[ts(export)]
+pub enum ProtocolId {
+    MavlinkId { mav_id: u8 },
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
 #[serde_with::skip_serializing_none]
 pub struct VehicleDescription {
     pub id: Option<String>,
     pub name: String,
-    pub protocol_id: String,
     pub vehicle_type: VehicleType,
+    pub protocol_id: ProtocolId,
     pub features: Vec<VehicleFeatures>
 }
 

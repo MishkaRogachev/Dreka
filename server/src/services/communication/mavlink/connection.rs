@@ -1,16 +1,18 @@
-use std::sync::{Arc, Mutex};
-use tokio::time;
+use std::sync::Arc;
+use tokio::{time, sync::Mutex};
 use tokio_util::sync::CancellationToken;
 use mavlink;
 
+use crate::datasource::db;
 use crate::models::communication;
-use crate::services::communication::traits;
+use crate::services::communication::{traits, mavlink::context::MavlinkContext};
 
 const MAVLINK_POLL_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(5);
 const RESET_STATS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(1000);
 const ONLINE_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(2000);
 
 pub struct MavlinkConnection {
+    repository: Arc<db::Repository>,
     mav_address: String,
     mav_version: mavlink::MavlinkVersion,
     token: Option<CancellationToken>,
@@ -26,8 +28,11 @@ struct MavlinkConnectionInternal {
 }
 
 impl MavlinkConnection {
-    pub fn new(link_type: &communication::LinkType, protocol: &communication::MavlinkProtocolVersion) -> MavlinkConnection {
-        MavlinkConnection {
+    pub fn new(repository: Arc<db::Repository>,
+            link_type: &communication::LinkType,
+            protocol: &communication::MavlinkProtocolVersion) -> Self {
+        Self {
+            repository, 
             mav_address: link_type.to_mavlink(),
             mav_version: protocol.to_mavlink(),
             token: None,
@@ -70,13 +75,14 @@ impl traits::IConnection for MavlinkConnection {
         self.token = Some(token);
 
         let mut last_stats_reset = time::Instant::now();
-
+        let mut context = MavlinkContext::new(self.repository.clone());
         let internal = self.internal.clone();
         let cloned_mav = mav.clone();
+
         tokio::task::spawn(async move { loop {
             let now = time::Instant::now();
             if now.checked_duration_since(last_stats_reset) > Some(RESET_STATS_INTERVAL) {
-                let mut lock = internal.lock().unwrap();
+                let mut lock = internal.lock().await;
                 lock.bytes_received_sec = lock.bytes_received_current;
                 lock.bytes_sent_sec = lock.bytes_sent_current;
                 lock.bytes_received_current = 0;
@@ -86,13 +92,13 @@ impl traits::IConnection for MavlinkConnection {
 
             match cloned_mav.recv() {
                 Ok((header, msg)) => {
-                    let mut lock = internal.lock().unwrap();
+                    let mut lock = internal.lock().await;
                     // Log last recv time and bytes
                     lock.last_recieved = now;
                     lock.bytes_received_current = lock.bytes_received_current + std::mem::size_of_val(&msg);
 
-                    //println!("Got mavlink message: {:?}:{:?}", &header, &msg);
-                    // TODO: read telemetry
+                    super::heartbeat::handle_message(&mut context, &header, &msg).await;
+                    super::telemetry::handle_message(&context, &header, &msg).await;
                 },
                 Err(mavlink::error::MessageReadError::Io(err)) => {
                     if let std::io::ErrorKind::WouldBlock = err.kind() {
@@ -130,7 +136,7 @@ impl traits::IConnection for MavlinkConnection {
         return Ok(false);
     }
 
-    fn is_healthy(&self) -> bool {
+    async fn is_healthy(&self) -> bool {
         if let Some(token) = &self.token {
             if !token.is_cancelled() {
                 return true;
@@ -139,8 +145,8 @@ impl traits::IConnection for MavlinkConnection {
         false
     }
 
-    fn is_online(&self) -> bool {
-        let last_recieved_time = self.internal.lock().unwrap().last_recieved;
+    async fn is_online(&self) -> bool {
+        let last_recieved_time = self.internal.lock().await.last_recieved;
         if time::Instant::now().checked_duration_since(last_recieved_time) < Some(ONLINE_INTERVAL) {
             return true;
         } else {
@@ -148,12 +154,12 @@ impl traits::IConnection for MavlinkConnection {
         }
     }
 
-    fn bytes_received(&self) -> usize {
-        return self.internal.lock().unwrap().bytes_received_sec;
+    async fn bytes_received(&self) -> usize {
+        return self.internal.lock().await.bytes_received_sec;
     }
 
-    fn bytes_sent(&self) -> usize {
-        return self.internal.lock().unwrap().bytes_sent_sec;
+    async fn bytes_sent(&self) -> usize {
+        return self.internal.lock().await.bytes_sent_sec;
     }
 }
 

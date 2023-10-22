@@ -1,5 +1,6 @@
 use surrealdb::{Surreal, engine::local::Mem};
 
+// TODO: replace with specialised repositories, turn this to generic_dao, use template on struct declaration level
 #[derive(Clone)]
 pub struct Repository {
     db: Surreal<surrealdb::engine::local::Db>
@@ -15,7 +16,6 @@ pub enum DbError {
     NoData
 }
 
-// TODO: err
 fn extract_id(json: &mut serde_json::Value) -> Option<String> {
     if let Some(obj) = json.as_object_mut() {
         if let Some(id) = obj.remove("id") {
@@ -28,7 +28,6 @@ fn extract_id(json: &mut serde_json::Value) -> Option<String> {
     None
 }
 
-// TODO: err
 fn replace_surreal_id(json: &mut serde_json::Value) {
     if let Some(obj) = json.as_object_mut() {
         if let Some(id) = obj.remove("id") {
@@ -188,6 +187,22 @@ impl Repository {
             .bind(("uid", id)).await?;
 
         return Ok(!response.check().is_err());
+    }
+
+    pub async fn read_where<D, T>(&self, table: &str, property: &str, value: &T)-> Result<D, DbError>
+    where D: for<'de> serde::Deserialize<'de>, T: serde::ser::Serialize {
+        let query = format!("SELECT * FROM type::table($tb) WHERE {} = $value", property);
+        let mut response = self.db.query(&query)
+            .bind(("tb", table))
+            .bind(("value", serde_json::json!(value))).await?;
+
+        let json: Option<serde_json::Value> = response.take(0)?;
+        if let Some(mut json) = json {
+            replace_surreal_id(&mut json);
+            let data: D = serde_json::from_value(json)?;
+            return Ok(data);
+        }
+        Err(DbError::NoData)
     }
 }
 
