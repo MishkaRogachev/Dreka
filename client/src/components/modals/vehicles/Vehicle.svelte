@@ -1,8 +1,8 @@
 <script lang="ts">
 import { onMount, onDestroy, afterUpdate } from 'svelte';
 
-import { type VehicleDescription, type VehicleStatus } from "$bindings/vehicles";
-import { getVehicleStatus, saveVehicle, removeVehicle } from "$stores/vehicles";
+import { type VehicleDescription, type VehicleStatus, is_vehicle_online } from "$bindings/vehicles";
+import { vehicle_statuses, saveVehicle, removeVehicle } from "$stores/vehicles";
 
 import { i18n } from "$stores/i18n";
 
@@ -12,15 +12,8 @@ export let vehicle: VehicleDescription
 export let changed: boolean = false
 
 let vehicleCopy: VehicleDescription = vehicle
-let status: VehicleStatus | null = null
 
-let interval: any
-
-onMount(async () => {
-    interval = setInterval(async () => { status = vehicle.id ? await getVehicleStatus(vehicle.id) : null; }, 250);
-})
-
-onDestroy(async () => { clearInterval(interval); });
+$: status = $vehicle_statuses.get(vehicle.id || "")
 
 afterUpdate(async () => {
     if (selectedVehicleId !== vehicle.id) {
@@ -37,7 +30,7 @@ afterUpdate(async () => {
     <div class="collapse-title flex flex-row gap-4">
         <div class="indicator w-full">
             <span class={"indicator-item badge badge-xs indicator-start indicator-middle " +
-                (status && status?.is_online ? status?.is_online ? "bg-success" : "bg-warning" : "bg-neutral-content")} >
+                (is_vehicle_online(status) ? "bg-success" : "bg-neutral-content")} >
             </span>
             <h1 class="font-medium ml-8 my-2">{vehicle.name}</h1>
         </div>
@@ -50,13 +43,17 @@ afterUpdate(async () => {
             <h1 class="font-medium my-2 w-full">{ $i18n.t("Name") }</h1>
             <input type="text" placeholder={ $i18n.t("Enter name here") } class="input w-full"
                 bind:value={vehicleCopy.name}/>
-                <h1 class="font-medium my-2 w-full">{ $i18n.t("Protocol ID") }</h1>
+
+            <!-- Vehicle Type -->
+
+            <!-- Protocol -->
+            <!-- <h1 class="font-medium my-2 w-full">{ $i18n.t("Protocol ID") }</h1>
             <input type="text" placeholder={ $i18n.t("Enter protocol id here") } class="input w-full"
-                bind:value={vehicleCopy.protocol_id}/>
+                bind:value={vehicleCopy.protocol_id}/> -->
         </div>
 
         <div class="w-full btn-sm mt-4 flex">
-            <button disabled={status?.is_online} class="btn btn-sm btn-wide btn-secondary px-1 ml-2"
+            <button disabled={is_vehicle_online(status)} class="btn btn-sm btn-wide btn-secondary px-1 ml-2"
                 on:click={() => { removeVehicle(vehicle.id || "") }}>
                 { $i18n.t("Remove") }
             </button>

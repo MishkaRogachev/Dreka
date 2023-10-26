@@ -34,7 +34,7 @@ impl Service {
             let link_id = link.id.clone().expect("Link must have an id");
             // Default status on start
             let status = LinkStatus::default_for_id(&link_id);
-            let result = self.repository.create_or_update("link_statuses", &status).await;
+            let result = self.repository.upsert("link_statuses", &status).await;
             if let Err(err) = result {
                 return Err(ServiceError::Db(err));
             }
@@ -83,7 +83,7 @@ impl Service {
                     status = LinkStatus::default_for_id(&link_id);
                 }
 
-                let result = self.repository.create_or_update("link_statuses", &status).await;
+                let result = self.repository.upsert("link_statuses", &status).await;
                 if let Err(err) = result {
                     println!("Link update status error: {}", err);
                 }
@@ -129,7 +129,7 @@ impl Service {
         }
 
         let status = create_connection_status(&link_id, &connection).await;
-        let result = self.repository.create_or_update("link_statuses", &status).await;
+        let result = self.repository.upsert("link_statuses", &status).await;
         if let Err(err) = result {
             return Err(ServiceError::Db(err));
         }
@@ -149,7 +149,7 @@ impl Service {
         }
 
         let status = LinkStatus::default_for_id(&link_id);
-        let result = self.repository.create_or_update("link_statuses", &status).await;
+        let result = self.repository.upsert("link_statuses", &status).await;
         if let Err(err) = result {
             return Err(ServiceError::Db(err));
         }

@@ -33,7 +33,7 @@ pub async fn link_description(shared: web::Data<Shared>, path: web::Path<String>
 #[post("/comm/links/save")]
 pub async fn save_description(shared: web::Data<Shared>, link: web::Json<LinkDescription>) -> impl Responder {
     let link = link.into_inner();
-    let result = shared.repository.create_or_update("link_descriptions", &link).await;
+    let result = shared.repository.upsert("link_descriptions", &link).await;
 
     match result {
         Ok(link) => {

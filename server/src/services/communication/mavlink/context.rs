@@ -1,12 +1,10 @@
 use std::{sync::Arc, collections::HashMap};
-use tokio::time;
 
 use crate::{datasource::db, models::vehicles::{VehicleDescription, VehicleType, ProtocolId}};
 
 pub struct MavlinkContext {
-    repository: Arc<db::Repository>,
-    mav_vehicles: HashMap<u8, VehicleDescription>,
-    mav_timers: HashMap<u8, time::Instant>,
+    pub repository: Arc<db::Repository>,
+    pub mav_vehicles: HashMap<u8, VehicleDescription>,
     auto_add_vehicles: bool
 }
 
@@ -15,22 +13,14 @@ impl MavlinkContext {
         Self {
             repository,
             mav_vehicles: HashMap::new(),
-            mav_timers: HashMap::new(),
             auto_add_vehicles: true // TODO: to settings
         }
     }
 
-    pub async fn get_vehicle(&self, mav_id: u8) -> Option<VehicleDescription> {
-        match self.mav_vehicles.get(&mav_id) {
-            Some(vehicle) => Some(vehicle.clone()),
-            None => None,
-        }
-    }
-
     pub async fn obtain_vehicle(&mut self, mav_id: u8) -> Option<VehicleDescription> {
-        let vehicle = self.get_vehicle(mav_id).await;
-        if vehicle.is_some() {
-            return vehicle;
+        let vehicle = self.mav_vehicles.get(&mav_id);
+        if let Some(vehicle) = vehicle{
+            return Some(vehicle.to_owned());
         }
 
         let protocol_id = ProtocolId::MavlinkId { mav_id: mav_id };
@@ -41,7 +31,7 @@ impl MavlinkContext {
             },
             Err(err) => {
                 if let db::DbError::NoData = err {
-                    // skip
+                    // skip & create instead
                 } else {
                     println!("Read vehicle error : {}", &err);
                 }

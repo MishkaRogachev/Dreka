@@ -114,7 +114,7 @@ impl Repository {
         }
     }
 
-    pub async fn create_or_update<D>(&self, table: &str, data: &D) -> Result<D, DbError>
+    pub async fn upsert<D>(&self, table: &str, data: &D) -> Result<D, DbError>
     where D: serde::ser::Serialize + ?Sized + for<'de> serde::Deserialize<'de> {
         let mut data = serde_json::to_value(data)?;
         let id = extract_id(&mut data);

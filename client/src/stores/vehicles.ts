@@ -1,6 +1,6 @@
 import { writable, get } from 'svelte/store';
 
-import { type VehicleDescription, type VehicleStatus, VehicleType } from '$bindings/vehicles';
+import { type VehicleDescription, type VehicleStatus, VehicleType, VehicleState } from '$bindings/vehicles';
 import { VehiclesService } from '$services/vehicles';
 
 import unknownIcon from "$assets/svg/about.svg"
@@ -10,12 +10,15 @@ import rotaryWingIcon from "$assets/svg/rotary_wing.svg"
 import copterIcon from "$assets/svg/copter.svg"
 import vtolIcon from "$assets/svg/vtol.svg"
 
-export const all_vehicles = writable(new Map<String, VehicleDescription>())
+// TODO: atomic map stores
+export const all_vehicles = writable(new Map<string, VehicleDescription>())
+export const vehicle_statuses = writable(new Map<string, VehicleStatus>())
 
 export async function getVehicleStatus(id: string): Promise<VehicleStatus> {
     return await VehiclesService.getVehicleStatus(id) || {
         id: id,
-        is_online: false,
+        last_heartbeat: 0,
+        state: VehicleState.Unknown
     };
 }
 
@@ -42,7 +45,7 @@ export async function removeVehicle(vehicleId: string) {
 // Refresh vehicles vehicles every second
 setInterval(() => {
     VehiclesService.getVehicles().then((vehicles: Array<VehicleDescription>) => {
-        let new_vehicles = new Map<String, VehicleDescription>();
+        let new_vehicles = new Map<string, VehicleDescription>();
         vehicles.forEach((vehicle: VehicleDescription) => {
             if (vehicle.id) {
                 new_vehicles.set(vehicle.id, vehicle);
@@ -51,6 +54,18 @@ setInterval(() => {
         all_vehicles.set(new_vehicles);
     });
 }, 1000);
+
+// Statuses every 200ms
+setInterval(async () => {
+    let new_statuses = new Map<string, VehicleStatus>();
+
+    for (const id of get(all_vehicles).keys()) {
+        let status = await getVehicleStatus(id);
+        new_statuses.set(id, status)
+    }
+
+    vehicle_statuses.set(new_statuses);
+}, 200);
 
 export function iconForVehicleType(vehicle_type: VehicleType): string {
     switch (vehicle_type) {

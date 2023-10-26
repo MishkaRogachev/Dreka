@@ -9,7 +9,8 @@ pub enum VehicleType {
     FixedWing,
     Vtol,
     RotaryWing,
-    Copter
+    Copter,
+    Airship
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
@@ -18,6 +19,21 @@ pub enum VehicleFeatures {
     PetrolEngine,
     Parachute,
     Lidar
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
+#[ts(export)]
+pub enum VehicleState {
+    Unknown,
+    Init,
+    Boot,
+    Calibrating,
+    Standby,
+    Active,
+    Critical,
+    Emergency,
+    PowerOff,
+    FlightTermination
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
@@ -41,14 +57,16 @@ pub struct VehicleDescription {
 #[ts(export)]
 pub struct VehicleStatus {
     pub id: String,
-    pub is_online: bool,
+    pub last_heartbeat: i64,
+    pub state: VehicleState
 }
 
 impl VehicleStatus {
     pub fn default_for_id(link_id: &str) -> Self {
         Self {
             id: link_id.into(),
-            is_online: false
+            last_heartbeat: 0,
+            state: VehicleState::Unknown
         }
     }
 }

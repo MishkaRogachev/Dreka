@@ -33,7 +33,7 @@ pub async fn vehicle_description(shared: web::Data<Shared>, path: web::Path<Stri
 #[post("/vehicles/save")]
 pub async fn save_description(shared: web::Data<Shared>, vehicle: web::Json<VehicleDescription>) -> impl Responder {
     let vehicle = vehicle.into_inner();
-    let result = shared.repository.create_or_update("vehicle_descriptions", &vehicle).await;
+    let result = shared.repository.upsert("vehicle_descriptions", &vehicle).await;
 
     match result {
         Ok(vehicle) => {

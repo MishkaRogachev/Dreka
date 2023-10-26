@@ -59,7 +59,7 @@ async fn test_repository_crud() {
 }
 
 #[tokio::test]
-async fn test_repository_create_or_update() {
+async fn test_repository_upsert() {
     let db = db::Repository::new().await.expect("Error establishing a database connection");
 
     let user1 = User {
@@ -77,11 +77,11 @@ async fn test_repository_create_or_update() {
     };
 
 
-    db.create_or_update("test_users_table", &user1).await.expect("Failed to create user");
-    db.create_or_update("test_users_table", &user2).await.expect("Failed to create user");
+    db.upsert("test_users_table", &user1).await.expect("Failed to create user");
+    db.upsert("test_users_table", &user2).await.expect("Failed to create user");
 
     user2.records = 19;
-    db.create_or_update("test_users_table", &user2).await.expect("Failed to update user");
+    db.upsert("test_users_table", &user2).await.expect("Failed to update user");
 
     // Read All
     let read_all = db.read_all::<User>("test_users_table").await;

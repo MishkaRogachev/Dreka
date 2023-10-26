@@ -1,4 +1,6 @@
 
+export const IS_ONLINE_TIMEOUT = 2000;
+
 export enum VehicleType {
     Unknown = "Unknown",
     Auto = "Auto",
@@ -14,15 +16,38 @@ export enum VehicleFeatures {
     Lidar = "Lidar"
 }
 
+export interface MavlinkProtocolId { mav_id: number }
+
+export type ProtocolId = {
+    MavlinkId?: MavlinkProtocolId
+};
 export interface VehicleDescription {
     id?: string,
     name: string,
-    protocol_id: string,
+    protocol_id: ProtocolId,
     vehicle_type: VehicleType,
     features: Array<VehicleFeatures>
 }
 
+export enum VehicleState {
+    Unknown = "Unknown",
+    Init = "Init",
+    Boot = "Boot",
+    Calibrating = "Calibrating",
+    Standby = "Standby",
+    Active = "Active",
+    Critical = "Critical",
+    Emergency = "Emergency",
+    PowerOff = "PowerOff",
+    FlightTermination = "FlightTermination",
+}
+
 export interface VehicleStatus {
     id: string,
-    is_online: boolean
+    last_heartbeat: number,
+    state: VehicleState
+}
+
+export function is_vehicle_online(status: VehicleStatus | undefined): boolean {
+    return Boolean(!!status && (Date.now() - status.last_heartbeat) < IS_ONLINE_TIMEOUT)
 }

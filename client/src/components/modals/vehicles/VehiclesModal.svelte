@@ -8,23 +8,23 @@ import { i18n } from "$stores/i18n";
 export let selectedVehicleId = ""
 
 const vehiclesForCreation: Array<VehicleDescription> = [{
-        name: $i18n.t("New Copter"),
-        protocol_id: "",
+        name: $i18n.t("MAVLink Copter"),
+        protocol_id: { MavlinkId: { mav_id: 1 } },
         vehicle_type: VehicleType.Copter,
         features: []
     }, {
-        name: $i18n.t("New Fixed Wing"),
-        protocol_id: "",
+        name: $i18n.t("MAVLink Fixed Wing"),
+        protocol_id: { MavlinkId: { mav_id: 1 } },
         vehicle_type: VehicleType.FixedWing,
         features: []
     }, {
-        name: $i18n.t("New VTOL"),
-        protocol_id: "",
+        name: $i18n.t("MAVLink VTOL"),
+        protocol_id: { MavlinkId: { mav_id: 1 } },
         vehicle_type: VehicleType.Vtol,
         features: []
     }, {
-        name: $i18n.t("New Rotary Wing"),
-        protocol_id: "",
+        name: $i18n.t("MAVLink Rotary Wing"),
+        protocol_id: { MavlinkId: { mav_id: 1 } },
         vehicle_type: VehicleType.RotaryWing,
         features: []
     }
