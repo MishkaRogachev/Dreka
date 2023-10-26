@@ -1,84 +1,73 @@
-import { writable, get } from 'svelte/store';
+import { readable, writable, get } from 'svelte/store';
 
 import { type VehicleDescription, type VehicleStatus, VehicleType, VehicleState } from '$bindings/vehicles';
 import { VehiclesService } from '$services/vehicles';
 
-import unknownIcon from "$assets/svg/about.svg"
-import autoIcon from "$assets/svg/auto.svg"
-import fixedWingIcon from "$assets/svg/fixed_wing.svg"
-import rotaryWingIcon from "$assets/svg/rotary_wing.svg"
-import copterIcon from "$assets/svg/copter.svg"
-import vtolIcon from "$assets/svg/vtol.svg"
+export const vehicleDescriptions = function () {
+    let interval: NodeJS.Timeout;
 
-// TODO: atomic map stores
-export const all_vehicles = writable(new Map<string, VehicleDescription>())
-export const vehicle_statuses = writable(new Map<string, VehicleStatus>())
-
-export async function getVehicleStatus(id: string): Promise<VehicleStatus> {
-    return await VehiclesService.getVehicleStatus(id) || {
-        id: id,
-        last_heartbeat: 0,
-        state: VehicleState.Unknown
-    };
-}
-
-export async function saveVehicle(vehicle: VehicleDescription): Promise<VehicleDescription | null> {
-    let vehicleBack = await VehiclesService.saveVehicle(vehicle);
-    if (vehicleBack && vehicleBack.id) {
-        let vehicles = get(all_vehicles);
-        vehicles.set(vehicleBack.id, vehicleBack);
-        all_vehicles.set(vehicles);
-        return vehicleBack;
-    }
-    return null
-}
-
-export async function removeVehicle(vehicleId: string) {
-    let vehicleIdBack = await VehiclesService.removeVehicle(vehicleId);
-    let vehicles = get(all_vehicles);
-    if (vehicleIdBack) {
-        vehicles.delete(vehicleIdBack);
-    }
-    all_vehicles.set(vehicles);
-}
-
-// Refresh vehicles vehicles every second
-setInterval(() => {
-    VehiclesService.getVehicles().then((vehicles: Array<VehicleDescription>) => {
-        let new_vehicles = new Map<string, VehicleDescription>();
-        vehicles.forEach((vehicle: VehicleDescription) => {
-            if (vehicle.id) {
-                new_vehicles.set(vehicle.id, vehicle);
+    const store = writable(new Map<string, VehicleDescription>(), (set, _) => {
+        interval = setInterval(async () => {
+            let new_vehicles = new Map<string, VehicleDescription>()
+            for (const vehicle of await VehiclesService.getVehicles()) {
+                if (vehicle.id) {
+                    new_vehicles.set(vehicle.id, vehicle);
+                }
+                store.set(new_vehicles);
             }
-        })
-        all_vehicles.set(new_vehicles);
+        }, 200); // Refresh vehicle descriptions every second
     });
-}, 1000);
 
-// Statuses every 200ms
-setInterval(async () => {
-    let new_statuses = new Map<string, VehicleStatus>();
-
-    for (const id of get(all_vehicles).keys()) {
-        let status = await getVehicleStatus(id);
-        new_statuses.set(id, status)
+    return {
+        subscribe: store.subscribe,
+        count: () => get(store).size,
+        vehicle: (vehicleId: string) => get(store).get(vehicleId),
+        vehiclesIds: () => Array.from(get(store).keys()),
+        vehicles: () => get(store).values(),
+        saveVehicle: async (vehicle: VehicleDescription) => {
+            let vehicleBack = await VehiclesService.saveVehicle(vehicle);
+            store.update(vehicles => {
+                if (vehicleBack && vehicleBack.id) {
+                    vehicles.set(vehicleBack.id, vehicleBack);
+                }
+                return vehicles;
+            })
+            return vehicleBack;
+        },
+        removeVehicle: async (vehicleId: string) => {
+            let vehicleIdBack = await VehiclesService.removeVehicle(vehicleId);
+            store.update(vehicles => {
+                if (vehicleIdBack) {
+                    vehicles.delete(vehicleIdBack);
+                }
+                return vehicles;
+            })
+        },
+        kill: () => clearInterval(interval)
     }
+} ()
 
-    vehicle_statuses.set(new_statuses);
-}, 200);
+export const vehicleStatuses = function () {
+    let interval: NodeJS.Timeout;
 
-export function iconForVehicleType(vehicle_type: VehicleType): string {
-    switch (vehicle_type) {
-        case VehicleType.Auto:
-            return autoIcon;
-        case VehicleType.FixedWing:
-            return fixedWingIcon;
-        case VehicleType.RotaryWing:
-            return rotaryWingIcon;
-        case VehicleType.Copter:
-            return copterIcon;
-        case VehicleType.Vtol:
-            return vtolIcon;
+    const store = readable(new Map<string, VehicleStatus>(), (set, _) => {
+        interval = setInterval(async () => {
+            let new_statuses = new Map<string, VehicleStatus>()
+            for (const id of vehicleDescriptions.vehiclesIds()) {
+                const status = await VehiclesService.getVehicleStatus(id);
+                if (status) {
+                    new_statuses.set(id, status);
+                }
+            }
+            set(new_statuses);
+        }, 200);
+    }); // Refresh vehicle status every 200ms
+
+    return {
+        subscribe: store.subscribe,
+        count: () => get(store).size,
+        status: (vehicleId: string) => get(store).get(vehicleId),
+        statuses: () => get(store).values(),
+        kill: () => clearInterval(interval)
     }
-    return unknownIcon;
-}
+} ()

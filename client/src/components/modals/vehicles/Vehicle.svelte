@@ -2,7 +2,7 @@
 import { onMount, onDestroy, afterUpdate } from 'svelte';
 
 import { type VehicleDescription, type VehicleStatus, is_vehicle_online } from "$bindings/vehicles";
-import { vehicle_statuses, saveVehicle, removeVehicle } from "$stores/vehicles";
+import { vehicleStatuses, vehicleDescriptions } from "$stores/vehicles";
 
 import { i18n } from "$stores/i18n";
 
@@ -13,7 +13,7 @@ export let changed: boolean = false
 
 let vehicleCopy: VehicleDescription = vehicle
 
-$: status = $vehicle_statuses.get(vehicle.id || "")
+$: status = $vehicleStatuses.get(vehicle.id || "")
 
 afterUpdate(async () => {
     if (selectedVehicleId !== vehicle.id) {
@@ -54,7 +54,7 @@ afterUpdate(async () => {
 
         <div class="w-full btn-sm mt-4 flex">
             <button disabled={is_vehicle_online(status)} class="btn btn-sm btn-wide btn-secondary px-1 ml-2"
-                on:click={() => { removeVehicle(vehicle.id || "") }}>
+                on:click={() => { vehicleDescriptions.removeVehicle(vehicle.id || "") }}>
                 { $i18n.t("Remove") }
             </button>
 
@@ -66,7 +66,7 @@ afterUpdate(async () => {
                     { $i18n.t("Discard") }
                 </button>
                 <button disabled={!changed} class="btn btn-sm btn-wide btn-accent join-item px-1 ml-2"
-                    on:click={ async () => { vehicle = await saveVehicle(vehicleCopy) || vehicle }}>
+                    on:click={ async () => { vehicle = await vehicleDescriptions.saveVehicle(vehicleCopy) || vehicle }}>
                     { $i18n.t("Save") }
                 </button>
             </div>

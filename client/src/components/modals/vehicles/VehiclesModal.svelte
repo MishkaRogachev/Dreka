@@ -2,7 +2,7 @@
 import Vehicle from "./Vehicle.svelte";
 
 import { type VehicleDescription, VehicleType } from "$bindings/vehicles";
-import { all_vehicles, saveVehicle } from "$stores/vehicles";
+import { vehicleDescriptions } from "$stores/vehicles";
 import { i18n } from "$stores/i18n";
 
 export let selectedVehicleId = ""
@@ -53,7 +53,7 @@ function closeDropdown() {
                 <summary class="btn m-1">{ $i18n.t("Add Vehicle") }</summary>
                 <ul class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
                     {#each vehiclesForCreation as vehicle}
-                        <li on:click={() => { saveVehicle(vehicle); closeDropdown(); }}><a>{ vehicle.name }</a></li>
+                        <li on:click={() => { vehicleDescriptions.saveVehicle(vehicle); closeDropdown(); }}><a>{ vehicle.name }</a></li>
                     {/each}
                 </ul>
             </details>
@@ -61,7 +61,7 @@ function closeDropdown() {
         <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Vehicles") }</h3>
 
         <div class="grid gap-y-2 my-4 max-scroll-area-height overflow-y-auto">
-        {#each $all_vehicles.values() as vehicle}
+        {#each $vehicleDescriptions.values() as vehicle}
             <Vehicle vehicle={vehicle} bind:selectedVehicleId={selectedVehicleId}/>
         {/each}
         </div>
