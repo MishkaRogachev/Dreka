@@ -60,10 +60,13 @@ function closeDropdown() {
         </form>
         <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Vehicles") }</h3>
 
-        <div class="grid gap-y-2 my-4 max-scroll-area-height overflow-y-auto">
+        <div class="grid gap-y-2 my-4 max-scroll-area-height overflow-y-auto text-center">
         {#each $vehicleDescriptions.values() as vehicle}
             <Vehicle vehicle={vehicle} bind:selectedVehicleId={selectedVehicleId}/>
         {/each}
+        {#if $vehicleDescriptions.size === 0}
+        <a>{ $i18n.t("No vehicles available") }</a>
+        {/if}
         </div>
     </div>
 </dialog>

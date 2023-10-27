@@ -53,15 +53,12 @@ export const vehicleStatuses = function () {
     const store = readable(new Map<string, VehicleStatus>(), (set, _) => {
         interval = setInterval(async () => {
             let new_statuses = new Map<string, VehicleStatus>()
-            for (const id of vehicleDescriptions.vehiclesIds()) {
-                const status = await VehiclesService.getVehicleStatus(id);
-                if (status) {
-                    new_statuses.set(id, status);
-                }
+            for (const status of await VehiclesService.getVehicleStatuses(vehicleDescriptions.vehiclesIds())) {
+                new_statuses.set(status.id, status)
             }
-            set(new_statuses);
+            set(new_statuses)
         }, 200);
-    }); // Refresh vehicle status every 200ms
+    }); // Refresh vehicles status every 200ms
 
     return {
         subscribe: store.subscribe,

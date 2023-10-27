@@ -66,8 +66,8 @@ pub async fn get_status(shared: web::Data<Shared>, path: web::Path<String>) -> i
     let result = shared.repository.read::<VehicleStatus>("vehicle_statuses", &vehicle_id).await;
 
     match result {
-        Ok(vehicle_status) => {
-            return HttpResponse::Ok().json(vehicle_status);
+        Ok(status) => {
+            return HttpResponse::Ok().json(status);
         },
         Err(err) => {
             if let crate::datasource::db::DbError::NoData = err {
@@ -77,3 +77,26 @@ pub async fn get_status(shared: web::Data<Shared>, path: web::Path<String>) -> i
         }
     }
 }
+
+#[get("/vehicles/statuses/{vehicle_ids}")]
+pub async fn get_statuses(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
+    let mut result = Vec::<VehicleStatus>::new();
+
+    for vehicle_id in path.into_inner().split(",") {
+        let status = shared.repository.read::<VehicleStatus>("vehicle_statuses", vehicle_id).await;
+        match status {
+            Ok(status) => {
+                result.push(status);
+            },
+            Err(err) => {
+                if let crate::datasource::db::DbError::NoData = err {
+                    // skip
+                } else {
+                    return HttpResponse::InternalServerError().json(err.to_string());
+                }
+            }
+        }
+    }
+    return HttpResponse::Ok().json(result);
+}
+

@@ -20,6 +20,7 @@ pub async fn serve(shared: Shared, address: &SocketAddr) -> std::io::Result<()> 
             .service(super::vehicles::save_description)
             .service(super::vehicles::remove_description)
             .service(super::vehicles::get_status)
+            .service(super::vehicles::get_statuses)
             .service(super::communication::list_descriptions)
             .service(super::communication::link_description)
             .service(super::communication::save_description)

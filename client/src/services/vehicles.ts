@@ -10,6 +10,10 @@ export class VehiclesService {
         return await send_request("/vehicles/status/" + vehicleId, { method: "GET" }) || null;
     }
 
+    static async getVehicleStatuses(vehicleIds: Array<string>): Promise<Array<VehicleStatus>> {
+        return await send_request("/vehicles/statuses/" + vehicleIds.join(","), { method: "GET" }) || null;
+    }
+
     static async saveVehicle(vehicle: VehicleDescription): Promise<VehicleDescription | null> {
         return await send_request("/vehicles/save", {
             method: "POST",
