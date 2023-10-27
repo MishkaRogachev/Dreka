@@ -26,6 +26,7 @@ pub async fn serve(shared: Shared, address: &SocketAddr) -> std::io::Result<()> 
             .service(super::communication::save_description)
             .service(super::communication::remove_description)
             .service(super::communication::get_status)
+            .service(super::communication::get_statuses)
             .service(super::communication::set_link_enabled)
             .app_data(Data::new(shared.clone()))
     }).bind(address)?.run();

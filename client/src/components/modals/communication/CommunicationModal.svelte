@@ -4,7 +4,7 @@ import CommunicationLink from "./CommunicationLink.svelte";
 
 import { type LinkDescription, MavlinkProtocolVersion } from "$bindings/communication";
 
-import { all_links, saveLink } from "$stores/communication";
+import { linkDescriptions } from "$stores/communication";
 import { i18n } from "$stores/i18n";
 
 export let selectedLinkId = ""
@@ -72,7 +72,7 @@ function closeDropdown() {
             <summary class="btn m-1">{ $i18n.t("Add Link") }</summary>
             <ul class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
                 {#each linksForCreation as link}
-                    <li on:click={() => { saveLink(link); closeDropdown(); }}><a>{ link.name }</a></li>
+                    <li on:click={() => { linkDescriptions.saveLink(link); closeDropdown(); }}><a>{ link.name }</a></li>
                 {/each}
             </ul>
         </details>
@@ -81,14 +81,14 @@ function closeDropdown() {
 
     <!-- LIST COMPONENT -->
     <div class="my-4 space-y-2 max-scroll-area-height overflow-y-auto">
-    {#each $all_links.values() as link}
+    {#each $linkDescriptions.values() as link}
         <CommunicationLink link={link} bind:selectedLinkId={selectedLinkId}/>
     {/each}
     </div>
 
     <!-- FILLER -->
     <div class="flex flex-col grow text-center">
-    {#if $all_links.size === 0}
+    {#if $linkDescriptions.size === 0}
         <a class="grow">{ $i18n.t("No communication links available") }</a>
     {:else}
         <div class="grow"/>

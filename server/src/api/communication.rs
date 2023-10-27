@@ -79,6 +79,29 @@ pub async fn get_status(shared: web::Data<Shared>, path: web::Path<String>) -> i
     }
 }
 
+#[get("/comm/links/statuses/{link_ids}")]
+pub async fn get_statuses(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
+    let mut result = Vec::<LinkStatus>::new();
+
+    for link_id in path.into_inner().split(",") {
+        let status = shared.repository.read::<LinkStatus>("link_statuses", link_id).await;
+        match status {
+            Ok(status) => {
+                result.push(status);
+            },
+            Err(err) => {
+                if let crate::datasource::db::DbError::NoData = err {
+                    // skip
+                } else {
+                    return HttpResponse::InternalServerError().json(err.to_string());
+                }
+            }
+        }
+    }
+    return HttpResponse::Ok().json(result);
+}
+
+
 #[put("/comm/links/set_connected/{link_id}")]
 pub async fn set_link_enabled(shared: web::Data<Shared>, path: web::Path<String>, enabled: web::Json<bool>) -> impl Responder {
     let id = &path.into_inner();

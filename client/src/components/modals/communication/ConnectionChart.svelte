@@ -4,7 +4,7 @@ import { onMount } from "svelte";
 
 import type { LinkStatus } from '$bindings/communication';
 
-export let status: LinkStatus | null
+export let status: LinkStatus | undefined
 
 let ctx: any
 let chartCanvas: any

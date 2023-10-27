@@ -8,14 +8,14 @@ export const vehicleDescriptions = function () {
 
     const store = writable(new Map<string, VehicleDescription>(), (set, _) => {
         interval = setInterval(async () => {
-            let new_vehicles = new Map<string, VehicleDescription>()
+            let new_vehicles = new Map<string, VehicleDescription>();
             for (const vehicle of await VehiclesService.getVehicles()) {
                 if (vehicle.id) {
                     new_vehicles.set(vehicle.id, vehicle);
                 }
                 store.set(new_vehicles);
             }
-        }, 200); // Refresh vehicle descriptions every second
+        }, 1000); // Refresh vehicle descriptions every second
     });
 
     return {
@@ -52,11 +52,11 @@ export const vehicleStatuses = function () {
 
     const store = readable(new Map<string, VehicleStatus>(), (set, _) => {
         interval = setInterval(async () => {
-            let new_statuses = new Map<string, VehicleStatus>()
+            let new_statuses = new Map<string, VehicleStatus>();
             for (const status of await VehiclesService.getVehicleStatuses(vehicleDescriptions.vehiclesIds())) {
-                new_statuses.set(status.id, status)
+                new_statuses.set(status.id, status);
             }
-            set(new_statuses)
+            set(new_statuses);
         }, 200);
     }); // Refresh vehicles status every 200ms
 

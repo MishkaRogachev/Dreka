@@ -10,6 +10,13 @@ export class CommunicationService {
         return await send_request("/comm/links/status/" + linkId, { method: "GET" }) || null;
     }
 
+    static async getLinkStatuses(linkIds: Array<string>): Promise<Array<LinkStatus>> {
+        if (linkIds.length === 0) {
+            return [];
+        }
+        return await send_request("/comm/links/statuses/" + linkIds.join(","), { method: "GET" }) || [];
+    }
+
     static async saveLink(link: LinkDescription): Promise<LinkDescription | null> {
         return await send_request("/comm/links/save", {
             method: "POST",

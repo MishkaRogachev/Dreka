@@ -11,7 +11,10 @@ export class VehiclesService {
     }
 
     static async getVehicleStatuses(vehicleIds: Array<string>): Promise<Array<VehicleStatus>> {
-        return await send_request("/vehicles/statuses/" + vehicleIds.join(","), { method: "GET" }) || null;
+        if (vehicleIds.length === 0) {
+            return [];
+        }
+        return await send_request("/vehicles/statuses/" + vehicleIds.join(","), { method: "GET" }) || [];
     }
 
     static async saveVehicle(vehicle: VehicleDescription): Promise<VehicleDescription | null> {

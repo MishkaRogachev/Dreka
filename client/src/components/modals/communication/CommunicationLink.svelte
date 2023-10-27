@@ -5,7 +5,7 @@ import MavlinkEdit from './MavlinkEdit.svelte';
 import ConnectionChart from './ConnectionChart.svelte';
 
 import { type LinkDescription, type LinkStatus } from "$bindings/communication";
-import { getLinkStatus, saveLink, removeLink, setLinkConnected } from "$stores/communication";
+import { linkDescriptions, linkStatuses} from "$stores/communication";
 
 import { i18n } from "$stores/i18n";
 
@@ -15,15 +15,8 @@ export let link: LinkDescription
 export let changed: boolean = false
 
 let linkCopy: LinkDescription = link
-let status: LinkStatus | null = null
 
-let interval: any
-
-onMount(async () => {
-    interval = setInterval(async () => { status = link.id ? await getLinkStatus(link.id) : null; }, 250);
-})
-
-onDestroy(async () => { clearInterval(interval); });
+$: status = $linkStatuses.get(link.id || "")
 
 afterUpdate(async () => {
     if (selectedLinkId !== link.id) {
@@ -47,11 +40,11 @@ afterUpdate(async () => {
         </div>
         <div class="join btn-sm p-0 z-[1]">
             <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ status?.is_connected || changed }
-                on:click={() => { setLinkConnected(link.id || "", true) }}>
+                on:click={() => { linkDescriptions.setLinkConnected(link.id || "", true) }}>
                 { $i18n.t("Connect") }
             </button>
             <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ !status?.is_connected }
-                on:click={() => { setLinkConnected(link.id || "", false) }}>
+                on:click={() => { linkDescriptions.setLinkConnected(link.id || "", false) }}>
                 { $i18n.t("Disconnect") }
             </button>
         </div>
@@ -71,7 +64,7 @@ afterUpdate(async () => {
 
         <div class="w-full btn-sm mt-4 flex">
             <button disabled={status?.is_connected} class="btn btn-sm btn-wide btn-secondary px-1 ml-2"
-                on:click={() => { removeLink(link.id || "") }}>
+                on:click={() => { linkDescriptions.removeLink(link.id || "") }}>
                 { $i18n.t("Remove") }
             </button>
 
@@ -83,7 +76,7 @@ afterUpdate(async () => {
                     { $i18n.t("Discard") }
                 </button>
                 <button disabled={!changed} class="btn btn-sm btn-wide btn-accent join-item px-1 ml-2"
-                    on:click={ async () => { link = await saveLink(linkCopy) || link }}>
+                    on:click={ async () => { link = await linkDescriptions.saveLink(linkCopy) || link }}>
                     { $i18n.t("Save") }
                 </button>
             </div>
