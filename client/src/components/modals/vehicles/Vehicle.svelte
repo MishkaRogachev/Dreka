@@ -1,8 +1,8 @@
 <script lang="ts">
 import { onMount, onDestroy, afterUpdate } from 'svelte';
 
-import { type VehicleDescription, type VehicleStatus, is_vehicle_online } from "$bindings/vehicles";
-import { vehicleStatuses, vehicleDescriptions } from "$stores/vehicles";
+import { type VehicleDescription, is_vehicle_online } from "$bindings/vehicles";
+import { vehicleStatuses, vehicleDescriptions, vehicleTypes } from "$stores/vehicles";
 
 import { i18n } from "$stores/i18n";
 
@@ -26,7 +26,8 @@ afterUpdate(async () => {
 </script>
 
 <div class="collapse collapse-arrow bg-base-200">
-    <input type="radio" name="communication-vehicles-accordion" on:change={() => { selectedVehicleId = vehicle.id || "" }}/> 
+    <input type="radio" checked={ selectedVehicleId === vehicle.id } name="communication-vehicles-accordion"
+        on:change={() => { selectedVehicleId = vehicle.id || "" }}/>
     <div class="collapse-title flex flex-row gap-4">
         <div class="indicator w-full">
             <span class={"indicator-item badge badge-xs indicator-start indicator-middle " +
@@ -45,6 +46,14 @@ afterUpdate(async () => {
                 bind:value={vehicleCopy.name}/>
 
             <!-- Vehicle Type -->
+            <h1 class="font-medium my-2 w-full">{ $i18n.t("Type") }</h1>
+            <select class="select w-full" bind:value={vehicleCopy.vehicle_type}>
+                {#each vehicleTypes as type, i}
+                <option value={type} disabled={i === 0}> { $i18n.t(type) }</option>
+                {/each}
+            </select>
+
+            <!-- Vehicle Features -->
 
             <!-- Protocol -->
             <!-- <h1 class="font-medium my-2 w-full">{ $i18n.t("Protocol ID") }</h1>

@@ -6,14 +6,19 @@ import { CommunicationService } from '$services/communication';
 export const linkDescriptions = function () {
     let interval: NodeJS.Timeout;
 
-    const store = writable(new Map<string, LinkDescription>(), (set, _) => {
+    const store = writable(new Map<string, LinkDescription>(), (_, update) => {
         interval = setInterval(async () => {
-            let new_link = new Map<string, LinkDescription>();
+            let new_links = new Map<string, LinkDescription>();
             for (const link of await CommunicationService.getLinks()) {
                 if (link.id) {
-                    new_link.set(link.id, link);
+                    new_links.set(link.id, link);
                 }
-                store.set(new_link);
+                update(links => {
+                    new_links.forEach((link, id) => {
+                        links.set(id, link);
+                    });
+                    return links;
+                });
             }
         }, 1000); // Refresh link descriptions every second
     });
@@ -26,22 +31,24 @@ export const linkDescriptions = function () {
         links: () => get(store).values(),
         saveLink: async (link: LinkDescription) => {
             let linkBack = await CommunicationService.saveLink(link);
-            store.update(links => {
-                if (linkBack && linkBack.id) {
+            if (linkBack && linkBack.id) {
+                store.update(links => {
+                    // @ts-ignore
                     links.set(linkBack.id, linkBack);
-                }
-                return links;
-            })
+                    return links;
+                });
+            }
             return linkBack;
         },
         removeLink: async (linkId: string) => {
             let linkIdBack = await CommunicationService.removeLink(linkId);
-            store.update(links => {
-                if (linkIdBack) {
+            if (linkIdBack) {
+                store.update(links => {
+                    // @ts-ignore
                     links.delete(linkIdBack);
-                }
-                return links;
-            })
+                    return links;
+                });
+            }
         },
         setLinkConnected: async (linkId: string, connected: boolean) => {
             await CommunicationService.setLinkConnected(linkId, connected);

@@ -31,7 +31,7 @@ function openModal(id: string) {
             <a on:click={() => {
                 $currentPage = Page.Flight;
                 closeDropdown();
-                }}>{@html flightIcon} { $i18n.t("Flight") }</a>
+            }}>{@html flightIcon} { $i18n.t("Flight") }</a>
         </li>
         <h4>{ $i18n.t("Configure") }</h4>
         <li class="btn-wide"><a on:click={() => {

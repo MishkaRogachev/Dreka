@@ -28,8 +28,9 @@ afterUpdate(async () => {
 
 </script>
 
-<div class="collapse collapse-arrow bg-base-200">
-    <input type="radio" name="communication-links-accordion" on:change={() => { selectedLinkId = link.id || "" }}/> 
+<div class={"collapse collapse-arrow bg-base-200"}>
+    <input type="radio" checked={ selectedLinkId === link.id } name="communication-links-accordion"
+        on:change={() => { selectedLinkId = link.id || "" }}/>
     <div class="collapse-title flex flex-row gap-4">
         <div class="indicator w-full">
             <span class={"indicator-item badge badge-xs indicator-start indicator-middle " +

@@ -52,7 +52,13 @@ function closeDropdown() {
             <summary class="btn m-1">{ $i18n.t("Add Vehicle") }</summary>
             <ul class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
                 {#each vehiclesForCreation as vehicle}
-                    <li on:click={() => { vehicleDescriptions.saveVehicle(vehicle); closeDropdown(); }}><a>{ vehicle.name }</a></li>
+                    <li on:click={async () => {
+                        const created = await vehicleDescriptions.saveVehicle(vehicle);
+                        if (!!created) {
+                            selectedVehicleId = created.id || "";
+                        }
+                        closeDropdown();
+                        }}><a>{ vehicle.name }</a></li>
                 {/each}
             </ul>
         </details>
@@ -60,7 +66,7 @@ function closeDropdown() {
     <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Vehicles") }</h3>
 
     <!-- LIST COMPONENT -->
-    <div class="my-4 space-y-2 max-scroll-area-height overflow-y-auto">
+    <div class="space-y-2 max-scroll-area-height overflow-y-auto">
     {#each $vehicleDescriptions.values() as vehicle}
         <Vehicle vehicle={vehicle} bind:selectedVehicleId={selectedVehicleId}/>
     {/each}
@@ -74,6 +80,8 @@ function closeDropdown() {
         <div class="grow"/>
     {/if}
     </div>
+
+    <div class="divider"></div>
 
     <!-- ADD VEHCILES ON HEARTBEAT TODO: backend -->
     <div class="form-control grow-0">

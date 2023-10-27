@@ -72,7 +72,13 @@ function closeDropdown() {
             <summary class="btn m-1">{ $i18n.t("Add Link") }</summary>
             <ul class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
                 {#each linksForCreation as link}
-                    <li on:click={() => { linkDescriptions.saveLink(link); closeDropdown(); }}><a>{ link.name }</a></li>
+                    <li on:click={async () => {
+                        const created = await linkDescriptions.saveLink(link);
+                        if (!!created) {
+                            selectedLinkId = created.id || "";
+                        }
+                        closeDropdown();
+                    }}><a>{ link.name }</a></li>
                 {/each}
             </ul>
         </details>
@@ -80,7 +86,7 @@ function closeDropdown() {
     <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Communication Links") }</h3>
 
     <!-- LIST COMPONENT -->
-    <div class="my-4 space-y-2 max-scroll-area-height overflow-y-auto">
+    <div class="space-y-2 max-scroll-area-height overflow-y-auto">
     {#each $linkDescriptions.values() as link}
         <CommunicationLink link={link} bind:selectedLinkId={selectedLinkId}/>
     {/each}
@@ -94,6 +100,8 @@ function closeDropdown() {
         <div class="grow"/>
     {/if}
     </div>
+
+    <div class="divider"></div>
 
     <!-- SEND GCS HEARTBEAT TODO: backend -->
     <div class="form-control grow-0">
