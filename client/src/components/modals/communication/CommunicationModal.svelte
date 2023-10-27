@@ -1,4 +1,5 @@
 <script lang="ts">
+import BaseModal from "$components/common/BaseModal.svelte";
 import CommunicationLink from "./CommunicationLink.svelte";
 
 import { type LinkDescription, MavlinkProtocolVersion } from "$bindings/communication";
@@ -62,41 +63,43 @@ function closeDropdown() {
 
 </script>
 
-<style>
-.max-scroll-area-height {
-    max-height: 70vh;
-}
-</style>
+<BaseModal id="communication_modal">
+    <form method="dialog">
+        <!-- CLOSE -->
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        <!-- ADD NEW -->
+        <details id="newCommunicationLinkDropdown" class="dropdown absolute left-2 top-2">
+            <summary class="btn m-1">{ $i18n.t("Add Link") }</summary>
+            <ul class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
+                {#each linksForCreation as link}
+                    <li on:click={() => { saveLink(link); closeDropdown(); }}><a>{ link.name }</a></li>
+                {/each}
+            </ul>
+        </details>
+    </form>
+    <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Communication Links") }</h3>
 
-<dialog id="communication_modal" class="modal">
-    <div class="modal-box w-11/12 max-w-5xl container overflow-hidden">
-        <form method="dialog">
-            <!-- CLOSE -->
-            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-            <!-- ADD NEW -->
-            <details id="newCommunicationLinkDropdown" class="dropdown absolute left-2 top-2">
-                <summary class="btn m-1">{ $i18n.t("Add Link") }</summary>
-                <ul class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
-                    {#each linksForCreation as link}
-                        <li on:click={() => { saveLink(link); closeDropdown(); }}><a>{ link.name }</a></li>
-                    {/each}
-                </ul>
-            </details>
-        </form>
-        <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Communication Links") }</h3>
-
-        <div class="grid gap-y-2 my-4 max-scroll-area-height overflow-y-auto">
-        {#each $all_links.values() as link}
-            <CommunicationLink link={link} bind:selectedLinkId={selectedLinkId}/>
-        {/each}
-        </div>
-
-        <!-- SEND GCS HEARTBEAT TODO: backend -->
-        <div class="form-control">
-            <label class="label cursor-pointer">
-                <span class="label-text">{ $i18n.t("Send GCS heartbeat") }</span> 
-                <input type="checkbox" class="checkbox" />
-            </label>
-        </div>
+    <!-- LIST COMPONENT -->
+    <div class="my-4 space-y-2 max-scroll-area-height overflow-y-auto">
+    {#each $all_links.values() as link}
+        <CommunicationLink link={link} bind:selectedLinkId={selectedLinkId}/>
+    {/each}
     </div>
-</dialog>
+
+    <!-- FILLER -->
+    <div class="flex flex-col grow text-center">
+    {#if $all_links.size === 0}
+        <a class="grow">{ $i18n.t("No communication links available") }</a>
+    {:else}
+        <div class="grow"/>
+    {/if}
+    </div>
+
+    <!-- SEND GCS HEARTBEAT TODO: backend -->
+    <div class="form-control grow-0">
+        <label class="label cursor-pointer">
+            <span class="label-text">{ $i18n.t("Send GCS heartbeat") }</span>
+            <input type="checkbox" class="checkbox" />
+        </label>
+    </div>
+</BaseModal>

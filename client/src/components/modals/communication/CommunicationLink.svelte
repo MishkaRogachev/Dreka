@@ -42,7 +42,7 @@ afterUpdate(async () => {
             <span class={"indicator-item badge badge-xs indicator-start indicator-middle " +
                 (status && status?.is_connected ? status?.is_online ? "bg-success" : "bg-warning" : "bg-neutral-content")} >
             </span>
-            <h1 class="font-medium ml-8 my-2">{link.name}</h1>
+            <h1 class="font-medium ml-8 my-2 btn-wide text-left">{link.name}</h1>
             <ConnectionChart status={status} />
         </div>
         <div class="join btn-sm p-0 z-[1]">
