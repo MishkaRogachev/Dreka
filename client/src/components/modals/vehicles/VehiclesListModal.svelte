@@ -1,35 +1,14 @@
 <script lang="ts">
-import BaseModal from "$components/common/BaseModal.svelte";
-import Vehicle from "./Vehicle.svelte";
+import { clickOutside } from '$lib/common/click-outside';
 
-import { type VehicleDescription, VehicleType } from "$bindings/vehicles";
-import { vehicleDescriptions } from "$stores/vehicles";
+import BaseModal from "$components/common/BaseModal.svelte";
+import VehicleItem from "./VehicleItem.svelte";
+
+import { VehicleType } from "$bindings/vehicles";
+import { vehicleDescriptions, getNextAvailableMavlinkId } from "$stores/vehicles";
 import { i18n } from "$stores/i18n";
 
-export let selectedVehicleId = ""
-
-const vehiclesForCreation: Array<VehicleDescription> = [{
-        name: $i18n.t("MAVLink Copter"),
-        protocol_id: { MavlinkId: { mav_id: 1 } },
-        vehicle_type: VehicleType.Copter,
-        features: []
-    }, {
-        name: $i18n.t("MAVLink Fixed Wing"),
-        protocol_id: { MavlinkId: { mav_id: 1 } },
-        vehicle_type: VehicleType.FixedWing,
-        features: []
-    }, {
-        name: $i18n.t("MAVLink VTOL"),
-        protocol_id: { MavlinkId: { mav_id: 1 } },
-        vehicle_type: VehicleType.Vtol,
-        features: []
-    }, {
-        name: $i18n.t("MAVLink Rotary Wing"),
-        protocol_id: { MavlinkId: { mav_id: 1 } },
-        vehicle_type: VehicleType.RotaryWing,
-        features: []
-    }
-]
+export let editingVehicleID = ""
 
 function closeDropdown() {
     document.getElementById("newVehicleDropdown")?.removeAttribute("open");
@@ -48,18 +27,27 @@ function closeDropdown() {
         <!-- CLOSE -->
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
         <!-- ADD NEW -->
-        <details id="newVehicleDropdown" class="dropdown absolute left-2 top-2">
+        <details id="newVehicleDropdown" class="dropdown absolute left-2 top-2" use:clickOutside={closeDropdown}>
             <summary class="btn m-1">{ $i18n.t("Add Vehicle") }</summary>
             <ul class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
-                {#each vehiclesForCreation as vehicle}
-                    <li on:click={async () => {
-                        const created = await vehicleDescriptions.saveVehicle(vehicle);
-                        if (!!created) {
-                            selectedVehicleId = created.id || "";
-                        }
-                        closeDropdown();
-                        }}><a>{ vehicle.name }</a></li>
-                {/each}
+                <!-- MAVLINK VEHCILE -->
+                <li on:click={async () => {
+                    const mavId = getNextAvailableMavlinkId()
+                    if (!mavId) {
+                        // TODO: warn no free id here, or move to backend
+                        return;
+                    }
+                    const created = await vehicleDescriptions.saveVehicle({
+                        name: $i18n.t("New Vehicle") + " (MAV " + mavId + ")",
+                        protocol_id: { MavlinkId: { mav_id: mavId } },
+                        vehicle_type: VehicleType.Auto,
+                        features: []
+                    });
+                    if (!!created) {
+                        editingVehicleID = created.id || "";
+                    }
+                    closeDropdown();
+                    }}><a>{ $i18n.t("New MAVLink Vehicle") }</a></li>
             </ul>
         </details>
     </form>
@@ -68,7 +56,7 @@ function closeDropdown() {
     <!-- LIST COMPONENT -->
     <div class="space-y-2 max-scroll-area-height overflow-y-auto">
     {#each $vehicleDescriptions.values() as vehicle}
-        <Vehicle vehicle={vehicle} bind:selectedVehicleId={selectedVehicleId}/>
+        <VehicleItem vehicle={vehicle} bind:editingVehicleID={editingVehicleID}/>
     {/each}
     </div>
 

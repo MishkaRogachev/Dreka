@@ -3,7 +3,7 @@ import Topbar from '$components/topbar/Topbar.svelte';
 
 import FlightPage from '$components/flight/FlightPage.svelte';
 import CommunicationModal from '$components/modals/communication/CommunicationModal.svelte'
-import VehiclesModal from '$components/modals/vehicles/VehiclesModal.svelte';
+import VehiclesListModal from '$components/modals/vehicles/VehiclesListModal.svelte';
 import About from '$components/modals/about/AboutModal.svelte';
 
 import { Page, currentPage } from '$stores/app';
@@ -14,10 +14,10 @@ import { Page, currentPage } from '$stores/app';
 
 <div id="app" class="flex items-center justify-center h-screen">
     <!-- Main modes, never suspend -->
-    <FlightPage visible={$currentPage === Page.Flight}/>
+    <FlightPage visible={$currentPage === Page.Flight} />
 </div>
 
 <!-- Aux modes -->
-<CommunicationModal/>
-<VehiclesModal/>
+<CommunicationModal />
+<VehiclesListModal />
 <!-- <About/> -->

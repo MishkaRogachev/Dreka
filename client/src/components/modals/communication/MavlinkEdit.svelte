@@ -7,30 +7,15 @@ import { i18n } from "$stores/i18n";
 export let disabled: boolean
 export let protocol: MavlinkProtocol
 
-const availableProtocols = [ MavlinkProtocolVersion.MavlinkV1, MavlinkProtocolVersion.MavlinkV2 ];
-
-// $: connections = getProtocolConnections(link.protocol)
-// $: current_protocol = getCurrentProtocolVersion(link.protocol)
-// $: available_protocols = getAvailableProtocolVersions(link.protocol)
-
-
-// export function getProtocolConnections(protocol: LinkProtocol): Array<SocketData | SerialData> {
-//     let connections: Array<SocketData | SerialData> = [];
-
-//     if (protocol.Mavlink !== null ) {
-//         console.log("--->", protocol.Mavlink.link_type);
-//     }
-
-//     return connections;
-// }
+const protocolVersions = [ MavlinkProtocolVersion.MavlinkV1, MavlinkProtocolVersion.MavlinkV2 ];
 
 </script>
 
 <!-- PROTOCOL VERSION -->
 <h1 class="font-medium my-2 w-full">{ $i18n.t("Protocol") }</h1>
 <select disabled={disabled} class="select" bind:value={protocol.protocol_version}>
-{#each availableProtocols as protocol}
-    <option value={protocol}>{ $i18n.t(protocol) }</option>
+{#each protocolVersions as protocol_version}
+    <option value={protocol_version}>{ $i18n.t(protocol_version) }</option>
 {/each}
 </select>
 

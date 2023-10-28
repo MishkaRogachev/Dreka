@@ -19,7 +19,7 @@ impl MavlinkContext {
 
     pub async fn obtain_vehicle(&mut self, mav_id: u8) -> Option<VehicleDescription> {
         let vehicle = self.mav_vehicles.get(&mav_id);
-        if let Some(vehicle) = vehicle{
+        if let Some(vehicle) = vehicle {
             return Some(vehicle.to_owned());
         }
 

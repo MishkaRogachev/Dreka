@@ -7,7 +7,8 @@ export enum VehicleType {
     FixedWing = "FixedWing",
     Vtol = "Vtol",
     RotaryWing = "RotaryWing",
-    Copter = "Copter"
+    Copter = "Copter",
+    Airship = "Airship"
 }
 
 export enum VehicleFeatures {

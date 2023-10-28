@@ -1,7 +1,9 @@
-import { readable, writable, get } from 'svelte/store';
+import { readable, writable, derived, get } from 'svelte/store';
 
 import { type VehicleDescription, type VehicleStatus, VehicleType } from '$bindings/vehicles';
 import { VehiclesService } from '$services/vehicles';
+
+export const selectedVecicleID = writable("")
 
 export const vehicleDescriptions = function () {
     let interval: NodeJS.Timeout;
@@ -76,4 +78,23 @@ export const vehicleStatuses = function () {
     }
 } ()
 
-export const vehicleTypes = [ VehicleType.Unknown, VehicleType.Auto, VehicleType.FixedWing, VehicleType.Vtol, VehicleType.RotaryWing, VehicleType.Copter ]
+export const vehicleTypes = [ VehicleType.Unknown, VehicleType.Auto, VehicleType.FixedWing, VehicleType.Vtol, VehicleType.RotaryWing, VehicleType.Copter, VehicleType.Airship ]
+
+export const occupiedMavlinkIds = derived(vehicleDescriptions, ($vehicles) => {
+    return Array.from($vehicles.values())
+        .filter(vehicle => !!vehicle.protocol_id.MavlinkId)
+        .map(vehicle => {
+        // @ts-ignore
+        return vehicle.protocol_id.MavlinkId.mav_id;
+    });
+})
+
+export const allMavlinkIds = new Array(255).fill(1).map((el, i) => i + 1)
+
+export function getNextAvailableMavlinkId(): number | undefined {
+    for (const mavId of allMavlinkIds) {
+        if (get(occupiedMavlinkIds).includes(mavId))
+            continue;
+        return mavId;
+    }
+}

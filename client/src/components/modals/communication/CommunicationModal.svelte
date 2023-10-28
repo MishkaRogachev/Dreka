@@ -1,6 +1,8 @@
 <script lang="ts">
+import { clickOutside } from '$lib/common/click-outside';
+
 import BaseModal from "$components/common/BaseModal.svelte";
-import CommunicationLink from "./CommunicationLink.svelte";
+import LinkItem from "./LinkItem.svelte";
 
 import { type LinkDescription, MavlinkProtocolVersion } from "$bindings/communication";
 
@@ -58,7 +60,7 @@ const linksForCreation: Array<LinkDescription> = [
 ]
 
 function closeDropdown() {
-    document.getElementById("newCommunicationLinkDropdown")?.removeAttribute("open");
+    document.getElementById("newLinkEditDropdown")?.removeAttribute("open");
 }
 
 </script>
@@ -68,7 +70,7 @@ function closeDropdown() {
         <!-- CLOSE -->
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
         <!-- ADD NEW -->
-        <details id="newCommunicationLinkDropdown" class="dropdown absolute left-2 top-2">
+        <details id="newLinkEditDropdown" class="dropdown absolute left-2 top-2" use:clickOutside={closeDropdown}>
             <summary class="btn m-1">{ $i18n.t("Add Link") }</summary>
             <ul class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
                 {#each linksForCreation as link}
@@ -88,7 +90,7 @@ function closeDropdown() {
     <!-- LIST COMPONENT -->
     <div class="space-y-2 max-scroll-area-height overflow-y-auto">
     {#each $linkDescriptions.values() as link}
-        <CommunicationLink link={link} bind:selectedLinkId={selectedLinkId}/>
+        <LinkItem link={link} bind:selectedLinkId={selectedLinkId}/>
     {/each}
     </div>
 

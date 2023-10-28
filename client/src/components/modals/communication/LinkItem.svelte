@@ -1,5 +1,5 @@
 <script lang="ts">
-import { onMount, onDestroy, afterUpdate } from 'svelte';
+import { afterUpdate } from 'svelte';
 
 import MavlinkEdit from './MavlinkEdit.svelte';
 import ConnectionChart from './ConnectionChart.svelte';
@@ -64,7 +64,7 @@ afterUpdate(async () => {
         </div>
 
         <div class="w-full btn-sm mt-4 flex">
-            <button disabled={status?.is_connected} class="btn btn-sm btn-wide btn-secondary px-1 ml-2"
+            <button disabled={status?.is_connected} class="btn btn-sm btn-wide btn-secondary btn-outline px-1 ml-2"
                 on:click={() => { linkDescriptions.removeLink(link.id || "") }}>
                 { $i18n.t("Remove") }
             </button>
