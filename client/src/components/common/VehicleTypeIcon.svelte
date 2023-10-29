@@ -1,17 +1,15 @@
 <script lang="ts">
 import { VehicleType } from "$bindings/vehicles";
 
-import unknownIcon from "$assets/svg/unknown.svg"
-import autoIcon from "$assets/svg/auto.svg"
-import vtolIcon from "$assets/svg/vtol.svg"
-import fixedWingIcon from "$assets/svg/fixed_wing.svg"
-import rotaryWingIcon from "$assets/svg/rotary_wing.svg"
-import copterIcon from "$assets/svg/copter.svg"
-import airshipIcon from "$assets/svg/airship.svg"
+import unknownIcon from "$assets/svg/unknown.svg?raw"
+import autoIcon from "$assets/svg/auto.svg?raw"
+import vtolIcon from "$assets/svg/vtol.svg?raw"
+import fixedWingIcon from "$assets/svg/fixed_wing.svg?raw"
+import rotaryWingIcon from "$assets/svg/rotary_wing.svg?raw"
+import copterIcon from "$assets/svg/copter.svg?raw"
+import airshipIcon from "$assets/svg/airship.svg?raw"
 
-export let vehicleType: VehicleType
-
-$: iconSource = iconFromType(vehicleType)
+export let vehicleType: VehicleType | undefined
 
 function iconFromType(vehicleType: VehicleType) {
     switch (vehicleType) {
@@ -32,4 +30,4 @@ function iconFromType(vehicleType: VehicleType) {
 }
 </script>
 
-<img src={iconSource} class="w-8 h-8" alt="*">
+{@html vehicleType ? iconFromType(vehicleType) : ""}

@@ -3,22 +3,14 @@ import { readable, writable, get } from 'svelte/store';
 import { AppService } from '$services/app';
 import { userPreferences } from '$stores/preferences';
 
-export enum Page {
-    Flight = "Flight"
-}
+export enum Page { Flight = "flight" }
+export enum Theme { Light = "light", Dark = "dark" }
 
-export enum Theme {
-    Light = "light",
-    Dark = "dark",
-}
-
-export const pages = [Page.Flight];
 export const currentPage = writable(Page.Flight);
-
 export const theme = writable(getTheme())
 
-export const scale = writable(getScale())
 export const scales = [0.75, 1.00, 1.25, 1.5, 2.0]
+export const scale = writable(getScale())
 
 function getTheme(): Theme {
     let themeValue = get(userPreferences).get("ui/theme");

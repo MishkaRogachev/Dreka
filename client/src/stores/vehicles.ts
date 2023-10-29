@@ -5,8 +5,6 @@ import { VehiclesService } from '$services/vehicles';
 
 export const IS_ONLINE_TIMEOUT = 2000;
 
-export const selectedVecicleID = writable("")
-
 export class Vehicle {
     constructor(description: VehicleDescription) {
         this.description = description;
@@ -39,6 +37,8 @@ export const vehicles = function () {
                         vehicles.get(id)!.description = description
                     } else {
                         vehicles.set(id, new Vehicle(description))
+                        if (get(selectedVehicleID) === "")
+                            selectedVehicleID.set(id)
                     }
                 }
 
@@ -105,6 +105,12 @@ export const vehicles = function () {
         }
     }
 } ()
+
+export const selectedVehicleID = writable("")
+
+export const selectedVehicle = derived([vehicles, selectedVehicleID], ($data) => {
+    return $data[0].get($data[1])
+})
 
 export const onlineVehicles = derived(vehicles, ($vehicles) => {
     return Array.from($vehicles.values()).filter(vehicle => vehicle.is_online());

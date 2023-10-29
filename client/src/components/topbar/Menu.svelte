@@ -24,7 +24,7 @@ function openModal(id: string) {
 </script>
 
 <details id="menuDropdown" class="dropdown" use:clickOutside={closeDropdown}>
-    <summary class="btn btn-ghost btn-sm rounded-btn p-1">{@html burgerIcon}</summary>
+    <summary class="btn btn-ghost btn-sm rounded-btn m-1">{@html burgerIcon}</summary>
     <ul class="dropdown-content menu z-[1] p-3 shadow bg-base-300 rounded-box my-0">
         <h4>{ $i18n.t("Main") }</h4>
         <li class="btn-wide">

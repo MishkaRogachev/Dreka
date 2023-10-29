@@ -12,12 +12,13 @@ import { Page, currentPage } from '$stores/app';
 
 <Topbar/>
 
+<!-- pages, never suspend -->
 <div id="app" class="flex items-center justify-center h-screen">
-    <!-- Main modes, never suspend -->
     <FlightPage visible={$currentPage === Page.Flight} />
 </div>
 
-<!-- Aux modes -->
+<!-- Modals -->
 <CommunicationModal />
 <VehiclesListModal />
-<!-- <About/> -->
+
+<!-- TODO: <About/> -->

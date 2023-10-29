@@ -1,23 +1,29 @@
-<!-- <script lang="ts">
+<script lang="ts">
+import { clickOutside } from '$lib/common/click-outside';
 
-import { availableVehicles, selectedVehicle } from "$stores/vehicles";
-import { iconFromVehicleType } from "$bindings/vehicles";
+import VehicleSelectorItem from "$components/topbar/VehicleSelectorItem.svelte";
 
-let overlay: any
+import { selectedVehicleID, selectedVehicle, vehicles } from "$stores/vehicles";
 
-</script> -->
-<!-- 
-<OverlayButton
-    bind:this={overlay}
-    style="width: 216px; height: 24px"
-    icon={$selectedVehicle ? iconFromVehicleType($selectedVehicle.vehicle_type) : ""}
-    text={$selectedVehicle ? $selectedVehicle.name : "No vehicles"}
-    disabled={$availableVehicles.length === 0}
-    flat={true}>
-    <div style="width:208px; max-height:256px">
-        {#each $availableVehicles as vehicle}
-            <VehicleSelectorItem vehicle={vehicle} on:activate={() => { selectedVehicle.set(vehicle); overlay.close() }} />
-        {/each}
-    </div>
-    <Led slot="decoration" state={$selectedVehicle && $selectedVehicle.online ? "on" : "off"} />
-</OverlayButton> -->
+function closeDropdown() {
+    document.getElementById("vehicleSelectorDropdown")?.removeAttribute("open");
+}
+
+</script>
+
+<details id="vehicleSelectorDropdown" class="dropdown" use:clickOutside={closeDropdown}>
+    <summary class="btn btn-ghost btn-sm btn-wide rounded-btn m-1">
+        <VehicleSelectorItem vehicle={$selectedVehicle} />
+    </summary>
+    <ul class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
+    {#each $vehicles.values() as vehicle}
+        <li class={"btn-wide flex " + (vehicle.description.id === $selectedVehicleID ? "disabled" : "")}
+            on:click = {() => {
+                selectedVehicleID.set(vehicle.description.id || "");
+                closeDropdown();
+            }}>
+            <VehicleSelectorItem vehicle={vehicle} />
+        </li>
+    {/each}
+    </ul>
+</details>

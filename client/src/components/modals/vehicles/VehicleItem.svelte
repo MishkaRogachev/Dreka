@@ -5,7 +5,7 @@ import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
 import MavlinkIdEdit from '$components/modals/vehicles/MavlinkIdEdit.svelte';
 
 import { type VehicleDescription } from "$bindings/vehicles";
-import { Vehicle, vehicles, vehicleTypes, selectedVecicleID } from "$stores/vehicles";
+import { Vehicle, vehicles, vehicleTypes, selectedVehicleID } from "$stores/vehicles";
 
 import { i18n } from "$stores/i18n";
 
@@ -29,9 +29,9 @@ afterUpdate(async () => {
 <div class="collapse collapse-arrow bg-base-200">
     <input type="radio" checked={ editingVehicleID === vehicle.description.id } name="communication-vehicles-accordion"
         on:change={() => { editingVehicleID = vehicle.description.id || "" }}/>
-    <div class="collapse-title flex flex-row gap-4 w-full content-center">
+    <div class="collapse-title flex flex-row gap-4 w-full items-center">
         <!-- VEHICLE INDICATOR -->
-        <div class="indicator">
+        <div class="indicator h-min">
             <span class={"indicator-item badge badge-xs " +
                 (vehicle.is_online() ? "bg-success" : "bg-neutral-content")} >
             </span>
@@ -44,7 +44,7 @@ afterUpdate(async () => {
         <div class="grow"/>
 
         <!-- SELECT VECICLE -->
-        {#if $selectedVecicleID === vehicle.description.id}
+        {#if $selectedVehicleID === vehicle.description.id}
             <button class="btn btn-sm z-[1] btn-outline btn-disabled">{ $i18n.t("Selected") }</button>
         {/if}
 

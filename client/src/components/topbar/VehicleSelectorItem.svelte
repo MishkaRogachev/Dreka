@@ -1,24 +1,15 @@
-<!-- <script lang="ts">
-import { createEventDispatcher } from "svelte"
+<script lang="ts">
+import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
 
-import { selectedVehicle } from "$stores/vehicles";
-import { type VehicleDescription, iconFromVehicleType } from "$bindings/vehicles";
+import type { Vehicle } from '$stores/vehicles';
+import { i18n } from '$stores/i18n';
 
-export let vehicle: VehicleDescription
-
-const dispatch = createEventDispatcher()
-
-function activate() { dispatch('activate', {}); }
+export let vehicle: Vehicle | undefined
 
 </script>
 
-<Button
-    style="width:100%"
-    flat={true}
-    selected={!!$selectedVehicle && vehicle.name == $selectedVehicle?.name}
-    text={vehicle.name}
-    icon={iconFromVehicleType(vehicle.vehicle_type)}
-    on:click={activate}
->
-<Led slot="decoration" state={vehicle.online ? "on" : "off"} style="float: right;"/>
-</Button> -->
+<a class="flex gap-x-2 items-center grow">
+    <VehicleTypeIcon vehicleType={vehicle ? vehicle.description.vehicle_type : undefined}/>
+    <a class="grow">{vehicle ? vehicle.description.name : $i18n.t("No vehicle") }</a>
+    <span class={"badge badge-xs " + (vehicle && vehicle.is_online() ? "bg-success" : "bg-neutral-content")} ></span>
+</a>
