@@ -62,7 +62,7 @@ pub async fn handle_message(context: &mut MavlinkContext, header: &MavHeader, ms
             }
 
             // TODO: vehicle modes
-            // TODO: vehiocle flags
+            // TODO: vehicle flags
         }
     }
 }

@@ -1,11 +1,31 @@
 use std::{sync::Arc, collections::HashMap};
 
-use crate::{datasource::db, models::vehicles::{VehicleDescription, VehicleType, ProtocolId}};
+use crate::datasource::db;
+use crate::models::telemetry::{FlightData, SnsData, AltitudeData};
+use crate::models::vehicles::{VehicleDescription, VehicleType, ProtocolId};
+
+#[derive(Clone)]
+pub struct Telemetry {
+    pub flight: FlightData,
+    pub altitude: AltitudeData,
+    pub sns: SnsData
+}
 
 pub struct MavlinkContext {
     pub repository: Arc<db::Repository>,
     pub mav_vehicles: HashMap<u8, VehicleDescription>,
+    pub telemetry: HashMap<u8, Telemetry>,
     auto_add_vehicles: bool
+}
+
+impl Default for Telemetry {
+    fn default() -> Telemetry {
+        Telemetry {
+            flight: FlightData::default(),
+            altitude: AltitudeData::default(),
+            sns: SnsData::default()
+        }
+    }
 }
 
 impl MavlinkContext {
@@ -13,8 +33,22 @@ impl MavlinkContext {
         Self {
             repository,
             mav_vehicles: HashMap::new(),
+            telemetry: HashMap::new(),
             auto_add_vehicles: true // TODO: to settings
         }
+    }
+
+    pub fn telemetry_for_mav(&self, mav_id: &u8) -> Telemetry {
+        let telemetry = self.telemetry.get(mav_id);
+        if let Some(telemetry) = telemetry {
+            return telemetry.to_owned();
+        }
+
+        return Telemetry::default();
+    }
+
+    pub fn set_telemetry_for_mav(&mut self, mav_id: &u8, telemetry: Telemetry) {
+        self.telemetry.insert(*mav_id, telemetry);
     }
 
     pub async fn obtain_vehicle(&mut self, mav_id: u8) -> Option<VehicleDescription> {
@@ -27,7 +61,8 @@ impl MavlinkContext {
         match self.repository.read_where::<VehicleDescription, ProtocolId>(
             "vehicle_descriptions", "protocol_id", &protocol_id).await {
             Ok(vehicle) => {
-                return self.mav_vehicles.insert(mav_id, vehicle);
+                self.mav_vehicles.insert(mav_id, vehicle.clone());
+                return Some(vehicle);
             },
             Err(err) => {
                 if let db::DbError::NoData = err {
@@ -48,7 +83,8 @@ impl MavlinkContext {
             }).await;
             match result {
                 Ok(vehicle) => {
-                    return self.mav_vehicles.insert(mav_id, vehicle);
+                    self.mav_vehicles.insert(mav_id, vehicle.clone());
+                    return Some(vehicle);
                 },
                 Err(err) => {
                     println!("Insert vehicle error : {}", &err);

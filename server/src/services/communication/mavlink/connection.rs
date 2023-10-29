@@ -98,7 +98,7 @@ impl traits::IConnection for MavlinkConnection {
                     lock.bytes_received_current = lock.bytes_received_current + std::mem::size_of_val(&msg);
 
                     super::heartbeat::handle_message(&mut context, &header, &msg).await;
-                    super::telemetry::handle_message(&context, &header, &msg).await;
+                    super::telemetry::handle_message(&mut context, &header, &msg).await;
                 },
                 Err(mavlink::error::MessageReadError::Io(err)) => {
                     if let std::io::ErrorKind::WouldBlock = err.kind() {
