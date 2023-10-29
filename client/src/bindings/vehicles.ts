@@ -1,6 +1,4 @@
 
-export const IS_ONLINE_TIMEOUT = 2000;
-
 export enum VehicleType {
     Unknown = "Unknown",
     Auto = "Auto",
@@ -47,8 +45,4 @@ export interface VehicleStatus {
     id: string,
     last_heartbeat: number,
     state: VehicleState
-}
-
-export function is_vehicle_online(status: VehicleStatus | undefined): boolean {
-    return Boolean(!!status && (Date.now() - status.last_heartbeat) < IS_ONLINE_TIMEOUT)
 }

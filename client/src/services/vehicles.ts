@@ -2,22 +2,23 @@ import type { VehicleDescription, VehicleStatus } from "$bindings/vehicles";
 import { send_request, default_headers } from "$datasource/rest";
 
 export class VehiclesService {
-    static async getVehicles(): Promise<Array<VehicleDescription>> {
-        return await send_request("/vehicles", { method: "GET" }) || [];
+    static async getVehicleDescription(vehicleId: string): Promise<VehicleDescription | null> {
+        return await send_request("/vehicles/description/" + vehicleId, { method: "GET" }) || null;
+    }
+
+    static async getVehicleDescriptions(): Promise<Array<VehicleDescription>> {
+        return await send_request("/vehicles/descriptions", { method: "GET" }) || [];
     }
 
     static async getVehicleStatus(vehicleId: string): Promise<VehicleStatus | null> {
         return await send_request("/vehicles/status/" + vehicleId, { method: "GET" }) || null;
     }
 
-    static async getVehicleStatuses(vehicleIds: Array<string>): Promise<Array<VehicleStatus>> {
-        if (vehicleIds.length === 0) {
-            return [];
-        }
-        return await send_request("/vehicles/statuses/" + vehicleIds.join(","), { method: "GET" }) || [];
+    static async getVehicleStatuses(): Promise<Array<VehicleStatus>> {
+        return await send_request("/vehicles/statuses", { method: "GET" }) || [];
     }
 
-    static async saveVehicle(vehicle: VehicleDescription): Promise<VehicleDescription | null> {
+    static async saveVehicleDescription(vehicle: VehicleDescription): Promise<VehicleDescription | null> {
         return await send_request("/vehicles/save", {
             method: "POST",
             body: JSON.stringify(vehicle),

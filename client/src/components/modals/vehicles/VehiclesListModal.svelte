@@ -5,10 +5,12 @@ import BaseModal from "$components/common/BaseModal.svelte";
 import VehicleItem from "./VehicleItem.svelte";
 
 import { VehicleType } from "$bindings/vehicles";
-import { vehicleDescriptions, getNextAvailableMavlinkId } from "$stores/vehicles";
+import { vehicles, onlineVehicles, getNextAvailableMavlinkId } from "$stores/vehicles";
 import { i18n } from "$stores/i18n";
 
 export let editingVehicleID = ""
+
+let online_only: boolean = false
 
 function closeDropdown() {
     document.getElementById("newVehicleDropdown")?.removeAttribute("open");
@@ -24,9 +26,7 @@ function closeDropdown() {
 
 <BaseModal id="vehicles_modal">
     <form method="dialog">
-        <!-- CLOSE -->
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-        <!-- ADD NEW -->
+        <!-- ADD NEW VEHICLE-->
         <details id="newVehicleDropdown" class="dropdown absolute left-2 top-2" use:clickOutside={closeDropdown}>
             <summary class="btn m-1">{ $i18n.t("Add Vehicle") }</summary>
             <ul class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
@@ -37,32 +37,41 @@ function closeDropdown() {
                         // TODO: warn no free id here, or move to backend
                         return;
                     }
-                    const created = await vehicleDescriptions.saveVehicle({
+                    const created = await vehicles.saveVehicle({
                         name: $i18n.t("New Vehicle") + " (MAV " + mavId + ")",
                         protocol_id: { MavlinkId: { mav_id: mavId } },
                         vehicle_type: VehicleType.Auto,
                         features: []
                     });
                     if (!!created) {
-                        editingVehicleID = created.id || "";
+                        editingVehicleID = created.description.id || "";
                     }
                     closeDropdown();
-                    }}><a>{ $i18n.t("New MAVLink Vehicle") }</a></li>
+                }}><a>{ $i18n.t("New MAVLink Vehicle") }</a></li>
             </ul>
         </details>
+
+        <!-- ONLINE ONLY -->
+        <label class="label cursor-pointer absolute right-12 top-5">
+            <span class="label-text mr-4">{ $i18n.t("Online only") }</span>
+            <input type="checkbox" class="checkbox" bind:checked={online_only}/>
+        </label>
+
+        <!-- CLOSE -->
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
     </form>
     <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Vehicles") }</h3>
 
     <!-- LIST COMPONENT -->
     <div class="space-y-2 max-scroll-area-height overflow-y-auto">
-    {#each $vehicleDescriptions.values() as vehicle}
+    {#each (online_only ? $onlineVehicles : $vehicles.values()) as vehicle}
         <VehicleItem vehicle={vehicle} bind:editingVehicleID={editingVehicleID}/>
     {/each}
     </div>
 
     <!-- FILLER -->
     <div class="flex flex-col grow text-center">
-    {#if $vehicleDescriptions.size === 0}
+    {#if $vehicles.size === 0}
         <a class="grow">{ $i18n.t("No vehicles available") }</a>
     {:else}
         <div class="grow"/>
