@@ -5,7 +5,7 @@ import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
 import MavlinkIdEdit from '$components/modals/vehicles/MavlinkIdEdit.svelte';
 
 import { type VehicleDescription } from "$bindings/vehicles";
-import { vehicles, vehicleTypes, selectedVecicleID, Vehicle } from "$stores/vehicles";
+import { Vehicle, vehicles, vehicleTypes, selectedVecicleID } from "$stores/vehicles";
 
 import { i18n } from "$stores/i18n";
 

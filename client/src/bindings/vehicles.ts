@@ -1,4 +1,3 @@
-
 export enum VehicleType {
     Unknown = "Unknown",
     Auto = "Auto",

@@ -28,7 +28,7 @@ pub async fn start() -> std::io::Result<()> {
                 Err(err) => println!("Communication service start error: {}", err),
             }
         }
-        _ = api::root::serve(shared, &DEFAULT_REST_ADDRESS) => {}
+        _ = api::routes::serve(shared, &DEFAULT_REST_ADDRESS) => {}
         _ = tokio::signal::ctrl_c() => {}
     }
     Ok(())

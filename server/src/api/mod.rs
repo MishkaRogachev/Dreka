@@ -1,4 +1,4 @@
-pub mod root;
+pub mod routes;
 pub mod shared;
 
 mod vehicles;

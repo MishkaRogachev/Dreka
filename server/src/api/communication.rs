@@ -1,10 +1,24 @@
 use actix_web::{get, post, put, delete, web, Responder, HttpResponse};
 
-use crate::models::{communication::{LinkDescription, LinkStatus}, events::ClentEvent};
+use crate::{models::{communication::{LinkDescription, LinkStatus}, events::ClentEvent}, datasource::db::DbError};
 use super::shared::Shared;
 
-#[get("/comm/links")]
-pub async fn list_descriptions(shared: web::Data<Shared>) -> impl Responder {
+#[get("/comm/links/description/{link_id}")]
+pub async fn get_description(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
+    let id = &path.into_inner();
+    let result = shared.repository.read::<LinkDescription>("link_descriptions", id).await;
+
+    match result {
+        Ok(link) => return HttpResponse::Ok().json(link),
+        Err(err) => {
+            println!("REST error: {}", &err);
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
+    }
+}
+
+#[get("/comm/links/descriptions")]
+pub async fn get_descriptions(shared: web::Data<Shared>) -> impl Responder {
     let result = shared.repository.read_all::<LinkDescription>("link_descriptions").await;
 
     match result {
@@ -16,13 +30,30 @@ pub async fn list_descriptions(shared: web::Data<Shared>) -> impl Responder {
     }
 }
 
-#[get("/comm/link/{link_id}")]
-pub async fn link_description(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
-    let id = &path.into_inner();
-    let result = shared.repository.read::<LinkDescription>("link_descriptions", id).await;
+#[get("/comm/links/status/{link_id}")]
+pub async fn get_status(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
+    let link_id: String = path.into_inner();
+    let result = shared.repository.read::<LinkStatus>("link_statuses", &link_id).await;
 
     match result {
-        Ok(links) => return HttpResponse::Ok().json(links),
+        Ok(status) => {
+            return HttpResponse::Ok().json(status);
+        },
+        Err(err) => {
+            if let crate::datasource::db::DbError::NoData = err {
+                return HttpResponse::Ok().json(LinkStatus::default_for_id(&link_id))
+            }
+            return HttpResponse::InternalServerError().json(err.to_string())
+        }
+    }
+}
+
+#[get("/comm/links/statuses")]
+pub async fn get_statuses(shared: web::Data<Shared>) -> impl Responder {
+    let result = shared.repository.read_all::<LinkStatus>("link_statuses").await;
+
+    match result {
+        Ok(statuses) => return HttpResponse::Ok().json(statuses),
         Err(err) => {
             println!("REST error: {}", &err);
             HttpResponse::InternalServerError().json(err.to_string())
@@ -31,7 +62,7 @@ pub async fn link_description(shared: web::Data<Shared>, path: web::Path<String>
 }
 
 #[post("/comm/links/save")]
-pub async fn save_description(shared: web::Data<Shared>, link: web::Json<LinkDescription>) -> impl Responder {
+pub async fn post_link(shared: web::Data<Shared>, link: web::Json<LinkDescription>) -> impl Responder {
     let link = link.into_inner();
     let result = shared.repository.upsert("link_descriptions", &link).await;
 
@@ -47,63 +78,28 @@ pub async fn save_description(shared: web::Data<Shared>, link: web::Json<LinkDes
 }
 
 #[delete("/comm/links/remove/{link_id}")]
-pub async fn remove_description(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
+pub async fn delete_link(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
     let link_id = &path.into_inner();
+
     let result = shared.repository.remove("link_descriptions", &link_id).await;
-
-    match result {
-        Ok(()) => HttpResponse::Ok().json(link_id),
-        Err(err) => {
-            println!("REST error: {}", &err);
-            HttpResponse::InternalServerError().json(err.to_string())
-        }
+    if let Err(err) = result {
+        println!("REST error: {}", &err);
+        return HttpResponse::InternalServerError().json(err.to_string())
     }
-}
 
-#[get("/comm/links/status/{link_id}")]
-pub async fn get_status(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
-    let link_id: String = path.into_inner();
-    let result = shared.repository.read::<LinkStatus>("link_statuses", &link_id).await;
-
-    match result {
-        Ok(link_status) => {
-            return HttpResponse::Ok().json(link_status);
-        },
-        Err(err) => {
-            if let crate::datasource::db::DbError::NoData = err {
-                return HttpResponse::Ok().json(LinkStatus::default_for_id(&link_id))
-            }
+    let result = shared.repository.remove("link_statuses", &link_id).await;
+    if let Err(err) = result {
+        if let DbError::NoData = err {
             println!("REST error: {}", &err);
             return HttpResponse::InternalServerError().json(err.to_string())
         }
     }
+
+    HttpResponse::Ok().json(link_id)
 }
-
-#[get("/comm/links/statuses/{link_ids}")]
-pub async fn get_statuses(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
-    let mut result = Vec::<LinkStatus>::new();
-
-    for link_id in path.into_inner().split(",") {
-        let status = shared.repository.read::<LinkStatus>("link_statuses", link_id).await;
-        match status {
-            Ok(status) => {
-                result.push(status);
-            },
-            Err(err) => {
-                if let crate::datasource::db::DbError::NoData = err {
-                    // skip
-                } else {
-                    return HttpResponse::InternalServerError().json(err.to_string());
-                }
-            }
-        }
-    }
-    return HttpResponse::Ok().json(result);
-}
-
 
 #[put("/comm/links/set_connected/{link_id}")]
-pub async fn set_link_enabled(shared: web::Data<Shared>, path: web::Path<String>, enabled: web::Json<bool>) -> impl Responder {
+pub async fn set_link_connected(shared: web::Data<Shared>, path: web::Path<String>, enabled: web::Json<bool>) -> impl Responder {
     let id = &path.into_inner();
     let connected = enabled.into_inner();
 

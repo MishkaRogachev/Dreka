@@ -87,7 +87,6 @@ export const vehicles = function () {
                     return vehicles;
                 })
             }
-            console.log("----> vehicle", vehicle);
             return vehicle;
         },
         removeVehicle: async (vehicleId: string) => {

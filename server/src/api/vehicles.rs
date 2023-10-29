@@ -1,15 +1,15 @@
 use actix_web::{get, post, delete, web, Responder, HttpResponse};
 
-use crate::models::vehicles::{VehicleDescription, VehicleStatus};
+use crate::{models::vehicles::{VehicleDescription, VehicleStatus}, datasource::db::DbError};
 use super::shared::Shared;
 
 #[get("/vehicles/description/{vehicle_id}")]
-pub async fn vehicle_description(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
+pub async fn get_description(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
     let id = &path.into_inner();
     let result = shared.repository.read::<VehicleDescription>("vehicle_descriptions", id).await;
 
     match result {
-        Ok(vehicles) => return HttpResponse::Ok().json(vehicles),
+        Ok(vehicle) => return HttpResponse::Ok().json(vehicle),
         Err(err) => {
             println!("REST error: {}", &err);
             HttpResponse::InternalServerError().json(err.to_string())
@@ -18,7 +18,7 @@ pub async fn vehicle_description(shared: web::Data<Shared>, path: web::Path<Stri
 }
 
 #[get("/vehicles/descriptions")]
-pub async fn list_descriptions(shared: web::Data<Shared>) -> impl Responder {
+pub async fn get_descriptions(shared: web::Data<Shared>) -> impl Responder {
     let result = shared.repository.read_all::<VehicleDescription>("vehicle_descriptions").await;
 
     match result {
@@ -53,7 +53,7 @@ pub async fn get_statuses(shared: web::Data<Shared>) -> impl Responder {
     let result = shared.repository.read_all::<VehicleStatus>("vehicle_statuses").await;
 
     match result {
-        Ok(vehicles) => return HttpResponse::Ok().json(vehicles),
+        Ok(statuses) => return HttpResponse::Ok().json(statuses),
         Err(err) => {
             println!("REST error: {}", &err);
             HttpResponse::InternalServerError().json(err.to_string())
@@ -62,7 +62,7 @@ pub async fn get_statuses(shared: web::Data<Shared>) -> impl Responder {
 }
 
 #[post("/vehicles/save")]
-pub async fn save_description(shared: web::Data<Shared>, vehicle: web::Json<VehicleDescription>) -> impl Responder {
+pub async fn post_vehicle(shared: web::Data<Shared>, vehicle: web::Json<VehicleDescription>) -> impl Responder {
     let vehicle = vehicle.into_inner();
     let result = shared.repository.upsert("vehicle_descriptions", &vehicle).await;
 
@@ -78,15 +78,22 @@ pub async fn save_description(shared: web::Data<Shared>, vehicle: web::Json<Vehi
 }
 
 #[delete("/vehicles/remove/{vehicle_id}")]
-pub async fn remove_description(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
+pub async fn delete_vehicle(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
     let vehicle_id = &path.into_inner();
-    let result = shared.repository.remove("vehicle_descriptions", &vehicle_id).await;
 
-    match result {
-        Ok(()) => HttpResponse::Ok().json(vehicle_id),
-        Err(err) => {
+    let result = shared.repository.remove("vehicle_descriptions", &vehicle_id).await;
+    if let Err(err) = result {
+        println!("REST error: {}", &err);
+        return HttpResponse::InternalServerError().json(err.to_string())
+    }
+
+    let result = shared.repository.remove("vehicle_statuses", &vehicle_id).await;
+    if let Err(err) = result {
+        if let DbError::NoData = err {
             println!("REST error: {}", &err);
-            HttpResponse::InternalServerError().json(err.to_string())
+            return HttpResponse::InternalServerError().json(err.to_string())
         }
     }
+
+    HttpResponse::Ok().json(vehicle_id)
 }
