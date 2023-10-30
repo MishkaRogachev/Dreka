@@ -7,7 +7,7 @@ use super::spatial::Geodetic;
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
 pub struct FlightData {
-    pub vehicle_id: String,
+    pub id: String,
     pub timestamp: i64,
 
     pub pitch: f32,
@@ -32,7 +32,7 @@ pub struct FlightData {
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
 pub struct AltitudeData {
-    pub vehicle_id: String,
+    pub id: String,
     pub timestamp: i64,
 
     pub reference_altitude: f32,
@@ -45,23 +45,22 @@ pub struct AltitudeData {
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
 pub struct SnsData {
-    pub vehicle_id: String,
+    pub id: String,
     pub timestamp: i64,
 
     pub position: Geodetic,
     pub course: f32,
     pub ground_speed: f32,
-    fix: u8,
-    eph: u16,
-    epv: u16,
-    satellites_visible: u8,
-    altitude: f32
+    pub fix: u8,
+    pub eph: u16,
+    pub epv: u16,
+    pub satellites_visible: u8,
 }
 
 impl Default for FlightData {
     fn default() -> FlightData {
         Self {
-            vehicle_id: "".into(),
+            id: "".into(),
             timestamp: 0,
 
             pitch: 0.0,
@@ -88,7 +87,7 @@ impl Default for FlightData {
 impl Default for AltitudeData {
     fn default() -> AltitudeData {
         Self {
-            vehicle_id: "".into(),
+            id: "".into(),
             timestamp: 0,
 
             reference_altitude: 0.0,
@@ -103,7 +102,7 @@ impl Default for AltitudeData {
 impl Default for SnsData {
     fn default() -> SnsData {
         Self {
-            vehicle_id: "".into(),
+            id: "".into(),
             timestamp: 0,
 
             position: Geodetic::default(),
@@ -112,8 +111,7 @@ impl Default for SnsData {
             fix: 0,
             eph: 0,
             epv: 0,
-            satellites_visible: 0,
-            altitude: 0.0
+            satellites_visible: 0
         }
     }
 }

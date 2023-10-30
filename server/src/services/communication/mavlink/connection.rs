@@ -5,7 +5,9 @@ use mavlink;
 
 use crate::datasource::db;
 use crate::models::communication;
-use crate::services::communication::{traits, mavlink::context::MavlinkContext};
+use crate::services::communication::traits;
+
+use super::{telemetry::TelemetryHandler, heartbeat::HeartbeatHandler, context::MavlinkContext};
 
 const MAVLINK_POLL_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(5);
 const RESET_STATS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(1000);
@@ -75,49 +77,54 @@ impl traits::IConnection for MavlinkConnection {
         self.token = Some(token);
 
         let mut last_stats_reset = time::Instant::now();
-        let mut context = MavlinkContext::new(self.repository.clone());
+        let context = Arc::new(Mutex::new(MavlinkContext::new(self.repository.clone())));
         let internal = self.internal.clone();
         let cloned_mav = mav.clone();
 
-        tokio::task::spawn(async move { loop {
-            let now = time::Instant::now();
-            if now.checked_duration_since(last_stats_reset) > Some(RESET_STATS_INTERVAL) {
-                let mut lock = internal.lock().await;
-                lock.bytes_received_sec = lock.bytes_received_current;
-                lock.bytes_sent_sec = lock.bytes_sent_current;
-                lock.bytes_received_current = 0;
-                lock.bytes_sent_current = 0;
-                last_stats_reset = time::Instant::now();
-            }
+        tokio::task::spawn(async move {
+            let mut heartbeat_handler = HeartbeatHandler::new(context.clone());
+            let mut telemetry_handler = TelemetryHandler::new(context.clone());
 
-            match cloned_mav.recv() {
-                Ok((header, msg)) => {
+            loop {
+                let now = time::Instant::now();
+                if now.checked_duration_since(last_stats_reset) > Some(RESET_STATS_INTERVAL) {
                     let mut lock = internal.lock().await;
-                    // Log last recv time and bytes
-                    lock.last_recieved = now;
-                    lock.bytes_received_current = lock.bytes_received_current + std::mem::size_of_val(&msg);
+                    lock.bytes_received_sec = lock.bytes_received_current;
+                    lock.bytes_sent_sec = lock.bytes_sent_current;
+                    lock.bytes_received_current = 0;
+                    lock.bytes_sent_current = 0;
+                    last_stats_reset = time::Instant::now();
+                }
 
-                    super::heartbeat::handle_message(&mut context, &header, &msg).await;
-                    super::telemetry::handle_message(&mut context, &header, &msg).await;
-                },
-                Err(mavlink::error::MessageReadError::Io(err)) => {
-                    if let std::io::ErrorKind::WouldBlock = err.kind() {
-                        //no messages currently available to receive -- wait a while
-                        tokio::time::sleep(MAVLINK_POLL_INTERVAL).await;
-                        continue;
-                    } else {
-                        println!("Got mavlink error: {:?}", &err);
-                        cloned_token.cancel();
-                        break;
-                    }
-                },
-                _ => {}
-            }
+                match cloned_mav.recv() {
+                    Ok((header, msg)) => {
+                        let mut lock = internal.lock().await;
+                        // Log last recv time and bytes
+                        lock.last_recieved = now;
+                        lock.bytes_received_current = lock.bytes_received_current + std::mem::size_of_val(&msg);
 
-            if cloned_token.is_cancelled() {
-                return;
+                        heartbeat_handler.handle_message(&header, &msg).await;
+                        telemetry_handler.handle_message(&header, &msg).await;
+                    },
+                    Err(mavlink::error::MessageReadError::Io(err)) => {
+                        if let std::io::ErrorKind::WouldBlock = err.kind() {
+                            //no messages currently available to receive -- wait a while
+                            tokio::time::sleep(MAVLINK_POLL_INTERVAL).await;
+                            continue;
+                        } else {
+                            println!("Got mavlink error: {:?}", &err);
+                            cloned_token.cancel();
+                            break;
+                        }
+                    },
+                    _ => {}
+                }
+
+                if cloned_token.is_cancelled() {
+                    return;
+                }
             }
-        }});
+        });
 
         Ok(true)
     }
