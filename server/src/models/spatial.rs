@@ -22,9 +22,9 @@ pub struct Geodetic {
 impl Default for Geodetic {
     fn default() -> Geodetic {
         Geodetic {
-            latitude: std::f64::NAN,
-            longitude: std::f64::NAN,
-            altitude: std::f32::NAN,
+            latitude: 0.0,
+            longitude: 0.0,
+            altitude: 0.0,
             frame: GeodeticFrame::None
         }
     }

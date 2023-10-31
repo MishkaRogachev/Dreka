@@ -31,19 +31,6 @@ pub struct FlightData {
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
-pub struct AltitudeData {
-    pub id: String,
-    pub timestamp: i64,
-
-    pub reference_altitude: f32,
-    pub altitude_amsl: f32,
-    pub altitude_relative: f32,
-    pub altitude_terrain: f32,
-    pub bottom_clearance: f32,
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
 pub struct SnsData {
     pub id: String,
     pub timestamp: i64,
@@ -80,21 +67,6 @@ impl Default for FlightData {
             climb: 0.0,
 
             wp_distance: 0.0,
-        }
-    }
-}
-
-impl Default for AltitudeData {
-    fn default() -> AltitudeData {
-        Self {
-            id: "".into(),
-            timestamp: 0,
-
-            reference_altitude: 0.0,
-            altitude_amsl: 0.0,
-            altitude_relative: 0.0,
-            altitude_terrain: 0.0,
-            bottom_clearance: 0.0
         }
     }
 }

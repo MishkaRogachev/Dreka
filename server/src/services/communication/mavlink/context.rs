@@ -17,4 +17,11 @@ impl MavlinkContext {
             auto_add_vehicles: true // TODO: to settings
         }
     }
+
+    pub fn vehicle_id_from_mav_id(&self, mav_id: &u8) -> Option<String>{
+        match self.mav_vehicles.get(mav_id) {
+            Some(vehicle) => vehicle.id.clone(),
+            None => None,
+        }
+    }
 }
