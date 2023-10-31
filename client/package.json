@@ -15,6 +15,7 @@
         "cesium-graticule": "^0.3.3",
         "chart.js": "^4.4.0",
         "i18next": "^23.5.1",
+        "svelte-canvas": "^1.0.2",
         "svelte-i18next": "^2.2.0",
         "svelte-overlay": "^1.4.1"
     },
