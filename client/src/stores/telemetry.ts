@@ -12,6 +12,10 @@ export class VehicleTelemetry {
         this.sns = defaultSnsData;
     }
 
+    distanceToHome(): number {
+        return 0; // TODO: home & home distance
+    }
+
     flight: FlightData
     sns: SnsData
 }

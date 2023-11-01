@@ -153,8 +153,8 @@ function clearRuler() { ruler.clear(); }
             </button>
         </div>
         <div class="tooltip" data-tip={ $i18n.t("Copy to clipboard") }>
-        <button class="btn btn-sm btn-wide join-item" on:click={coordsToClipboard}>
-            {latitude + ", " + longitude}
+        <button class="btn btn-sm join-item font-mono" on:click={coordsToClipboard}>
+            {latitude + "\t" + longitude}
         </button>
         </div>
     </div>

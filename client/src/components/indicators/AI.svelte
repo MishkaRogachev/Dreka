@@ -1,5 +1,4 @@
 <script lang="ts">
-// @ts-ignore
 import { Canvas, Layer } from "svelte-canvas"
 
 export let pitch: number = 0

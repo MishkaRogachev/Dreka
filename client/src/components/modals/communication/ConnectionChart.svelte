@@ -3,6 +3,7 @@ import { Chart } from 'chart.js/auto';
 import { onMount } from "svelte";
 
 import type { LinkStatus } from '$bindings/communication';
+import { cssColorToHex } from '$lib/common/formats';
 
 export let status: LinkStatus | undefined
 
@@ -35,6 +36,8 @@ function clearLogs() {
 
 onMount(async () => {
     ctx = chartCanvas.getContext('2d');
+    const computedStyles = getComputedStyle(document.querySelector(':root')!);
+
     chart = new Chart(ctx, {
         type: 'scatter',
         data: {
@@ -43,14 +46,14 @@ onMount(async () => {
                 showLine: true,
                 fill: false,
                 pointStyle: false,
-                //borderColor: getComputedStyle(document.documentElement).getPropertyValue('primary-focus'),
+                borderColor: cssColorToHex(computedStyles.getPropertyValue('--p')),
                 data: [],
             }, {
                 label: 'Rx',
                 showLine: true,
                 fill: false,
                 pointStyle: false,
-                //borderColor: getComputedStyle(document.documentElement).getPropertyValue('accent'),
+                borderColor: cssColorToHex(computedStyles.getPropertyValue('--af')),
                 data: []
             }]
         },
@@ -73,6 +76,7 @@ onMount(async () => {
         }
     });
 })
+
 </script>
 
 <div class="flex-grow max-h-8">

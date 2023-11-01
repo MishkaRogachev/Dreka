@@ -65,7 +65,7 @@ impl TelemetryHandler {
         let mut flight_data = self.flight_data_for_mav(&mav_id);
 
         flight_data.position.latitude = utils::decode_lat_lon(global_pos.lat);
-        flight_data.position.longitude = utils::decode_lat_lon(global_pos.lat);
+        flight_data.position.longitude = utils::decode_lat_lon(global_pos.lon);
         flight_data.position.altitude = utils::decode_altitude(global_pos.alt);
         flight_data.position.frame = crate::models::spatial::GeodeticFrame::Wgs84AboveSeaLevel;
 

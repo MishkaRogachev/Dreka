@@ -47,7 +47,9 @@ function openModal(id: string) {
             <label class="label cursor-pointer">
             <span class="label-text">{$i18n.t("Dark mode")}</span> 
             <input type="checkbox" class="toggle" checked={$theme === Theme.Dark} on:change={()=>{
-                $theme = $theme === Theme.Dark ? Theme.Light : Theme.Dark }} />
+                $theme = $theme === Theme.Dark ? Theme.Light : Theme.Dark;
+                /// TODO: update canvas
+            }} />
         </label></li>
         <li class="btn-wide">
             <label class="label cursor-pointer">

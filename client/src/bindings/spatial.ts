@@ -18,4 +18,4 @@ export interface Geodetic {
     frame: GeodeticFrame
 }
 
-export const nullGeodetic = { latitude: NaN, longitude: NaN, altitude: NaN, frame: GeodeticFrame.None }
+export const nullGeodetic = { latitude: NaN, longitude: NaN, altitude: 0, frame: GeodeticFrame.None }
