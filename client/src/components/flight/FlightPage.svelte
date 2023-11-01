@@ -1,9 +1,9 @@
 <script lang="ts">
-import MapCesium from '$components/map/cesium/MapCesium.svelte';
+import Map from '$components/map/cesium/Map.svelte';
 import Dashboard from '$components/flight/Dashboard.svelte';
 
 export let visible: boolean = true
 </script>
 
-<MapCesium visible={visible}/>
+<Map visible={visible}/>
 <Dashboard/>

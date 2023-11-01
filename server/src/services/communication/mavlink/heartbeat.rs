@@ -83,11 +83,6 @@ impl HeartbeatHandler {
     async fn obtain_vehicle(&mut self, mav_id: u8) -> Option<VehicleDescription> {
         let mut context = self.context.lock().await;
 
-        let vehicle = context.mav_vehicles.get(&mav_id);
-        if let Some(vehicle) = vehicle {
-            return Some(vehicle.to_owned());
-        }
-
         let protocol_id = ProtocolId::MavlinkId { mav_id: mav_id };
         match context.repository.read_where::<VehicleDescription, ProtocolId>(
             "vehicle_descriptions", "protocol_id", &protocol_id).await {

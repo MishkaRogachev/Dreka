@@ -1,9 +1,8 @@
 <script lang="ts">
 import { onMount, onDestroy } from 'svelte';
 
-import * as Cesium from 'cesium';
-
-import { userPreferences } from '$stores/preferences';
+import MapControl from '../common/MapControl.svelte';
+import MapVehicles from '$components/map/cesium/MapVehicles.svelte';
 
 import { MapViewportCesium } from '$lib/map/cesium/viewport';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
@@ -11,7 +10,9 @@ import { MapRulerCesium } from '$lib/map/cesium/ruler';
 import { MapGraticuleCesium } from '$lib/map/cesium/graticule';
 import { MapLayersCesium } from '$lib/map/cesium/layers';
 
-import MapControl from '../common/MapControl.svelte';
+import { userPreferences } from '$stores/preferences';
+
+import * as Cesium from 'cesium';
 
 export let visible: boolean = true
 
@@ -76,5 +77,6 @@ onDestroy(async () => { clearInterval(interval); ready = false; });
 <div id="cesiumContainer" style={ready && visible ? "" : "display: none"}>
 {#if ready && visible}
     <MapControl viewport={viewport} interaction={interaction} ruler={ruler} graticule={graticule} layers={layers}/>
+    <MapVehicles cesium={cesium} interaction={interaction}/>
 {/if}
 </div>

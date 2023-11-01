@@ -55,7 +55,7 @@ afterUpdate(async () => {
         <div class="grid grid-cols-2 gap-2">
             <!-- NAME -->
             <h1 class="font-medium my-2 w-full">{ $i18n.t("Name") }</h1>
-            <input type="text" placeholder={ $i18n.t("Enter name here") } class="input w-full" disabled={vehicle.is_online()}
+            <input type="text" placeholder={ $i18n.t("Enter name here") } class="input w-full"
                 bind:value={descriptionCopy.name}/>
 
             <!-- VEHICLE TYPE -->

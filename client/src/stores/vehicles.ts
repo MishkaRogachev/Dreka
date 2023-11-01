@@ -34,18 +34,18 @@ export const vehicles = function () {
                     usedIds.push(id);
 
                     if (vehicles.has(id)) {
-                        vehicles.get(id)!.description = description
+                        vehicles.get(id)!.description = description;
                     } else {
-                        vehicles.set(id, new Vehicle(description))
+                        vehicles.set(id, new Vehicle(description));
                         if (get(selectedVehicleID) === "")
-                            selectedVehicleID.set(id)
+                            selectedVehicleID.set(id);
                     }
                 }
 
                 // Delete vehicles removed by server
                 for (const id of vehicles.keys()) {
                     if (!usedIds.includes(id)) {
-                        vehicles.delete(id)
+                        vehicles.delete(id);
                     }
                 }
                 return vehicles;
@@ -58,7 +58,7 @@ export const vehicles = function () {
             update(vehicles => {
                 for (const status of statuses) {
                     if (vehicles.has(status.id)) {
-                        vehicles.get(status.id)!.status = status
+                        vehicles.get(status.id)!.status = status;
                     }
                 }
                 return vehicles;
@@ -79,11 +79,11 @@ export const vehicles = function () {
                 store.update(vehicles => {
                     const id = description.id!;
                     if (vehicles.has(id)) {
-                        vehicles.get(id)!.description = descriptionBack!
+                        vehicles.get(id)!.description = descriptionBack!;
                     } else {
-                        vehicles.set(id, new Vehicle(descriptionBack!))
+                        vehicles.set(id, new Vehicle(descriptionBack!));
                     }
-                    vehicle = vehicles.get(id)
+                    vehicle = vehicles.get(id);
                     return vehicles;
                 })
             }
