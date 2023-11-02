@@ -13,7 +13,7 @@ export function roundPrecision(value: number, precision: number): number {
 export function pad(value: number, size: number): string {
     let str = value.toString()
     while (str.length < size) {
-        str = "0" + str
+        str += "0"
     }
     return str
 }

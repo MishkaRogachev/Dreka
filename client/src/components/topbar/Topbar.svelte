@@ -3,6 +3,7 @@ import { onMount } from 'svelte';
 
 import Menu from "./Menu.svelte";
 import VehicleSelector from "./VehicleSelector.svelte";
+import VehicleStateIndicator from "./VehicleStateIndicator.svelte";
 
 $: dateTime = new Date()
 
@@ -28,5 +29,6 @@ onMount(() => {
 
     <div class="navbar-end">
         <VehicleSelector/>
+        <VehicleStateIndicator/>
     </div>
 </div>
