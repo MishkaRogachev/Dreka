@@ -16,6 +16,7 @@ import switchIcon from "$assets/svg/switch.svg?raw";
 let dms: boolean = true
 
 $: telemetry = $selectedVehicleTelemetry
+$: armed = $selectedVehicle?.status?.armed
 $: online = $selectedVehicle?.is_online()
 
 $: latitude = dms ? degreesToDmsString(telemetry.flight.position.latitude, false)
@@ -48,8 +49,11 @@ function switchVehicleTracking() {} // TODO: center/track vehicle
     <!-- FLIGHT DATA DISPLAY -->
         <Parameter name={ $i18n.t("GS") } tooltip={ $i18n.t("Ground (GPS) Speed") }
             value={telemetry.sns.ground_speed}/>
-        <div class="row-span-3 col-span-2">
+        <div class="row-span-3 col-span-2 relative">
             <Ai online={online} pitch={telemetry.flight.pitch} roll={telemetry.flight.roll}/>
+            {#if !armed}
+            <a class="font-bold absolute inset-0 top-7 text-black">{ $i18n.t("DISARMED") }</a>
+            {/if}
         </div>
         <Parameter name={ $i18n.t("ASNS") } tooltip={ $i18n.t("Satellite (GPS) Altitude") }
             value={ telemetry.sns.position.altitude }/>

@@ -46,5 +46,6 @@ export enum VehicleState {
 export interface VehicleStatus {
     id: string,
     last_heartbeat: number,
+    armed: false,
     state: VehicleState
 }

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-use mavlink::{MavHeader, common::{MavMessage, MavType, MavState}};
+use mavlink::{MavHeader, common::{MavMessage, MavType, MavState, MavModeFlag}};
 
 use crate::models::{vehicles::{VehicleStatus, VehicleType, VehicleState, VehicleDescription, ProtocolId}, colors::EntityColor};
 use super::context::MavlinkContext;
@@ -67,7 +67,8 @@ impl HeartbeatHandler {
                 let status = VehicleStatus {
                     id: vehicle.id.unwrap(),
                     last_heartbeat: chrono::prelude::Utc::now().timestamp_millis(),
-                    state: VehicleState::from_mavlink(heartbeat_data.system_status)
+                    state: VehicleState::from_mavlink(heartbeat_data.system_status),
+                    armed: heartbeat_data.base_mode.intersects(MavModeFlag::MAV_MODE_FLAG_SAFETY_ARMED)
                 };
                 let saved = context.repository.upsert("vehicle_statuses", &status).await;
                 if let Err(err) = saved {

@@ -61,7 +61,8 @@ pub struct VehicleDescription {
 pub struct VehicleStatus {
     pub id: String,
     pub last_heartbeat: i64,
-    pub state: VehicleState
+    pub state: VehicleState,
+    pub armed: bool
 }
 
 impl VehicleStatus {
@@ -69,7 +70,8 @@ impl VehicleStatus {
         Self {
             id: link_id.into(),
             last_heartbeat: 0,
-            state: VehicleState::Unknown
+            state: VehicleState::Unknown,
+            armed: false
         }
     }
 }

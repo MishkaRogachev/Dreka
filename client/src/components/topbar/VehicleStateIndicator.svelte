@@ -9,15 +9,8 @@ $: vehicleState = $selectedVehicle?.status?.state || VehicleState.Unknown
 
 </script>
 
-<!-- Boot = "Boot",
-Calibrating = "Calibrating",
-Standby = "Standby",
-Active = "Active",
-Critical = "Critical",
-Emergency = "Emergency",
-PowerOff = "PowerOff",
-FlightTermination = "FlightTermination", -->
-<div class="flex items-center gap-x-2">
-    { $i18n.t(vehicleState) }
+<div class="flex items-center gap-x-2 font-bold">
+    <a>{ $i18n.t(vehicleState) }</a>
     <span class={"badge badge-xs " + (is_online ? "bg-success" : "bg-neutral-content")} ></span>
+    <!-- TODO: flight time -->
 </div>
