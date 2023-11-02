@@ -355,7 +355,7 @@ export class PathEntity extends BaseEntity {
         const point = this.cesium.entities.add({
             position: cartesian,
             point: {
-                pixelSize : 2,
+                pixelSize : 4,
                 color: new Cesium.CallbackProperty(() => { return this.baseColor() }, false),
             }
         });

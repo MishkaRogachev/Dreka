@@ -1,5 +1,6 @@
 <script lang="ts">
 import { VehicleType } from "$bindings/vehicles";
+import { toColorCode } from '$bindings/colors';
 
 import unknownIcon from "$assets/svg/unknown.svg?raw"
 import autoIcon from "$assets/svg/auto.svg?raw"
@@ -10,6 +11,7 @@ import copterIcon from "$assets/svg/copter.svg?raw"
 import airshipIcon from "$assets/svg/airship.svg?raw"
 
 export let vehicleType: VehicleType | undefined
+export let color: string
 
 function iconFromType(vehicleType: VehicleType) {
     switch (vehicleType) {
@@ -30,4 +32,6 @@ function iconFromType(vehicleType: VehicleType) {
 }
 </script>
 
-{@html vehicleType ? iconFromType(vehicleType) : ""}
+<div style="color: {toColorCode(color)}">
+    {@html vehicleType ? iconFromType(vehicleType) : ""}
+</div>

@@ -4,6 +4,7 @@ import { clickOutside } from '$lib/common/click-outside';
 import BaseModal from "$components/common/BaseModal.svelte";
 import VehicleItem from "./VehicleItem.svelte";
 
+import { EntityColor } from '$bindings/colors';
 import { VehicleType } from "$bindings/vehicles";
 import { vehicles, onlineVehicles, getNextAvailableMavlinkId } from "$stores/vehicles";
 import { i18n } from "$stores/i18n";
@@ -40,6 +41,7 @@ function closeDropdown() {
                     const created = await vehicles.saveVehicle({
                         name: $i18n.t("New Vehicle") + " (MAV " + mavId + ")",
                         protocol_id: { MavlinkId: { mav_id: mavId } },
+                        color: EntityColor.Slate,
                         vehicle_type: VehicleType.Auto,
                         features: []
                     });

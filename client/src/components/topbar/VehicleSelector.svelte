@@ -17,11 +17,8 @@ function closeDropdown() {
     </summary>
     <ul class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
     {#each $vehicles.values() as vehicle}
-        <li class={"btn-wide flex " + (vehicle.description.id === $selectedVehicleID ? "disabled" : "")}
-            on:click = {() => {
-                selectedVehicleID.set(vehicle.description.id || "");
-                closeDropdown();
-            }}>
+        <li class={"btn-wide flex " + (vehicle.description.id === $selectedVehicleID ? "font-bold" : "")}
+            on:click = {() => { selectedVehicleID.set(vehicle.description.id || ""); closeDropdown(); }}>
             <VehicleSelectorItem vehicle={vehicle} />
         </li>
     {/each}

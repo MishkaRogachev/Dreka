@@ -1,3 +1,5 @@
+import { EntityColor } from "$bindings/colors";
+
 export enum VehicleType {
     Unknown = "Unknown",
     Auto = "Auto",
@@ -22,8 +24,9 @@ export type ProtocolId = {
 export interface VehicleDescription {
     id?: string,
     name: string,
-    protocol_id: ProtocolId,
+    color: EntityColor,
     vehicle_type: VehicleType,
+    protocol_id: ProtocolId,
     features: Array<VehicleFeatures>
 }
 

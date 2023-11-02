@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
+use super::colors::EntityColor;
+
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
 #[ts(export)]
 pub enum VehicleType {
@@ -48,6 +50,7 @@ pub enum ProtocolId {
 pub struct VehicleDescription {
     pub id: Option<String>,
     pub name: String,
+    pub color: EntityColor,
     pub vehicle_type: VehicleType,
     pub protocol_id: ProtocolId,
     pub features: Vec<VehicleFeatures>

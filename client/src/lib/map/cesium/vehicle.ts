@@ -1,5 +1,6 @@
 import { type VehicleDescription } from '$bindings/vehicles';
 import type { FlightData } from '$bindings/telemetry';
+import { toColorCode } from '$bindings/colors';
 
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
 import { ModelEntity, PylonEntity, PathEntity } from "./base-entities"
@@ -30,6 +31,11 @@ export class MapVehicleCesium {
     updateFromDescription(vehicle: VehicleDescription) {
         this.model.addLabel(vehicle.name);
         this.model.setUri(fixedWing); // TODO: get from type
+
+        const color = Cesium.Color.fromCssColorString(toColorCode(vehicle.color));
+        this.model.setBaseColor(color);
+        this.pylon.setBaseColor(color);
+        this.path.setBaseColor(color);
     }
 
     updateFromFlight(flight: FlightData) {

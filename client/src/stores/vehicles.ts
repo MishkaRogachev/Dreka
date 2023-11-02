@@ -2,6 +2,7 @@ import { writable, derived, get } from 'svelte/store';
 
 import { type VehicleDescription, type VehicleStatus, VehicleType } from '$bindings/vehicles';
 import { VehiclesService } from '$services/vehicles';
+import { EntityColor } from '$bindings/colors';
 
 export const IS_ONLINE_TIMEOUT = 2000;
 
@@ -116,8 +117,6 @@ export const onlineVehicles = derived(vehicles, ($vehicles) => {
     return Array.from($vehicles.values()).filter(vehicle => vehicle.is_online());
 })
 
-export const vehicleTypes = [ VehicleType.Unknown, VehicleType.Auto, VehicleType.FixedWing, VehicleType.Vtol, VehicleType.RotaryWing, VehicleType.Copter, VehicleType.Airship ]
-
 export const occupiedMavlinkIds = derived(vehicles, ($vehicles) => {
     return Array.from($vehicles.values())
         .filter(vehicle => !!vehicle.description.protocol_id.MavlinkId)
@@ -136,3 +135,6 @@ export function getNextAvailableMavlinkId(): number | undefined {
         return mavId;
     }
 }
+
+export const usedVehicleTypes = [ VehicleType.Unknown, VehicleType.Auto, VehicleType.FixedWing, VehicleType.Vtol, VehicleType.RotaryWing, VehicleType.Copter, VehicleType.Airship ]
+export const usedVehicleColors = [ EntityColor.Slate, EntityColor.Emerald, EntityColor.Teal, EntityColor.Cyan, EntityColor.Sky, EntityColor.Blue, EntityColor.Indigo, EntityColor.Violet ]

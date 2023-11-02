@@ -1,11 +1,12 @@
 <script lang="ts">
 import { afterUpdate } from 'svelte';
 
+import ColorSelect from '$components/common/ColorSelect.svelte';
 import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
 import MavlinkIdEdit from '$components/modals/vehicles/MavlinkIdEdit.svelte';
 
 import { type VehicleDescription } from "$bindings/vehicles";
-import { Vehicle, vehicles, vehicleTypes, selectedVehicleID } from "$stores/vehicles";
+import { Vehicle, vehicles, usedVehicleTypes, selectedVehicleID, usedVehicleColors } from "$stores/vehicles";
 
 import { i18n } from "$stores/i18n";
 
@@ -35,7 +36,7 @@ afterUpdate(async () => {
             <span class={"indicator-item badge badge-xs " +
                 (vehicle.is_online() ? "bg-success" : "bg-neutral-content")} >
             </span>
-            <VehicleTypeIcon vehicleType={vehicle.description.vehicle_type} />
+            <VehicleTypeIcon vehicleType={vehicle.description.vehicle_type} color={vehicle.description.color}/>
         </div>
 
         <!-- VEHICLE TITLE -->
@@ -58,10 +59,14 @@ afterUpdate(async () => {
             <input type="text" placeholder={ $i18n.t("Enter name here") } class="input w-full"
                 bind:value={descriptionCopy.name}/>
 
+            <!-- VEHICLE COLOR -->
+            <h1 class="font-medium my-2 w-full">{ $i18n.t("Color") }</h1>
+            <ColorSelect colors={usedVehicleColors} bind:currentColor={descriptionCopy.color}/>
+
             <!-- VEHICLE TYPE -->
             <h1 class="font-medium my-2 w-full">{ $i18n.t("Type") }</h1>
-            <select class="select w-full" bind:value={descriptionCopy.vehicle_type} disabled={vehicle.is_online()}>
-                {#each vehicleTypes as type, i}
+            <select class="select w-full" bind:value={ descriptionCopy.vehicle_type } disabled={ vehicle.is_online() }>
+                {#each usedVehicleTypes as type, i}
                 <option value={type} disabled={i === 0}> { $i18n.t(type) }</option>
                 {/each}
             </select>
@@ -70,7 +75,7 @@ afterUpdate(async () => {
 
             <!-- PROTOCOL ID -->
             {#if descriptionCopy.protocol_id.MavlinkId}
-                <MavlinkIdEdit bind:protocol_id={descriptionCopy.protocol_id.MavlinkId} disabled={vehicle.is_online()}/>
+                <MavlinkIdEdit bind:protocol_id={ descriptionCopy.protocol_id.MavlinkId } disabled={ vehicle.is_online() }/>
             {/if}
         </div>
 
