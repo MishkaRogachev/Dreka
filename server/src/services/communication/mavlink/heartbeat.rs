@@ -103,7 +103,7 @@ impl HeartbeatHandler {
             let result = context.repository.create("vehicles", &VehicleDescription {
                 id: None,
                 protocol_id: protocol_id,
-                name: format!("Nev Vehicle (MAV {})", mav_id).into(),
+                name: format!("New Vehicle (MAV {})", mav_id).into(),
                 color: EntityColor::Emerald,
                 vehicle_type: VehicleType::Auto,
                 features: Vec::new()
