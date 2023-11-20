@@ -44,6 +44,48 @@ pub struct SnsData {
     pub satellites_visible: u8,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
+#[ts(export)]
+pub enum SensorType {
+    Ahrs,
+    Accel,
+    Gyro,
+    Mag,
+    Sns,
+    AbsPressure,
+    DiffPressure,
+    Laser,
+    Battery,
+    Optical,
+    Motors,
+    RadioControl,
+    SatComm,
+    Avoidance
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
+#[ts(export)]
+pub struct SensorData {
+    pub name: String,
+    pub sensor: SensorType,
+    pub enabled: bool,
+    pub health: bool,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
+#[ts(export)]
+pub struct SensorsData {
+    pub id: String,
+    pub timestamp: i64,
+
+    pub sensors: Vec<SensorData>,
+    pub arm_ready: bool,
+
+    pub battery_current: f32,
+    pub battery_voltage: f32,
+    pub battery_remaining: i8
+}
+
 impl Default for FlightData {
     fn default() -> FlightData {
         Self {
@@ -84,6 +126,22 @@ impl Default for SnsData {
             eph: 0,
             epv: 0,
             satellites_visible: 0
+        }
+    }
+}
+
+impl Default for SensorsData {
+    fn default() -> SensorsData {
+        Self {
+            id: "".into(),
+            timestamp: 0,
+
+            sensors: Vec::new(),
+            arm_ready: false,
+    
+            battery_current: 0.0,
+            battery_voltage: 0.0,
+            battery_remaining: 0
         }
     }
 }

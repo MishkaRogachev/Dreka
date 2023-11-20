@@ -5,6 +5,7 @@ use ts_rs::TS;
 #[ts(export)]
 pub enum GeodeticFrame {
     None,
+
     Wgs84RelativeHome,
     Wgs84AboveSeaLevel,
     Wgs84AboveTerrain

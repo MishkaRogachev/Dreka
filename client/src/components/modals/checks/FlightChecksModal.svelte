@@ -2,14 +2,16 @@
 import { onMount, onDestroy } from 'svelte';
 
 import BaseModal from "$components/common/BaseModal.svelte";
+import SensorHealth from '$components/modals/checks/SensorHealth.svelte';
 
 import { i18n } from "$stores/i18n";
 import { selectedVehicle, safetyCheck } from "$stores/vehicles";
+import { selectedVehicleTelemetry } from "$stores/telemetry";
 
 $: armed = $selectedVehicle?.status?.armed || false
-$: readyToArm = true // TODO: SYS_STATUS
+$: readyToArm = $selectedVehicleTelemetry.sensors.arm_ready
 
-$: checks = []
+$: sensors = $selectedVehicleTelemetry.sensors.sensors
 
 let armPressed: boolean = false
 let armProgress: number = 0
@@ -53,14 +55,16 @@ onDestroy(async () => { clearInterval(interval); })
     <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Flight Checks") }</h3>
 
     <!-- CHECKS LIST COMPONENT -->
-    <div class="space-y-2 max-scroll-area-height overflow-y-auto">
-        <!-- TODO: checks -->
+    <div class="grid grid-cols-2 gap-4 max-scroll-area-height overflow-y-auto">
+        {#each sensors as sensor}
+        <SensorHealth sensor={sensor}/>
+        {/each}
     </div>
 
     <!-- FILLER -->
     <div class="flex flex-col grow text-center">
-    {#if checks.length === 0}
-        <a class="grow">{ $i18n.t("No checks available") }</a>
+    {#if sensors.length === 0}
+        <a class="grow">{ $i18n.t("No sensor available") }</a>
     {:else}
         <div class="grow"/>
     {/if}

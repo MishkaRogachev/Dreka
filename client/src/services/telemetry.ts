@@ -1,4 +1,4 @@
-import type { FlightData, SnsData } from "$bindings/telemetry";
+import type { FlightData, SnsData, SensorsData } from "$bindings/telemetry";
 import { send_request } from "$datasource/rest";
 
 export class TelemetryService {
@@ -8,5 +8,9 @@ export class TelemetryService {
 
     static async getVehicleSnsData(vehicleId: string): Promise<SnsData | null> {
         return await send_request("/telemetry/sns/" + vehicleId, { method: "GET" }) || null;
+    }
+
+    static async getVehicleSensorsData(vehicleId: string): Promise<SensorsData | null> {
+        return await send_request("/telemetry/sensors/" + vehicleId, { method: "GET" }) || null;
     }
 }

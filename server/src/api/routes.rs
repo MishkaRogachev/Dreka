@@ -30,6 +30,7 @@ pub async fn serve(shared: Shared, address: &SocketAddr) -> std::io::Result<()> 
             .service(super::vehicles::delete_vehicle)
             .service(super::telemetry::get_flight_data)
             .service(super::telemetry::get_sns_data)
+            .service(super::telemetry::get_sensors_data)
             .app_data(Data::new(shared.clone()))
     }).bind(address)?.run();
 

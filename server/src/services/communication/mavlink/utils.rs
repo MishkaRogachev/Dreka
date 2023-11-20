@@ -27,3 +27,11 @@ pub fn decode_ground_speed(value: u16) -> f32 {
 pub fn to_true_airspeed(ias: f32, altitude: f32) -> f32 {
     return ias + (ias * 0.02 * altitude / 1000.0);
 }
+
+pub fn decode_voltage(value: u16) -> f32 {
+    return value as f32 / 1000.0;
+}
+
+pub fn decode_current(value: i16) -> f32 {
+    return value as f32 / 100.0;
+}

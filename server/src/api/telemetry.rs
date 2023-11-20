@@ -1,6 +1,6 @@
 use actix_web::{get, web, Responder, HttpResponse};
 
-use crate::models::telemetry::{FlightData, SnsData};
+use crate::models::telemetry::{FlightData, SnsData, SensorsData};
 use super::shared::Shared;
 
 #[get("/telemetry/flight/{vehicle_id}")]
@@ -26,6 +26,20 @@ pub async fn get_sns_data(shared: web::Data<Shared>, path: web::Path<String>) ->
         Ok(vehicle) => return HttpResponse::Ok().json(vehicle),
         Err(err) => {
             println!("REST(/telemetry/sns/{}): error {}", &id, &err);
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
+    }
+}
+
+#[get("/telemetry/sensors/{vehicle_id}")]
+pub async fn get_sensors_data(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
+    let id = &path.into_inner();
+    let result = shared.repository.read::<SensorsData>("vehicle_sensors_data", id).await;
+
+    match result {
+        Ok(vehicle) => return HttpResponse::Ok().json(vehicle),
+        Err(err) => {
+            println!("REST(/telemetry/sensors/{}): error {}", &id, &err);
             HttpResponse::InternalServerError().json(err.to_string())
         }
     }

@@ -1,6 +1,6 @@
 import { writable, get, derived } from "svelte/store";
 
-import type { FlightData, SnsData } from "$bindings/telemetry";
+import type { FlightData, SnsData, SensorsData } from "$bindings/telemetry";
 import { nullGeodetic } from "$bindings/spatial";
 
 import { TelemetryService } from "$services/telemetry";
@@ -10,6 +10,7 @@ export class VehicleTelemetry {
     constructor() {
         this.flight = defaultFlightData;
         this.sns = defaultSnsData;
+        this.sensors = defaultSensorsData;
     }
 
     distanceToHome(): number {
@@ -18,11 +19,13 @@ export class VehicleTelemetry {
 
     flight: FlightData
     sns: SnsData
+    sensors: SensorsData
 }
 
 export const vehiclesTelemetry = function () {
     let flightInterval: NodeJS.Timeout;
     let snsInterval: NodeJS.Timeout;
+    let sensorsInterval: NodeJS.Timeout;
 
     const store = writable(new Map<string, VehicleTelemetry>(), (_, update) => {
         flightInterval = setInterval(async () => {
@@ -56,6 +59,22 @@ export const vehiclesTelemetry = function () {
                 }
             }
         }, 1000); // Refresh sns every 1000ms
+
+        sensorsInterval = setInterval(async () => {
+            for (const vehicle of get(onlineVehicles)) {
+                const vehicleID = vehicle.description.id!;
+                let sensorsData = await TelemetryService.getVehicleSensorsData(vehicleID);
+                if (sensorsData) {
+                    update(telemetry => {
+                        if (!telemetry.has(vehicleID)) {
+                            telemetry.set(vehicleID, new VehicleTelemetry())
+                        }
+                        (telemetry.get(vehicleID) as VehicleTelemetry).sensors = sensorsData!;
+                        return telemetry;
+                    });
+                }
+            }
+        }, 500); // Refresh sensors every 500ms
     });
 
     return {
@@ -98,4 +117,13 @@ export const defaultSnsData: SnsData = {
     eph: 0,
     epv: 0,
     satellites_visible: 0
+}
+
+export const defaultSensorsData: SensorsData = {
+    timestamp: 0,
+    sensors: [],
+    arm_ready: false,
+    battery_current: 0,
+    battery_voltage: 0,
+    battery_remaining: 0
 }
