@@ -315,8 +315,8 @@ export class ModelEntity extends BasePointEntity {
             uri: new Cesium.CallbackProperty(() => { return this._model }, false),
             color: new Cesium.CallbackProperty(() => { return this.baseColor() }, false),
             silhouetteColor: new Cesium.CallbackProperty(() => { return this._silhouetteColor }, false),
-            minimumPixelSize: 128,
-            maximumScale: 40000,
+            minimumPixelSize: 196,
+            maximumScale: 80000,
             colorBlendMode: Cesium.ColorBlendMode.REPLACE,
             silhouetteSize: 1
         });

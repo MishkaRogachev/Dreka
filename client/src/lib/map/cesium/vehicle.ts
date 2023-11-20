@@ -8,7 +8,7 @@ import { ModelEntity, PylonEntity, PathEntity } from "./base-entities"
 import * as Cesium from 'cesium';
 
 // @ts-ignore
-import fixedWing from "$assets/3d/fixed_wing.glb"
+import fixedWing from "$assets/3d/art_v1.glb"
 
 export class MapVehicleCesium {
     constructor(cesium: Cesium.Viewer, interaction: MapInteractionCesium) {
