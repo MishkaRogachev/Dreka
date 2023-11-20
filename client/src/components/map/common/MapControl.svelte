@@ -52,7 +52,7 @@ let gridMode: boolean = false;
 let interval: any;
 
 onMount(async () => {
-    // Update UI every 50ms
+    // Update UI every 250ms
     interval = setInterval(() => {
         heading = viewport.heading();
         pixelScale = viewport.pixelScale();
@@ -77,7 +77,7 @@ onMount(async () => {
 
         $userPreferences.set("map/viewport", JSON.stringify(viewport.save()));
         $userPreferences.set("map/imagery_layers", JSON.stringify(layers.imageryLayers()));
-    }, 50);
+    }, 250);
 })
 
 onDestroy(async () => { clearInterval(interval); })

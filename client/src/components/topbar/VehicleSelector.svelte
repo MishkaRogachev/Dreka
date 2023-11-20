@@ -13,7 +13,8 @@ function closeDropdown() {
 </script>
 
 <details id="vehicleSelectorDropdown" class="dropdown dropdown-end" use:clickOutside={closeDropdown}>
-    <summary class="select select-ghost select-sm m-1">
+    <summary class="select select-ghost select-sm m-1 gap-x-2 items-center">
+        <VehicleTypeIcon vehicleType={$selectedVehicle?.description.vehicle_type} color={$selectedVehicle?.description.color || ""}/>
         <a class="grow">{$selectedVehicle ? $selectedVehicle?.description.name || "" : $i18n.t("No vehicle") }</a>
     </summary>
     <ul class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
