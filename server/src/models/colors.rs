@@ -5,11 +5,14 @@ use ts_rs::TS;
 #[ts(export)]
 pub enum EntityColor {
     Slate,
+    Lime,
     Emerald,
     Teal,
     Cyan,
     Sky,
     Blue,
     Indigo,
-    Violet
+    Violet,
+    Fuchsia,
+    Rose
 }

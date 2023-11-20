@@ -318,7 +318,7 @@ export class ModelEntity extends BasePointEntity {
             minimumPixelSize: 128,
             maximumScale: 40000,
             colorBlendMode: Cesium.ColorBlendMode.REPLACE,
-            silhouetteSize: 3
+            silhouetteSize: 1
         });
     }
 

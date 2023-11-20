@@ -105,7 +105,7 @@ impl HeartbeatHandler {
                 id: None,
                 protocol_id: protocol_id,
                 name: format!("New Vehicle (MAV {})", mav_id).into(),
-                color: EntityColor::Emerald,
+                color: EntityColor::Cyan,
                 vehicle_type: VehicleType::Auto,
                 features: Vec::new()
             }).await;
