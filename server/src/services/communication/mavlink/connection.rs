@@ -7,7 +7,7 @@ use crate::datasource::db;
 use crate::models::communication;
 use crate::services::communication::traits;
 
-use super::{telemetry::TelemetryHandler, heartbeat::HeartbeatHandler, context::MavlinkContext};
+use super::{commands::CommandHandler, telemetry::TelemetryHandler, heartbeat::HeartbeatHandler, context::MavlinkContext};
 
 const MAVLINK_POLL_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(5);
 const RESET_STATS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(1000);
@@ -81,9 +81,11 @@ impl traits::IConnection for MavlinkConnection {
         let internal = self.internal.clone();
         let cloned_mav = mav.clone();
 
+        // parse incomming packets
         tokio::task::spawn(async move {
             let mut heartbeat_handler = HeartbeatHandler::new(context.clone());
             let mut telemetry_handler = TelemetryHandler::new(context.clone());
+            let mut command_handler = CommandHandler::new(context.clone());
 
             loop {
                 let now = time::Instant::now();
@@ -105,6 +107,7 @@ impl traits::IConnection for MavlinkConnection {
 
                         heartbeat_handler.handle_message(&header, &msg).await;
                         telemetry_handler.handle_message(&header, &msg).await;
+                        command_handler.handle_message(&header, &msg).await;
                     },
                     Err(mavlink::error::MessageReadError::Io(err)) => {
                         if let std::io::ErrorKind::WouldBlock = err.kind() {
@@ -121,6 +124,7 @@ impl traits::IConnection for MavlinkConnection {
                 }
 
                 if cloned_token.is_cancelled() {
+                    command_handler.done().await;
                     return;
                 }
             }

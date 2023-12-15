@@ -3,6 +3,7 @@ use actix_web::{get, web, Responder, HttpResponse};
 use crate::models::telemetry::{FlightData, SnsData, SensorsData};
 use super::shared::Shared;
 
+// FIXME: replace REST with RPC JSon for telemetry
 #[get("/telemetry/flight/{vehicle_id}")]
 pub async fn get_flight_data(shared: web::Data<Shared>, path: web::Path<String>) -> impl Responder {
     let id = &path.into_inner();
