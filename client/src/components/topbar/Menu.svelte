@@ -26,13 +26,13 @@ function openModal(id: string) {
 <details id="menuDropdown" class="dropdown" use:clickOutside={closeDropdown}>
     <summary class="btn btn-ghost btn-sm rounded-btn m-1">{@html burgerIcon}</summary>
     <ul class="dropdown-content menu z-[1] p-3 shadow bg-base-300 rounded-box my-0">
-        <h4>{ $i18n.t("Main") }</h4>
+        <!-- <h4>{ $i18n.t("Main") }</h4>
         <li class="btn-wide">
             <a on:click={() => {
                 $currentPage = Page.Flight;
                 closeDropdown();
             }}>{@html flightIcon} { $i18n.t("Flight") }</a>
-        </li>
+        </li> -->
         <h4>{ $i18n.t("Configure") }</h4>
         <li class="btn-wide"><a on:click={() => {
             openModal("communication_modal");
@@ -67,6 +67,9 @@ function openModal(id: string) {
                     <option value={localeOption}>{ $i18n.t(localeOption) }</option>
                 {/each}
         </label></li>
-        <!-- <li class="btn-wide"><a on:click={() => {$currentPage = Page.About}}>{@html aboutIcon} { $i18n.t("About") }</a></li> -->
+        <li class="btn-wide"><a on:click={() => {
+            openModal("about_modal");
+            closeDropdown();
+        }}>{@html aboutIcon} { $i18n.t("About") }</a></li>
     </ul>
 </details>

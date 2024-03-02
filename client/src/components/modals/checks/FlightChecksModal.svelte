@@ -64,7 +64,7 @@ onDestroy(async () => { clearInterval(interval); })
     <!-- FILLER -->
     <div class="flex flex-col grow text-center">
     {#if sensors.length === 0}
-        <a class="grow">{ $i18n.t("No sensor available") }</a>
+        <a class="grow">{ $i18n.t("No sensor data available") }</a>
     {:else}
         <div class="grow"/>
     {/if}
@@ -81,8 +81,8 @@ onDestroy(async () => { clearInterval(interval); })
     <div class="form-control grow-0">
         <button class={"btn " + (armed ? "btn-error" : "btn-secondary") } disabled={!$safetyCheck} 
             on:mousedown={() => armPressed = true} on:mouseup={() => armPressed = false} on:mouseleave={() => armPressed = false}>
-            <div class={armPressed ? "radial-progress" : ""} style="--value:{armProgress}; --size:2rem;" role="progressbar" />
-            { armed ? $i18n.t("DISARM VEHICLE (Long press)") : readyToArm ? $i18n.t("ARM VEHICLE (Long press)") : $i18n.t("NOT READY (Long press to arm)") }
+            <div class={armPressed ? "radial-progress absolute left-2" : ""} style="--value:{armProgress}; --size:2rem;" role="progressbar" />
+            { armed ? $i18n.t("DISARM VEHICLE (Long press)") : readyToArm ? $i18n.t("READY TO ARM (Long press to arm)") : $i18n.t("NOT READY (Long press to arm anyway)") }
         </button>
     </div>
 </BaseModal>

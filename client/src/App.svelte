@@ -6,7 +6,7 @@ import FlightChecksModal from '$components/modals/checks/FlightChecksModal.svelt
 
 import CommunicationModal from '$components/modals/communication/CommunicationModal.svelte'
 import VehiclesListModal from '$components/modals/vehicles/VehiclesListModal.svelte';
-import About from '$components/modals/about/AboutModal.svelte';
+import AboutModal from '$components/modals/about/AboutModal.svelte';
 
 import { Page, currentPage } from '$stores/app';
 
@@ -23,5 +23,4 @@ import { Page, currentPage } from '$stores/app';
 <!-- Modals -->
 <CommunicationModal />
 <VehiclesListModal />
-
-<!-- TODO: <About/> -->
+<AboutModal />
