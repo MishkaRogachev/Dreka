@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum GeodeticFrame {
     None,
 
@@ -11,8 +9,7 @@ pub enum GeodeticFrame {
     Wgs84AboveTerrain
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct Geodetic {
     pub latitude: f64,
     pub longitude: f64,

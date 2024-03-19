@@ -158,10 +158,10 @@ impl TelemetryHandler {
         if let Some(vehicle_id) = context.vehicle_id_from_mav_id(&mav_id) {
             flight_data.id = vehicle_id;
 
-            let saved = context.repository.upsert("vehicle_flight_data", &flight_data).await;
-            if let Err(err) = saved {
-                println!("Save vehicle flight data error: {:?}", &err);
-            }
+            // let saved = context.repository.upsert("vehicle_flight_data", &flight_data).await;
+            // if let Err(err) = saved {
+            //     println!("Save vehicle flight data error: {:?}", &err);
+            // }
         }
 
         self.mav_flight_data.insert(mav_id, flight_data);
@@ -180,10 +180,10 @@ impl TelemetryHandler {
         if let Some(vehicle_id) = context.vehicle_id_from_mav_id(&mav_id) {
             sns_data.id = vehicle_id;
 
-            let saved = context.repository.upsert("vehicle_sns_data", &sns_data).await;
-            if let Err(err) = saved {
-                println!("Save vehicle sns data error: {:?}", &err);
-            }
+            // let saved = context.repository.upsert("vehicle_sns_data", &sns_data).await;
+            // if let Err(err) = saved {
+            //     println!("Save vehicle sns data error: {:?}", &err);
+            // }
         }
 
         self.mav_sns_data.insert(mav_id, sns_data);
@@ -202,10 +202,10 @@ impl TelemetryHandler {
         if let Some(vehicle_id) = context.vehicle_id_from_mav_id(&mav_id) {
             sensors_data.id = vehicle_id;
 
-            let saved = context.repository.upsert("vehicle_sensors_data", &sensors_data).await;
-            if let Err(err) = saved {
-                println!("Save vehicle sns data error: {:?}", &err);
-            }
+            // let saved = context.repository.upsert("vehicle_sensors_data", &sensors_data).await;
+            // if let Err(err) = saved {
+            //     println!("Save vehicle sns data error: {:?}", &err);
+            // }
         }
 
         self.mav_sensors_data.insert(mav_id, sensors_data);

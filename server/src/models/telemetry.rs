@@ -1,13 +1,11 @@
 
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
-use super::spatial::Geodetic;
+use super::{spatial::Geodetic, vehicles::VehicleId};
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct FlightData {
-    pub id: String,
+    pub id: VehicleId,
     pub timestamp: i64,
 
     pub pitch: f32,
@@ -29,10 +27,9 @@ pub struct FlightData {
     pub wp_distance: f32,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct SnsData {
-    pub id: String,
+    pub id: VehicleId,
     pub timestamp: i64,
 
     pub position: Geodetic,
@@ -44,8 +41,7 @@ pub struct SnsData {
     pub satellites_visible: u8,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum SensorType {
     Ahrs,
     Accel,
@@ -63,8 +59,7 @@ pub enum SensorType {
     Avoidance
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct SensorData {
     pub name: String,
     pub sensor: SensorType,
@@ -72,10 +67,9 @@ pub struct SensorData {
     pub health: bool,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct SensorsData {
-    pub id: String,
+    pub id: VehicleId,
     pub timestamp: i64,
 
     pub sensors: Vec<SensorData>,
@@ -89,7 +83,7 @@ pub struct SensorsData {
 impl Default for FlightData {
     fn default() -> FlightData {
         Self {
-            id: "".into(),
+            id: VehicleId::new(),
             timestamp: 0,
 
             pitch: 0.0,
@@ -116,7 +110,7 @@ impl Default for FlightData {
 impl Default for SnsData {
     fn default() -> SnsData {
         Self {
-            id: "".into(),
+            id: VehicleId::new(),
             timestamp: 0,
 
             position: Geodetic::default(),
@@ -133,7 +127,7 @@ impl Default for SnsData {
 impl Default for SensorsData {
     fn default() -> SensorsData {
         Self {
-            id: "".into(),
+            id: VehicleId::new(),
             timestamp: 0,
 
             sensors: Vec::new(),

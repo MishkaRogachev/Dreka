@@ -1,14 +1,12 @@
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use ts_rs::TS;
 use tokio::time;
 use uuid::Uuid;
 
 use super::spatial::Geodetic;
 
 #[serde_as]
-#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[derive(Clone)]
 pub enum Command {
     ArmDisarm { arm: bool },
@@ -38,8 +36,7 @@ pub enum Command {
     GoAround {}
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[derive(Clone)]
 pub enum State {
     Initial,
@@ -53,8 +50,7 @@ pub enum State {
     Canceled
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[derive(Clone)]
 pub struct Execution {
     pub id: String,

@@ -39,6 +39,7 @@ function closeDropdown() {
                         return;
                     }
                     const created = await vehicles.saveVehicle({
+                        id: "",
                         name: $i18n.t("New Vehicle") + " (MAV " + mavId + ")",
                         protocol_id: { MavlinkId: { mav_id: mavId } },
                         color: EntityColor.Slate,

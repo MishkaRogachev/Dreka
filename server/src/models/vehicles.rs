@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
 use super::colors::EntityColor;
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+pub type VehicleId = String;
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum VehicleType {
     Unknown,
     Auto,
@@ -15,16 +15,14 @@ pub enum VehicleType {
     Airship
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum VehicleFeatures {
     PetrolEngine,
     Parachute,
     Lidar
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum VehicleState {
     Unknown,
     Init,
@@ -38,17 +36,15 @@ pub enum VehicleState {
     FlightTermination
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum ProtocolId {
     MavlinkId { mav_id: u8 },
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 #[serde_with::skip_serializing_none]
 pub struct VehicleDescription {
-    pub id: Option<String>,
+    pub id: VehicleId,
     pub name: String,
     pub color: EntityColor,
     pub vehicle_type: VehicleType,
@@ -56,19 +52,18 @@ pub struct VehicleDescription {
     pub features: Vec<VehicleFeatures>
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct VehicleStatus {
-    pub id: String,
+    pub id: VehicleId,
     pub last_heartbeat: i64,
     pub state: VehicleState,
     pub armed: bool
 }
 
 impl VehicleStatus {
-    pub fn default_for_id(link_id: &str) -> Self {
+    pub fn default_for_id(vehicle_id: &VehicleId) -> Self {
         Self {
-            id: link_id.into(),
+            id: vehicle_id.clone(),
             last_heartbeat: 0,
             state: VehicleState::Unknown,
             armed: false

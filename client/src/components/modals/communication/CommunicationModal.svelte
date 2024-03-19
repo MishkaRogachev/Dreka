@@ -13,6 +13,7 @@ export let selectedLinkId = ""
 
 const linksForCreation: Array<LinkDescription> = [
     {
+        id: "",
         autoconnect: false,
         name: $i18n.t("New UDP Link"),
         protocol: {
@@ -28,6 +29,7 @@ const linksForCreation: Array<LinkDescription> = [
         }
     },
     {
+        id: "",
         autoconnect: false,
         name: $i18n.t("New TCP Link"),
         protocol: {
@@ -43,6 +45,7 @@ const linksForCreation: Array<LinkDescription> = [
         }
     },
     {
+        id: "",
         autoconnect: false,
         name: $i18n.t("New Serial Link"),
         protocol: {

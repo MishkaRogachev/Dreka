@@ -3,8 +3,7 @@ use tokio::{time, sync::Mutex};
 use tokio_util::sync::CancellationToken;
 use mavlink;
 
-use crate::datasource::db;
-use crate::models::communication;
+use crate::{context::AppContext, models::communication};
 use crate::services::communication::traits;
 
 use super::{commands::CommandHandler, telemetry::TelemetryHandler, heartbeat::HeartbeatHandler, context::MavlinkContext};
@@ -14,7 +13,7 @@ const RESET_STATS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_
 const ONLINE_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(2000);
 
 pub struct MavlinkConnection {
-    repository: Arc<db::Repository>,
+    context: AppContext,
     mav_address: String,
     mav_version: mavlink::MavlinkVersion,
     token: Option<CancellationToken>,
@@ -30,11 +29,9 @@ struct MavlinkConnectionInternal {
 }
 
 impl MavlinkConnection {
-    pub fn new(repository: Arc<db::Repository>,
-            link_type: &communication::LinkType,
-            protocol: &communication::MavlinkProtocolVersion) -> Self {
+    pub fn new(context: AppContext, link_type: &communication::LinkType, protocol: &communication::MavlinkProtocolVersion) -> Self {
         Self {
-            repository, 
+            context,
             mav_address: link_type.to_mavlink(),
             mav_version: protocol.to_mavlink(),
             token: None,
@@ -51,7 +48,7 @@ impl MavlinkConnection {
 
 #[async_trait::async_trait]
 impl traits::IConnection for MavlinkConnection {
-    async fn connect(&mut self) -> Result<bool, traits::ConnectionError> {
+    async fn connect(&mut self) -> anyhow::Result<bool> {
         if let Some(token) = &self.token {
             if !token.is_cancelled() {
                 println!("MAVLink {:?}:{:?} is already connected", &self.mav_address, &self.mav_version);
@@ -61,12 +58,7 @@ impl traits::IConnection for MavlinkConnection {
 
         println!("MAVLink connect to {:?}:{:?}", &self.mav_address, &self.mav_version);
 
-        let connected = mavlink::connect::<mavlink::common::MavMessage>(&self.mav_address);
-        if let Err(err) = connected {
-            return Err(traits::ConnectionError::Io(err));
-        }
-
-        let mut mav_connection = connected.unwrap();
+        let mut mav_connection = mavlink::connect::<mavlink::common::MavMessage>(&self.mav_address)?;
         mav_connection.set_protocol_version(self.mav_version);
 
         let mav = Arc::new(mav_connection);
@@ -77,15 +69,15 @@ impl traits::IConnection for MavlinkConnection {
         self.token = Some(token);
 
         let mut last_stats_reset = time::Instant::now();
-        let context = Arc::new(Mutex::new(MavlinkContext::new(self.repository.clone())));
+        let mav_context = Arc::new(Mutex::new(MavlinkContext::new(self.context.clone())));
         let internal = self.internal.clone();
         let cloned_mav = mav.clone();
 
         // parse incomming packets
         tokio::task::spawn(async move {
-            let mut heartbeat_handler = HeartbeatHandler::new(context.clone());
-            let mut telemetry_handler = TelemetryHandler::new(context.clone());
-            let mut command_handler = CommandHandler::new(context.clone());
+            let mut heartbeat_handler = HeartbeatHandler::new(mav_context.clone());
+            let mut telemetry_handler = TelemetryHandler::new(mav_context.clone());
+            let mut command_handler = CommandHandler::new(mav_context.clone());
 
             loop {
                 let now = time::Instant::now();
@@ -133,7 +125,7 @@ impl traits::IConnection for MavlinkConnection {
         Ok(true)
     }
 
-    async fn disconnect(&mut self) -> Result<bool, traits::ConnectionError> {
+    async fn disconnect(&mut self) -> anyhow::Result<bool> {
         if let Some(token) = &self.token {
             if !token.is_cancelled() {
                 println!("MAVLink disconnect from {:?}:{:?}", &self.mav_address, &self.mav_version);

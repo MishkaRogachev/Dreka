@@ -1,41 +1,37 @@
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+pub type LinkId = String;
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum LinkType {
     Udp { address: String, port: u16 },
     Tcp { address: String, port: u16 },
     Serial { port: String, baud_rate: usize }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum MavlinkProtocolVersion {
     MavlinkV1,
     MavlinkV2
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum LinkProtocol {
     Mavlink { link_type: LinkType, protocol_version: MavlinkProtocolVersion },
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 #[serde_with::skip_serializing_none]
 pub struct LinkDescription {
-    pub id: Option<String>,
+    pub id: LinkId,
     pub protocol: LinkProtocol,
     pub name: String,
     pub autoconnect: bool
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct LinkStatus {
-    pub id: String,
+    pub id: LinkId,
     pub is_connected: bool,
     pub is_online: bool,
     pub bytes_received: usize,

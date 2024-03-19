@@ -1,10 +1,6 @@
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
-use super::commands::Execution;
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[derive(Clone)]
 pub enum ClentEvent {
     // Communication service events

@@ -1,25 +1,25 @@
-mod datasource;
+mod persistence;
 mod models;
 mod services;
 mod api;
+mod context;
 
-use std::sync::Arc;
 use std::net;
+use tokio::sync::broadcast::channel;
 
 const DEFAULT_REST_ADDRESS: net::SocketAddr = net::SocketAddr::new(net::IpAddr::V4(net::Ipv4Addr::new(127, 0, 0, 1)), 45486);
+const CHANNEL_CAPACITY: usize = 100;
 
-pub async fn start() -> std::io::Result<()> {
+pub async fn start() -> anyhow::Result<()> {
     println!("Starting Brygge server..");
 
-    let repository = datasource::db::Repository::new().await
-        .expect("Error establishing a database connection");
-    let repository = Arc::new(repository);
+    let db = surrealdb::Surreal::new::<surrealdb::engine::local::Mem>(()).await?;
+    db.use_ns("dreka").use_db("dreka").await?;
 
-    let (tx, rx) = tokio::sync::broadcast::channel::<models::events::ClentEvent>(100);
+    let (tx, rx) = channel::<models::events::ClentEvent>(CHANNEL_CAPACITY);
+    let context = context::AppContext::new(db, tx);
 
-    let mut comm_service = services::communication::service::Service::new(repository.clone(), rx);
-
-    let shared = api::shared::Shared::new(repository, tx);
+    let mut comm_service = services::communication::service::Service::new(context.clone(), rx);
 
     tokio::select! {
         result = comm_service.start() => {
@@ -28,7 +28,7 @@ pub async fn start() -> std::io::Result<()> {
                 Err(err) => println!("Communication service start error: {}", err),
             }
         }
-        _ = api::routes::serve(shared, &DEFAULT_REST_ADDRESS) => {}
+        _ = api::routes::serve(context, &DEFAULT_REST_ADDRESS) => {}
         _ = tokio::signal::ctrl_c() => {}
     }
     Ok(())

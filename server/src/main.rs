@@ -1,5 +1,5 @@
 
 #[tokio::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> anyhow::Result<()> {
     return brygge::start().await;
 }

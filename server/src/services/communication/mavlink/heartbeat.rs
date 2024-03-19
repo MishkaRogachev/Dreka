@@ -3,7 +3,7 @@ use tokio::sync::Mutex;
 
 use mavlink::{MavHeader, common::{MavMessage, MavType, MavState, MavModeFlag}};
 
-use crate::models::{vehicles::{VehicleStatus, VehicleType, VehicleState, VehicleDescription, ProtocolId}, colors::EntityColor};
+use crate::models::{colors::EntityColor, vehicles::{ProtocolId, VehicleDescription, VehicleId, VehicleState, VehicleStatus, VehicleType}};
 use super::context::MavlinkContext;
 
 impl VehicleType {
@@ -57,7 +57,7 @@ impl HeartbeatHandler {
                 // Chanage type if auto
                 if vehicle.vehicle_type == VehicleType::Auto {
                     vehicle.vehicle_type = VehicleType::from_mavlink(heartbeat_data.mavtype);
-                    let saved = context.repository.upsert("vehicle_descriptions", &vehicle).await;
+                    let saved = context.vehicles.save_vehicle(&vehicle).await;
                     if let Err(err) = saved {
                         println!("Save vehicle description error: {:?}", &err);
                     }
@@ -65,12 +65,12 @@ impl HeartbeatHandler {
 
                 // Save vehicle status
                 let status = VehicleStatus {
-                    id: vehicle.id.unwrap(),
+                    id: vehicle.id,
                     last_heartbeat: chrono::prelude::Utc::now().timestamp_millis(),
                     state: VehicleState::from_mavlink(heartbeat_data.system_status),
                     armed: heartbeat_data.base_mode.intersects(MavModeFlag::MAV_MODE_FLAG_SAFETY_ARMED)
                 };
-                let saved = context.repository.upsert("vehicle_statuses", &status).await;
+                let saved = context.vehicles.update_status(&status).await;
                 if let Err(err) = saved {
                     println!("Save vehicle status error: {:?}", &err);
                 }
@@ -85,24 +85,25 @@ impl HeartbeatHandler {
         let mut context = self.context.lock().await;
 
         let protocol_id = ProtocolId::MavlinkId { mav_id: mav_id };
-        match context.repository.read_where::<VehicleDescription, ProtocolId>(
-            "vehicle_descriptions", "protocol_id", &protocol_id).await {
-            Ok(vehicle) => {
-                context.mav_vehicles.insert(mav_id, vehicle.clone());
-                return Some(vehicle);
-            },
-            Err(err) => {
-                if let crate::datasource::db::DbError::NoData = err {
-                    // skip & create instead
-                } else {
-                    println!("Read vehicle error : {}", &err);
-                }
-            }
-        }
+        // TODO: get vehicle by protocol id
+        // match context.repository.read_where::<VehicleDescription, ProtocolId>(
+        //     "vehicle_descriptions", "protocol_id", &protocol_id).await {
+        //     Ok(vehicle) => {
+        //         context.mav_vehicles.insert(mav_id, vehicle.clone());
+        //         return Some(vehicle);
+        //     },
+        //     Err(err) => {
+        //         if let crate::datasource::db::DbError::NoData = err {
+        //             // skip & create instead
+        //         } else {
+        //             println!("Read vehicle error : {}", &err);
+        //         }
+        //     }
+        // }
 
         if context.auto_add_vehicles {
-            let result = context.repository.create("vehicles", &VehicleDescription {
-                id: None,
+            let result = context.vehicles.save_vehicle(&VehicleDescription {
+                id: String::new(),
                 protocol_id: protocol_id,
                 name: format!("New Vehicle (MAV {})", mav_id).into(),
                 color: EntityColor::Cyan,

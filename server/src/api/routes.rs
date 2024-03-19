@@ -2,14 +2,14 @@ use std::net::SocketAddr;
 use actix_cors::Cors;
 use actix_web::{get, App, HttpServer, web::Data, Responder, HttpResponse};
 
-use super::shared::Shared;
+use crate::context::AppContext;
 
 #[get("/")]
 async fn ping() -> impl Responder {
     HttpResponse::Ok().json("ok")
 }
 
-pub async fn serve(shared: Shared, address: &SocketAddr) -> std::io::Result<()> {
+pub async fn serve(context: AppContext, address: &SocketAddr) -> anyhow::Result<()> {
     let result = HttpServer::new(move || {
         let cors = Cors::permissive();
         App::new()
@@ -28,12 +28,13 @@ pub async fn serve(shared: Shared, address: &SocketAddr) -> std::io::Result<()> 
             .service(super::vehicles::get_statuses)
             .service(super::vehicles::post_vehicle)
             .service(super::vehicles::delete_vehicle)
-            .service(super::telemetry::get_flight_data)
-            .service(super::telemetry::get_sns_data)
-            .service(super::telemetry::get_sensors_data)
-            .app_data(Data::new(shared.clone()))
+            // .service(super::telemetry::get_flight_data)
+            // .service(super::telemetry::get_sns_data)
+            // .service(super::telemetry::get_sensors_data)
+            .app_data(Data::new(context.clone()))
     }).bind(address)?.run();
 
     println!("Listening REST on {}", address);
-    return result.await;
+    result.await?;
+    Ok(())
 }

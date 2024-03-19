@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, TS)]
-#[ts(export)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum EntityColor {
     Slate,
     Lime,

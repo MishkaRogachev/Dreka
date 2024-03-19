@@ -1,47 +1,65 @@
-use std::{sync::Arc, collections::HashMap};
+use std::collections::HashMap;
 use tokio::{sync::broadcast, time};
 
-use crate::{datasource::db, models::{self, communication::{self, LinkDescription, LinkStatus}, events::ClentEvent}};
-use super::{default_links::create_dafault_links, traits, mavlink::connection::MavlinkConnection};
+use crate::context::AppContext;
+use crate::models::communication::{LinkId, LinkDescription, LinkStatus, LinkProtocol, LinkType, MavlinkProtocolVersion};
+use crate::models::events::ClentEvent;
+use super::{traits, mavlink::connection::MavlinkConnection};
 
-type LickConnection = Box<dyn traits::IConnection + Send + Sync>;
-type LinkConnections = HashMap<String, LickConnection>;
+type LinkConnection = Box<dyn traits::IConnection + Send + Sync>;
+type LinkConnections = HashMap<LinkId, LinkConnection>;
 
 const CHECK_CONNECTIONS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(100);
 
 pub struct Service {
-    repository: Arc<db::Repository>,
-    rx: broadcast::Receiver<models::events::ClentEvent>,
+    context: AppContext,
+    rx: broadcast::Receiver<ClentEvent>,
     link_connections: LinkConnections
 }
 
-#[derive(Debug)]
-pub enum ServiceError {
-    Db(db::DbError),
-    Connection(traits::ConnectionError),
+fn dafault_links() -> Vec<LinkDescription> {
+    vec!(LinkDescription {
+        id: "default_udp_link".into(),
+        name: "Default Mavlink UDP".into(),
+        protocol: LinkProtocol::Mavlink {
+            link_type: LinkType::Udp {
+                address: String::from("127.0.0.1"),
+                port: 14550
+            },
+            protocol_version: MavlinkProtocolVersion::MavlinkV2
+        },
+        autoconnect: false
+    },
+    LinkDescription {
+        id: "default_tcp_link".into(),
+        name: "Default Mavlink TCP".into(),
+        protocol: LinkProtocol::Mavlink {
+            link_type: LinkType::Tcp {
+                address: String::from("127.0.0.1"),
+                port: 5760
+            },
+            protocol_version: MavlinkProtocolVersion::MavlinkV2
+        },
+        autoconnect: true
+    })
 }
 
 impl Service {
-    pub fn new(repository: Arc<db::Repository>, rx: broadcast::Receiver<models::events::ClentEvent>) -> Self {
-        Self { repository, rx, link_connections: LinkConnections::new() }
+    pub fn new(context: AppContext, rx: broadcast::Receiver<ClentEvent>) -> Self {
+        Self { context, rx, link_connections: LinkConnections::new() }
     }
 
-    pub async fn start(&mut self) -> Result<(), ServiceError> {
+    pub async fn start(&mut self) -> anyhow::Result<()> {
         // Load all links
         let links = self.load_links().await?;
 
         for link in links {
-            let link_id = link.id.clone().expect("Link must have an id");
-            // Default status on start
-            let status = LinkStatus::default_for_id(&link_id);
-            let result = self.repository.upsert("link_statuses", &status).await;
-            if let Err(err) = result {
-                return Err(ServiceError::Db(err));
-            }
+            // Invalidate statuses
+            self.context.communication.update_status(&LinkStatus::default_for_id(&link.id)).await?;
 
-            // Autoconect specified one
+            // Autoconect specified ones
             if link.autoconnect {
-                let result = self.connect_link(&link_id).await;
+                let result = self.connect_link(&link.id).await;
                 if let Err(err) = result {
                     println!("Autoconnect link event error: {}", err);
                 }
@@ -83,10 +101,7 @@ impl Service {
                     status = LinkStatus::default_for_id(&link_id);
                 }
 
-                let result = self.repository.upsert("link_statuses", &status).await;
-                if let Err(err) = result {
-                    println!("Link update status error: {}", err);
-                }
+                self.context.communication.update_status(&status).await?;
             }
 
             // Remove faulted connections
@@ -96,67 +111,49 @@ impl Service {
         }
     }
 
-    async fn load_links(&self) -> Result<Vec<LinkDescription>, ServiceError> {
-        let mut links: Vec<LinkDescription>;
+    async fn load_links(&self) -> anyhow::Result<Vec<LinkDescription>> {
+        let mut links = self.context.communication.all_links().await?;
 
-        match self.repository.read_all::<communication::LinkDescription>("link_descriptions").await {
-            Ok(read_links) => links = read_links,
-            Err(err) => return Err(ServiceError::Db(err)),
-        }
-
-        if links.len() < 1 {
-            match create_dafault_links(&self.repository).await {
-                Ok(default_links) => links = default_links,
-                Err(err) => return Err(ServiceError::Db(err)),
+        if links.is_empty() {
+            for link in dafault_links().iter() {
+                let link = self.context.communication.save_link(link).await?;
+                links.push(link);
             }
         }
         Ok(links)
     }
     
-    async fn connect_link(&mut self, link_id: &str) -> Result<(), ServiceError> {
+    async fn connect_link(&mut self, link_id: &LinkId) -> anyhow::Result<()> {
         if self.link_connections.contains_key(link_id) {
             println!("Link is already connected {}", link_id);
             return Ok(());
         }
 
-        let link = self.repository.read("link_descriptions", link_id).await;
-        if let Err(err) = link {
-            return Err(ServiceError::Db(err));
-        }
-        let mut connection = create_connection(self.repository.clone(),&link.unwrap());
-        if let Err(err) = connection.connect().await {
-            return Err(ServiceError::Connection(err));
-        }
+        let link = self.context.communication.link(link_id).await?;
+        let mut connection = create_connection(self.context.clone(), &link)?;
+        connection.connect().await?;
 
         let status = create_connection_status(&link_id, &connection).await;
-        let result = self.repository.upsert("link_statuses", &status).await;
-        if let Err(err) = result {
-            return Err(ServiceError::Db(err));
-        }
+        self.context.communication.update_status(&status).await?;
         self.link_connections.insert(link_id.to_string(), connection);
         Ok(())
     }
 
-    async fn disconnect_link(&mut self, link_id: &str) -> Result<(), ServiceError> {
+    async fn disconnect_link(&mut self, link_id: &str) -> anyhow::Result<()> {
         if !self.link_connections.contains_key(link_id) {
             println!("No connection found for link {}", link_id);
             return Ok(());
         }
         
         let mut connection = self.link_connections.remove(link_id).unwrap();
-        if let Err(err) = connection.disconnect().await {
-            return Err(ServiceError::Connection(err))
-        }
+        connection.disconnect().await?;
 
         let status = LinkStatus::default_for_id(&link_id);
-        let result = self.repository.upsert("link_statuses", &status).await;
-        if let Err(err) = result {
-            return Err(ServiceError::Db(err));
-        }
+        self.context.communication.update_status(&status).await?;
         Ok(())
     }
 
-    async fn handle_event(&mut self, event: models::events::ClentEvent) -> Result<(), ServiceError> {
+    async fn handle_event(&mut self, event: ClentEvent) -> anyhow::Result<()> {
         match event {
             ClentEvent::SetLinkConnected { link_id, connected } => {
                 if connected {
@@ -169,30 +166,21 @@ impl Service {
     }
 }
 
-fn create_connection(repository: Arc<db::Repository>, link: &communication::LinkDescription) -> LickConnection {
+fn create_connection(context: AppContext, link: &LinkDescription) -> anyhow::Result<LinkConnection> {
     match &link.protocol {
-        communication::LinkProtocol::Mavlink { link_type, protocol_version } => {
-            Box::new(MavlinkConnection::new(repository, link_type, protocol_version))
+        LinkProtocol::Mavlink { link_type, protocol_version } => {
+            Ok(Box::new(MavlinkConnection::new(context, link_type, protocol_version)))
         },
         // NOTE: other protocols should be handled here
     }
 }
 
-async fn create_connection_status(link_id: &str, connection: &LickConnection) -> communication::LinkStatus {
-    communication::LinkStatus {
+async fn create_connection_status(link_id: &str, connection: &LinkConnection) -> LinkStatus {
+    LinkStatus {
         id: link_id.into(),
         is_connected: true, // NOTE: connection.is_connected may be wrong in this context
         is_online: connection.is_online().await,
         bytes_received: connection.bytes_received().await,
         bytes_sent: connection.bytes_sent().await,
-    }
-}
-
-impl std::fmt::Display for ServiceError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            ServiceError::Db(err) => write!(f, "{}", err),
-            ServiceError::Connection(err) => write!(f, "{}", err),
-        }
     }
 }
