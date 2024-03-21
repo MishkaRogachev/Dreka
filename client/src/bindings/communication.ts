@@ -30,6 +30,7 @@ export interface LinkDescription {
 
 export interface LinkStatus {
     id: string,
+    is_enabled: boolean,
     is_connected: boolean,
     is_online: boolean,
     bytes_received: number,

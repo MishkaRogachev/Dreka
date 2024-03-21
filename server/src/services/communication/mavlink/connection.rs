@@ -107,8 +107,13 @@ impl traits::IConnection for MavlinkConnection {
                             tokio::time::sleep(MAVLINK_POLL_INTERVAL).await;
                             continue;
                         } else {
-                            println!("Got mavlink error: {:?}", &err);
                             cloned_token.cancel();
+                            let mut lock = internal.lock().await;
+                            lock.bytes_received_sec = 0;
+                            lock.bytes_sent_sec = 0;
+                            lock.bytes_received_current = 0;
+                            lock.bytes_sent_current = 0;
+                            println!("Got mavlink error: {:?}", &err);
                             break;
                         }
                     },
@@ -139,7 +144,7 @@ impl traits::IConnection for MavlinkConnection {
         return Ok(false);
     }
 
-    async fn is_healthy(&self) -> bool {
+    async fn is_connected(&self) -> bool {
         if let Some(token) = &self.token {
             if !token.is_cancelled() {
                 return true;

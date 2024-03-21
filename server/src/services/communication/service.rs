@@ -9,7 +9,7 @@ use super::{traits, mavlink::connection::MavlinkConnection};
 type LinkConnection = Box<dyn traits::IConnection + Send + Sync>;
 type LinkConnections = HashMap<LinkId, LinkConnection>;
 
-const CHECK_CONNECTIONS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(100);
+const CHECK_CONNECTIONS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(250);
 
 pub struct Service {
     context: AppContext,
@@ -59,9 +59,9 @@ impl Service {
 
             // Autoconect specified ones
             if link.autoconnect {
-                let result = self.connect_link(&link.id).await;
+                let result = self.enable_link(&link.id).await;
                 if let Err(err) = result {
-                    println!("Autoconnect link event error: {}", err);
+                    println!("Autoconnect link error: {}", err);
                 }
             }
         }
@@ -75,9 +75,9 @@ impl Service {
             // Listen requests from client
             match self.rx.try_recv() {
                 Ok(event) => {
-                    let result = self.handle_event(event).await;
+                    let result = self.handle_client_event(event).await;
                     if let Err(err) = result {
-                        println!("handle event error: {}", err);
+                        println!("Handle event error: {}", err);
                     }
                 },
                 Err(err) => {
@@ -87,26 +87,17 @@ impl Service {
                 }
             }
 
-            let mut links_to_disconnect = Vec::new();
-            // Collect link statistics
             for (link_id, connection) in self.link_connections.iter_mut() {
-                let status: LinkStatus;
-                if connection.is_healthy().await {
-                    status = create_connection_status(link_id, connection).await;
-                } else {
-                    if let Err(err) = connection.disconnect().await {
-                        println!("Error disconnecting link: {}", err);
+                let status = collect_connection_status(link_id, connection).await;
+                if !status.is_connected {
+                    if let Err(err) = connection.connect().await {
+                        println!("Connect link error: {}", err);
                     }
-                    links_to_disconnect.push(link_id.to_owned());
-                    status = LinkStatus::default_for_id(&link_id);
                 }
 
-                self.context.communication.update_status(&status).await?;
-            }
-
-            // Remove faulted connections
-            for link_id in links_to_disconnect {
-                self.link_connections.remove(&link_id);
+                if let Err(err) = self.context.communication.update_status(&status).await {
+                    println!("Update status error: {}", err);
+                }
             }
         }
     }
@@ -122,44 +113,44 @@ impl Service {
         }
         Ok(links)
     }
-    
-    async fn connect_link(&mut self, link_id: &LinkId) -> anyhow::Result<()> {
+
+    async fn enable_link(&mut self, link_id: &LinkId) -> anyhow::Result<()> {
         if self.link_connections.contains_key(link_id) {
-            println!("Link is already connected {}", link_id);
+            println!("Link is already enabled {}", link_id);
             return Ok(());
         }
 
         let link = self.context.communication.link(link_id).await?;
         let mut connection = create_connection(self.context.clone(), &link)?;
-        connection.connect().await?;
+        if let Err(err) = connection.connect().await {
+            println!("Error enabling link: {}", err);
+        }
 
-        let status = create_connection_status(&link_id, &connection).await;
+        let status = collect_connection_status(&link_id, &connection).await;
         self.context.communication.update_status(&status).await?;
         self.link_connections.insert(link_id.to_string(), connection);
         Ok(())
     }
 
-    async fn disconnect_link(&mut self, link_id: &str) -> anyhow::Result<()> {
+    async fn disable_link(&mut self, link_id: &str) -> anyhow::Result<()> {
         if !self.link_connections.contains_key(link_id) {
             println!("No connection found for link {}", link_id);
             return Ok(());
         }
-        
+
         let mut connection = self.link_connections.remove(link_id).unwrap();
         connection.disconnect().await?;
-
-        let status = LinkStatus::default_for_id(&link_id);
-        self.context.communication.update_status(&status).await?;
+        self.context.communication.update_status(&LinkStatus::default_for_id(&link_id)).await?;
         Ok(())
     }
 
-    async fn handle_event(&mut self, event: ClentEvent) -> anyhow::Result<()> {
+    async fn handle_client_event(&mut self, event: ClentEvent) -> anyhow::Result<()> {
         match event {
-            ClentEvent::SetLinkConnected { link_id, connected } => {
+            ClentEvent::SetLinkEnabled { link_id, connected } => {
                 if connected {
-                    return self.connect_link(&link_id).await;
+                    return self.enable_link(&link_id).await;
                 } else {
-                    return self.disconnect_link(&link_id).await;
+                    return self.disable_link(&link_id).await;
                 }
             }
         }
@@ -175,10 +166,11 @@ fn create_connection(context: AppContext, link: &LinkDescription) -> anyhow::Res
     }
 }
 
-async fn create_connection_status(link_id: &str, connection: &LinkConnection) -> LinkStatus {
+async fn collect_connection_status(link_id: &str, connection: &LinkConnection) -> LinkStatus {
     LinkStatus {
         id: link_id.into(),
-        is_connected: true, // NOTE: connection.is_connected may be wrong in this context
+        is_enabled: true,
+        is_connected: connection.is_connected().await,
         is_online: connection.is_online().await,
         bytes_received: connection.bytes_received().await,
         bytes_sent: connection.bytes_sent().await,

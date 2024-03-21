@@ -4,5 +4,5 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone)]
 pub enum ClentEvent {
     // Communication service events
-    SetLinkConnected { link_id: String, connected: bool },
+    SetLinkEnabled { link_id: String, connected: bool },
 }

@@ -90,8 +90,8 @@ export const links = function () {
                 })
             }
         },
-        setLinkConnected: async (linkId: string, connected: boolean) => {
-            await CommunicationService.setLinkConnected(linkId, connected);
+        setLinkEnabled: async (linkId: string, connected: boolean) => {
+            await CommunicationService.setLinkEnabled(linkId, connected);
         },
         kill: () => {
             clearInterval(descriptionInterval);

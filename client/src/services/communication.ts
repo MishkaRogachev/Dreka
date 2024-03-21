@@ -30,7 +30,7 @@ export class CommunicationService {
         return await send_request("/comm/links/remove/" + linkId, { method: "DELETE" }) || null;
     }
 
-    static async setLinkConnected(linkId: string, connected: boolean) {
+    static async setLinkEnabled(linkId: string, connected: boolean) {
         await send_request("/comm/links/set_connected/" + linkId, {
             method: "PUT",
             body: JSON.stringify(connected),

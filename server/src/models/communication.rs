@@ -32,6 +32,7 @@ pub struct LinkDescription {
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct LinkStatus {
     pub id: LinkId,
+    pub is_enabled: bool,
     pub is_connected: bool,
     pub is_online: bool,
     pub bytes_received: usize,
@@ -42,6 +43,7 @@ impl LinkStatus {
     pub fn default_for_id(link_id: &str) -> Self {
         Self {
             id: link_id.into(),
+            is_enabled: false,
             is_connected: false,
             is_online: false,
             bytes_received: 0,

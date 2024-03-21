@@ -32,19 +32,19 @@ afterUpdate(async () => {
     <div class="collapse-title flex flex-row gap-4">
         <div class="indicator w-full">
             <span class={"indicator-item badge badge-xs indicator-start indicator-middle " +
-                (link.status && link.status?.is_connected ? link.status?.is_online ? "bg-success" : "bg-warning" : "bg-neutral-content")} >
+                (link.status?.is_enabled ? link.status?.is_connected ? link.status?.is_online ? "bg-success" : "bg-warning": "bg-error" : "bg-neutral-content")} >
             </span>
             <h1 class="font-medium ml-8 my-2 btn-wide text-left">{link.description.name}</h1>
             <ConnectionChart status={link.status} />
         </div>
         <div class="join btn-sm p-0 z-[1]">
-            <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ link.status?.is_connected || changed }
-                on:click={() => { links.setLinkConnected(link.description.id || "", true) }}>
-                { $i18n.t("Connect") }
+            <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ link.status?.is_enabled || changed }
+                on:click={() => { links.setLinkEnabled(link.description.id || "", true) }}>
+                { $i18n.t("Enable") }
             </button>
-            <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ !link.status?.is_connected }
-                on:click={() => { links.setLinkConnected(link.description.id || "", false) }}>
-                { $i18n.t("Disconnect") }
+            <button class="btn btn-sm btn-ghost px-1 join-item" disabled={ !link.status?.is_enabled }
+                on:click={() => { links.setLinkEnabled(link.description.id || "", false) }}>
+                { $i18n.t("Disable") }
             </button>
         </div>
     </div>
@@ -57,12 +57,12 @@ afterUpdate(async () => {
 
             <!-- Protocol -->
             {#if descriptionCopy.protocol.Mavlink}
-                <MavlinkEdit bind:protocol={descriptionCopy.protocol.Mavlink} disabled={ link.status?.is_connected == true }/>
+                <MavlinkEdit bind:protocol={descriptionCopy.protocol.Mavlink} disabled={ link.status?.is_enabled == true }/>
             {/if}
         </div>
 
         <div class="w-full btn-sm mt-4 flex">
-            <button disabled={link.status?.is_connected} class="btn btn-sm btn-wide btn-secondary btn-outline px-1 ml-2"
+            <button disabled={link.status?.is_enabled} class="btn btn-sm btn-wide btn-secondary btn-outline px-1 ml-2"
                 on:click={() => { links.removeLink(link.description.id || "") }}>
                 { $i18n.t("Remove") }
             </button>
