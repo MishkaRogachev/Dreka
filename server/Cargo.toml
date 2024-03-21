@@ -17,6 +17,8 @@ serde_with = { version = "3.3.0", features = ["json"] }
 chrono = "0.4.31"
 uuid = { version = "1.6.1", features = ["v4", "serde"] }
 anyhow = "1.0.80"
+fern = { version = "0.6.2", features = ["colored"] }
+log = "0.4.21"
 
 [dev-dependencies]
 test-case = "*"

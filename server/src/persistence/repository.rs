@@ -129,7 +129,6 @@ where T: serde::ser::Serialize + ?Sized + for<'de> serde::Deserialize<'de> + std
             .bind((TB, &self.table)).await?;
         let jsons: Vec<serde_json::Value> = response.take(0)?;
         let ids = jsons.into_iter().filter_map(|json| {
-            println!("{:?}", json);
             if let Some(id) = json[ID][ID][STRING].as_str() {
                 Some(id.to_owned())
             } else {

@@ -5,7 +5,7 @@ extern crate brygge;
 
 #[tokio::main]
 async fn main() {
-    println!("Starting Dreka client");
+    log::info!("Starting Dreka client");
 
     tauri::Builder::default()
         .setup(|app| {
@@ -14,7 +14,7 @@ async fn main() {
                 // Start server in separate process
                 let response = brygge::start().await;
                 if let Err(err) = response {
-                    println!("Server: error: {}", err)
+                    log::error!("Server: error: {}", err)
                 }
             });
 

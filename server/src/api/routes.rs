@@ -34,7 +34,7 @@ pub async fn serve(context: AppContext, address: &SocketAddr) -> anyhow::Result<
             .app_data(Data::new(context.clone()))
     }).bind(address)?.run();
 
-    println!("Listening REST on {}", address);
+    log::info!("Listening REST on {}", address);
     result.await?;
     Ok(())
 }

@@ -11,7 +11,7 @@ pub async fn get_description(context: web::Data<AppContext>, path: web::Path<Str
     match result {
         Ok(vehicle) => return HttpResponse::Ok().json(vehicle),
         Err(err) => {
-            println!("REST error: {}", &err); // TODO: add path here
+            log::warn!("REST error: {}", &err); // TODO: add path here
             HttpResponse::InternalServerError().json(err.to_string())
         }
     }
@@ -24,7 +24,7 @@ pub async fn get_descriptions(context: web::Data<AppContext>) -> impl Responder 
     match result {
         Ok(vehicles) => return HttpResponse::Ok().json(vehicles),
         Err(err) => {
-            println!("REST error: {}", &err); // TODO: add path here
+            log::warn!("REST error: {}", &err); // TODO: add path here
             HttpResponse::InternalServerError().json(err.to_string())
         }
     }
@@ -38,7 +38,7 @@ pub async fn get_status(context: web::Data<AppContext>, path: web::Path<String>)
     match result {
         Ok(status) => return HttpResponse::Ok().json(status),
         Err(err) => {
-            println!("REST error: {}", &err); // TODO: add path here
+            log::warn!("REST error: {}", &err); // TODO: add path here
             return HttpResponse::InternalServerError().json(err.to_string())
         }
     }
@@ -51,7 +51,7 @@ pub async fn get_statuses(context: web::Data<AppContext>) -> impl Responder {
     match result {
         Ok(statuses) => return HttpResponse::Ok().json(statuses),
         Err(err) => {
-            println!("REST error: {}", &err); // TODO: add path here
+            log::warn!("REST error: {}", &err); // TODO: add path here
             HttpResponse::InternalServerError().json(err.to_string())
         }
     }
@@ -65,7 +65,7 @@ pub async fn post_vehicle(context: web::Data<AppContext>, vehicle: web::Json<Veh
     match result {
         Ok(vehicle) => HttpResponse::Ok().json(vehicle),
         Err(err) => {
-            println!("REST error: {}", &err); // TODO: add path here
+            log::warn!("REST error: {}", &err); // TODO: add path here
             HttpResponse::InternalServerError().json(err.to_string())
         }
     }
@@ -77,7 +77,7 @@ pub async fn delete_vehicle(context: web::Data<AppContext>, path: web::Path<Stri
 
     let result = context.vehicles.delete_vehicle(&vehicle_id).await;
     if let Err(err) = result {
-        println!("REST error: {}", &err); // TODO: add path here
+        log::warn!("REST error: {}", &err); // TODO: add path here
         return HttpResponse::InternalServerError().json(err.to_string())
     }
     HttpResponse::Ok().json(vehicle_id)

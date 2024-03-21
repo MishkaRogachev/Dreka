@@ -11,7 +11,7 @@ pub async fn get_description(context: web::Data<AppContext>, path: web::Path<Str
     match result {
         Ok(link) => return HttpResponse::Ok().json(link),
         Err(err) => {
-            println!("REST error: {}", &err); // TODO: add path here
+            log::warn!("REST error: {}", &err); // TODO: add path here
             HttpResponse::InternalServerError().json(err.to_string())
         }
     }
@@ -24,7 +24,7 @@ pub async fn get_descriptions(context: web::Data<AppContext>) -> impl Responder 
     match result {
         Ok(links) => return HttpResponse::Ok().json(links),
         Err(err) => {
-            println!("REST error: {}", &err); // TODO: add path here
+            log::warn!("REST error: {}", &err); // TODO: add path here
             HttpResponse::InternalServerError().json(err.to_string())
         }
     }
@@ -40,7 +40,7 @@ pub async fn get_status(context: web::Data<AppContext>, path: web::Path<String>)
             return HttpResponse::Ok().json(status);
         },
         Err(err) => {
-            println!("REST error: {}", &err); // TODO: add path here
+            log::warn!("REST error: {}", &err); // TODO: add path here
             return HttpResponse::InternalServerError().json(err.to_string())
         }
     }
@@ -53,7 +53,7 @@ pub async fn get_statuses(context: web::Data<AppContext>) -> impl Responder {
     match result {
         Ok(statuses) => return HttpResponse::Ok().json(statuses),
         Err(err) => {
-            println!("REST error: {}", &err); // TODO: add path here
+            log::warn!("REST error: {}", &err); // TODO: add path here
             HttpResponse::InternalServerError().json(err.to_string())
         }
     }
@@ -69,7 +69,7 @@ pub async fn post_link(context: web::Data<AppContext>, link: web::Json<LinkDescr
             HttpResponse::Ok().json(link)
         },
         Err(err) => {
-            println!("REST error: {}", &err); // TODO: add path here
+            log::warn!("REST error: {}", &err); // TODO: add path here
             HttpResponse::InternalServerError().json(err.to_string())
         }
     }
@@ -81,7 +81,7 @@ pub async fn delete_link(context: web::Data<AppContext>, path: web::Path<String>
     let result = context.communication.delete_link(&link_id).await;
 
     if let Err(err) = result {
-        println!("REST error: {}", &err); // TODO: add path here
+        log::warn!("REST error: {}", &err); // TODO: add path here
         return HttpResponse::InternalServerError().json(err.to_string())
     }
     HttpResponse::Ok().json(link_id)

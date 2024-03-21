@@ -54,7 +54,7 @@ impl HeartbeatHandler {
         if let MavMessage::HEARTBEAT(heartbeat_data) = msg {
             let vehicle = self.obtain_vehicle(header.system_id).await;
             if let Err(err) = vehicle {
-                println!("Obtain vehicle error: {:?}", &err);
+                log::error!("Obtain vehicle error: {:?}", &err);
                 return;
             }
 
@@ -66,7 +66,7 @@ impl HeartbeatHandler {
                         vehicle.vehicle_type = VehicleType::from_mavlink(heartbeat_data.mavtype);
                         let saved = context.vehicles.save_vehicle(&vehicle).await;
                         if let Err(err) = saved {
-                            println!("Save vehicle description error: {:?}", &err);
+                            log::error!("Save vehicle description error: {:?}", &err);
                         }
                     }
 
@@ -79,7 +79,7 @@ impl HeartbeatHandler {
                     };
                     let saved = context.vehicles.update_status(&status).await;
                     if let Err(err) = saved {
-                        println!("Save vehicle status error: {:?}", &err);
+                        log::error!("Save vehicle status error: {:?}", &err);
                     }
 
                     // TODO: vehicle modes

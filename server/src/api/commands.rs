@@ -16,7 +16,7 @@
 //             HttpResponse::Ok().json(execution)
 //         },
 //         Err(err) => {
-//             println!("REST(/commands/exec/{}): error {}", &vehicle_id, &err);
+//             log::warn!("REST(/commands/exec/{}): error {}", &vehicle_id, &err);
 //             HttpResponse::InternalServerError().json(err.to_string())
 //         }
 //     }
@@ -30,7 +30,7 @@
 //     match result {
 //         Ok(command) => return HttpResponse::Ok().json(command),
 //         Err(err) => {
-//             println!("REST(/commands/get/{}): error {}", &command_id, &err);
+//             log::warn!("REST(/commands/get/{}): error {}", &command_id, &err);
 //             HttpResponse::InternalServerError().json(err.to_string())
 //         }
 //     }
@@ -50,13 +50,13 @@
 //                     HttpResponse::Ok().json(execution)
 //                 },
 //                 Err(err) => {
-//                     println!("REST(/commands/exec/{}): error {}", &command_id, &err);
+//                     log::warn!("REST(/commands/exec/{}): error {}", &command_id, &err);
 //                     HttpResponse::InternalServerError().json(err.to_string())
 //                 }
 //             }
 //         },
 //         Err(err) => {
-//             println!("REST(/commands/stop/{}): error {}", &command_id, &err);
+//             log::warn!("REST(/commands/stop/{}): error {}", &command_id, &err);
 //             HttpResponse::InternalServerError().json(err.to_string())
 //         }
 //     }

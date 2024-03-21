@@ -160,7 +160,7 @@ impl TelemetryHandler {
 
             // let saved = context.repository.upsert("vehicle_flight_data", &flight_data).await;
             // if let Err(err) = saved {
-            //     println!("Save vehicle flight data error: {:?}", &err);
+            //     log::error!("Save vehicle flight data error: {:?}", &err);
             // }
         }
 
@@ -182,7 +182,7 @@ impl TelemetryHandler {
 
             // let saved = context.repository.upsert("vehicle_sns_data", &sns_data).await;
             // if let Err(err) = saved {
-            //     println!("Save vehicle sns data error: {:?}", &err);
+            //     log::error!("Save vehicle sns data error: {:?}", &err);
             // }
         }
 
@@ -204,7 +204,7 @@ impl TelemetryHandler {
 
             // let saved = context.repository.upsert("vehicle_sensors_data", &sensors_data).await;
             // if let Err(err) = saved {
-            //     println!("Save vehicle sns data error: {:?}", &err);
+            //     log::error!("Save vehicle sns data error: {:?}", &err);
             // }
         }
 

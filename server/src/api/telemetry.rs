@@ -12,7 +12,7 @@
 //     match result {
 //         Ok(vehicle) => return HttpResponse::Ok().json(vehicle),
 //         Err(err) => {
-//             println!("REST(/telemetry/flight/{}): error {}", &id, &err);
+//             log::warn!("REST(/telemetry/flight/{}): error {}", &id, &err);
 //             HttpResponse::InternalServerError().json(err.to_string())
 //         }
 //     }
@@ -26,7 +26,7 @@
 //     match result {
 //         Ok(vehicle) => return HttpResponse::Ok().json(vehicle),
 //         Err(err) => {
-//             println!("REST(/telemetry/sns/{}): error {}", &id, &err);
+//             log::warn!("REST(/telemetry/sns/{}): error {}", &id, &err);
 //             HttpResponse::InternalServerError().json(err.to_string())
 //         }
 //     }
@@ -40,7 +40,7 @@
 //     match result {
 //         Ok(vehicle) => return HttpResponse::Ok().json(vehicle),
 //         Err(err) => {
-//             println!("REST(/telemetry/sensors/{}): error {}", &id, &err);
+//             log::warn!("REST(/telemetry/sensors/{}): error {}", &id, &err);
 //             HttpResponse::InternalServerError().json(err.to_string())
 //         }
 //     }

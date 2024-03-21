@@ -61,7 +61,7 @@ impl Service {
             if link.autoconnect {
                 let result = self.enable_link(&link.id).await;
                 if let Err(err) = result {
-                    println!("Autoconnect link error: {}", err);
+                    log::warn!("Autoconnect link error: {}", err);
                 }
             }
         }
@@ -77,12 +77,12 @@ impl Service {
                 Ok(event) => {
                     let result = self.handle_client_event(event).await;
                     if let Err(err) = result {
-                        println!("Handle event error: {}", err);
+                        log::error!("Handle event error: {}", err);
                     }
                 },
                 Err(err) => {
                     if err != tokio::sync::broadcast::error::TryRecvError::Empty {
-                        println!("RX error: {}", err);
+                        log::error!("RX error: {}", err);
                     }
                 }
             }
@@ -91,12 +91,12 @@ impl Service {
                 let status = collect_connection_status(link_id, connection).await;
                 if !status.is_connected {
                     if let Err(err) = connection.connect().await {
-                        println!("Connect link error: {}", err);
+                        log::warn!("Connect link error: {}", err);
                     }
                 }
 
                 if let Err(err) = self.context.communication.update_status(&status).await {
-                    println!("Update status error: {}", err);
+                    log::error!("Update status error: {}", err);
                 }
             }
         }
@@ -116,14 +116,14 @@ impl Service {
 
     async fn enable_link(&mut self, link_id: &LinkId) -> anyhow::Result<()> {
         if self.link_connections.contains_key(link_id) {
-            println!("Link is already enabled {}", link_id);
+            log::warn!("Link is already enabled {}", link_id);
             return Ok(());
         }
 
         let link = self.context.communication.link(link_id).await?;
         let mut connection = create_connection(self.context.clone(), &link)?;
         if let Err(err) = connection.connect().await {
-            println!("Error enabling link: {}", err);
+            log::warn!("Error enabling link: {}", err);
         }
 
         let status = collect_connection_status(&link_id, &connection).await;
@@ -134,7 +134,7 @@ impl Service {
 
     async fn disable_link(&mut self, link_id: &str) -> anyhow::Result<()> {
         if !self.link_connections.contains_key(link_id) {
-            println!("No connection found for link {}", link_id);
+            log::warn!("No connection found for link {}", link_id);
             return Ok(());
         }
 

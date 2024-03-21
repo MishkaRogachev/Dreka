@@ -51,14 +51,22 @@ impl traits::IConnection for MavlinkConnection {
     async fn connect(&mut self) -> anyhow::Result<bool> {
         if let Some(token) = &self.token {
             if !token.is_cancelled() {
-                println!("MAVLink {:?}:{:?} is already connected", &self.mav_address, &self.mav_version);
+                log::warn!("MAVLink {:?}:{:?} is already connected", &self.mav_address, &self.mav_version);
                 return Ok(false);
             }
         }
 
-        println!("MAVLink connect to {:?}:{:?}", &self.mav_address, &self.mav_version);
+        log::info!("MAVLink is going connect to {:?}:{:?}...", &self.mav_address, &self.mav_version);
 
-        let mut mav_connection = mavlink::connect::<mavlink::common::MavMessage>(&self.mav_address)?;
+        let mav_connection_result = mavlink::connect::<mavlink::common::MavMessage>(&self.mav_address);
+        let mut mav_connection = match mav_connection_result {
+            Ok(mav_connection) => mav_connection,
+            Err(err) => {
+                log::error!("MAVLink connection error: {:?}", &err);
+                return Ok(false);
+            }
+        };
+        log::info!("MAVLink connection established");
         mav_connection.set_protocol_version(self.mav_version);
 
         let mav = Arc::new(mav_connection);
@@ -113,7 +121,7 @@ impl traits::IConnection for MavlinkConnection {
                             lock.bytes_sent_sec = 0;
                             lock.bytes_received_current = 0;
                             lock.bytes_sent_current = 0;
-                            println!("Got mavlink error: {:?}", &err);
+                            log::error!("MAVLink got internal error: {:?}", &err);
                             break;
                         }
                     },
@@ -133,14 +141,14 @@ impl traits::IConnection for MavlinkConnection {
     async fn disconnect(&mut self) -> anyhow::Result<bool> {
         if let Some(token) = &self.token {
             if !token.is_cancelled() {
-                println!("MAVLink disconnect from {:?}:{:?}", &self.mav_address, &self.mav_version);
+                log::info!("MAVLink disconnect from {:?}:{:?}", &self.mav_address, &self.mav_version);
                 token.cancel();
                 self.token = None;
                 return Ok(true);
             }
         }
 
-        println!("MAVLink {:?}:{:?} is already connected", &self.mav_address, &self.mav_version);
+        log::warn!("MAVLink {:?}:{:?} is already connected", &self.mav_address, &self.mav_version);
         return Ok(false);
     }
 
