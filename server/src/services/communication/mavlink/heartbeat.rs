@@ -3,7 +3,7 @@ use tokio::sync::Mutex;
 
 use mavlink::{MavHeader, common::{MavMessage, MavType, MavState, MavModeFlag}};
 
-use crate::models::{colors::EntityColor, vehicles::{ProtocolId, VehicleDescription, VehicleId, VehicleState, VehicleStatus, VehicleType}};
+use crate::models::{colors::EntityColor, vehicles::{ProtocolId, VehicleDescription, VehicleState, VehicleStatus, VehicleType}};
 use super::context::MavlinkContext;
 
 impl VehicleType {
@@ -52,74 +52,68 @@ impl HeartbeatHandler {
 
     pub async fn handle_message(&mut self, header: &MavHeader, msg: &MavMessage) {
         if let MavMessage::HEARTBEAT(heartbeat_data) = msg {
-            if let Some(mut vehicle) = self.obtain_vehicle(header.system_id).await {
-                let context = self.context.lock().await;
-                // Chanage type if auto
-                if vehicle.vehicle_type == VehicleType::Auto {
-                    vehicle.vehicle_type = VehicleType::from_mavlink(heartbeat_data.mavtype);
-                    let saved = context.vehicles.save_vehicle(&vehicle).await;
-                    if let Err(err) = saved {
-                        println!("Save vehicle description error: {:?}", &err);
+            let vehicle = self.obtain_vehicle(header.system_id).await;
+            if let Err(err) = vehicle {
+                println!("Obtain vehicle error: {:?}", &err);
+                return;
+            }
+
+            match vehicle.unwrap() {
+                Some(mut vehicle) => {
+                    let context = self.context.lock().await;
+                    // Chanage type if auto
+                    if vehicle.vehicle_type == VehicleType::Auto {
+                        vehicle.vehicle_type = VehicleType::from_mavlink(heartbeat_data.mavtype);
+                        let saved = context.vehicles.save_vehicle(&vehicle).await;
+                        if let Err(err) = saved {
+                            println!("Save vehicle description error: {:?}", &err);
+                        }
                     }
-                }
 
-                // Save vehicle status
-                let status = VehicleStatus {
-                    id: vehicle.id,
-                    last_heartbeat: chrono::prelude::Utc::now().timestamp_millis(),
-                    state: VehicleState::from_mavlink(heartbeat_data.system_status),
-                    armed: heartbeat_data.base_mode.intersects(MavModeFlag::MAV_MODE_FLAG_SAFETY_ARMED)
-                };
-                let saved = context.vehicles.update_status(&status).await;
-                if let Err(err) = saved {
-                    println!("Save vehicle status error: {:?}", &err);
-                }
+                    // Save vehicle status
+                    let status = VehicleStatus {
+                        id: vehicle.id,
+                        last_heartbeat: chrono::prelude::Utc::now().timestamp_millis(),
+                        state: VehicleState::from_mavlink(heartbeat_data.system_status),
+                        armed: heartbeat_data.base_mode.intersects(MavModeFlag::MAV_MODE_FLAG_SAFETY_ARMED)
+                    };
+                    let saved = context.vehicles.update_status(&status).await;
+                    if let Err(err) = saved {
+                        println!("Save vehicle status error: {:?}", &err);
+                    }
 
-                // TODO: vehicle modes
-                // TODO: vehicle flags
+                    // TODO: vehicle modes
+                    // TODO: vehicle flags
+                },
+                None => {} // Do nothing if there is no vehicle for this mavlink id
             }
         }
     }
 
-    async fn obtain_vehicle(&mut self, mav_id: u8) -> Option<VehicleDescription> {
+    async fn obtain_vehicle(&mut self, mav_id: u8) -> anyhow::Result<Option<VehicleDescription>> {
         let mut context = self.context.lock().await;
-
         let protocol_id = ProtocolId::MavlinkId { mav_id: mav_id };
-        // TODO: get vehicle by protocol id
-        // match context.repository.read_where::<VehicleDescription, ProtocolId>(
-        //     "vehicle_descriptions", "protocol_id", &protocol_id).await {
-        //     Ok(vehicle) => {
-        //         context.mav_vehicles.insert(mav_id, vehicle.clone());
-        //         return Some(vehicle);
-        //     },
-        //     Err(err) => {
-        //         if let crate::datasource::db::DbError::NoData = err {
-        //             // skip & create instead
-        //         } else {
-        //             println!("Read vehicle error : {}", &err);
-        //         }
-        //     }
-        // }
-
-        if context.auto_add_vehicles {
-            let result = context.vehicles.save_vehicle(&VehicleDescription {
-                id: String::new(),
-                protocol_id: protocol_id,
-                name: format!("New Vehicle (MAV {})", mav_id).into(),
-                color: EntityColor::Cyan,
-                vehicle_type: VehicleType::Auto,
-                features: Vec::new()
-            }).await;
-            match result {
-                Ok(vehicle) => {
+        let vehicle = context.vehicles.vehicle_by_protocol_id(&protocol_id).await?;
+        match vehicle {
+            Some(vehicle) => {
+                context.mav_vehicles.insert(mav_id, vehicle.clone());
+                return Ok(Some(vehicle));
+            },
+            None => {
+                if context.auto_add_vehicles {
+                    let vehicle = context.vehicles.save_vehicle(&VehicleDescription {
+                        id: String::new(),
+                        protocol_id,
+                        name: format!("New Vehicle (MAV {})", mav_id).into(),
+                        color: EntityColor::Cyan,
+                        vehicle_type: VehicleType::Auto,
+                        features: Vec::new()
+                    }).await?;
                     context.mav_vehicles.insert(mav_id, vehicle.clone());
-                    return Some(vehicle);
-                },
-                Err(err) => {
-                    println!("Insert vehicle error : {}", &err);
+                    return Ok(Some(vehicle));
                 }
+                return Ok(None);
             }
         }
-        return None;
     }
 }

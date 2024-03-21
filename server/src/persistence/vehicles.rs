@@ -1,9 +1,10 @@
 
 use std::sync::Arc;
+use anyhow::Ok;
 use surrealdb::{engine::local::Db, Surreal};
 
 use crate::persistence::{repository, traits};
-use crate::models::vehicles::{VehicleId, VehicleDescription, VehicleStatus};
+use crate::models::vehicles::{VehicleId, VehicleDescription, VehicleStatus, ProtocolId};
 
 #[derive(Clone)]
 pub struct Persistence {
@@ -43,6 +44,16 @@ impl Persistence {
 
     pub async fn vehicle(&self, vehicle_id: &VehicleId) -> anyhow::Result<VehicleDescription> {
         self.vehicle_descriptions.read(vehicle_id).await
+    }
+
+    pub async fn vehicle_by_protocol_id(&self, protocol_id: &ProtocolId) -> anyhow::Result<Option<VehicleDescription>> {
+        let vehicles = self.vehicle_descriptions.read_where(
+            "protocol_id", serde_json::json!(protocol_id)).await?;
+        match vehicles.len() {
+            0 => Ok(None),
+            1 => Ok(Some(vehicles.first().cloned().unwrap())),
+            _ => Err(anyhow::anyhow!("Multiple vehicles found for protocol_id: {:?}", protocol_id))
+        }
     }
 
     pub async fn all_vehicles(&self) -> anyhow::Result<Vec<VehicleDescription>> {

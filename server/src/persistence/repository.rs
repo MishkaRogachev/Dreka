@@ -5,6 +5,8 @@ const STRING: &str = "String";
 const TB: &str = "tb";
 const UID: &str = "uid";
 const DATA: &str = "data";
+const VALUE: &str = "value";
+const FIELD: &str = "field";
 
 const CREATE_THING_QUERY: &str = "CREATE type::thing($tb, $uid) CONTENT $data";
 const CREATE_TABLE_QUERY: &str = "CREATE type::table($tb) CONTENT $data";
@@ -110,6 +112,15 @@ where T: serde::ser::Serialize + ?Sized + for<'de> serde::Deserialize<'de> + std
     async fn read_all(&self) -> anyhow::Result<Vec<T>> {
         let response = self.db.query(SELECT_ALL_QUERY)
             .bind((TB, &self.table)).await?;
+        self.parse_many_json(response)
+    }
+
+    async fn read_where(&self, field: &str, value: serde_json::Value) -> anyhow::Result<Vec<T>> {
+        let query = format!("SELECT * FROM type::table($tb) WHERE {} = $value", field);
+        let response = self.db.query(query)
+            .bind((TB, &self.table))
+            .bind((FIELD, field))
+            .bind((VALUE, value)).await?;
         self.parse_many_json(response)
     }
 
