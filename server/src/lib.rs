@@ -21,12 +21,14 @@ pub async fn start() -> anyhow::Result<()> {
 
     fern::Dispatch::new()
         .level(log::LevelFilter::Info)
+        .filter(|metadata| {
+            metadata.target().starts_with("brygge")
+        })
         .format(move |out, message, record| {
             out.finish(format_args!(
-                "[{timestamp}]{level}({target}):{message}",
+                "[{timestamp}] - {level} - {message}",
                 timestamp = chrono::Local::now().format("%d.%m.%Y-%H:%M:%S"),
                 level = colors.color(record.level()),
-                target = record.target(),
                 message = message
             ))
         })
