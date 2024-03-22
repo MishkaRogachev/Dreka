@@ -4,10 +4,7 @@ use serde::{Deserialize, Serialize};
 use super::{spatial::Geodetic, vehicles::VehicleId};
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
-pub struct FlightData {
-    pub id: VehicleId,
-    pub timestamp: i64,
-
+pub struct Flight {
     pub pitch: f32,
     pub roll: f32,
     pub yaw: f32,
@@ -28,10 +25,7 @@ pub struct FlightData {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
-pub struct SnsData {
-    pub id: VehicleId,
-    pub timestamp: i64,
-
+pub struct Navigation {
     pub position: Geodetic,
     pub course: f32,
     pub ground_speed: f32,
@@ -60,7 +54,7 @@ pub enum SensorType {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
-pub struct SensorData {
+pub struct Sensor {
     pub name: String,
     pub sensor: SensorType,
     pub enabled: bool,
@@ -68,11 +62,8 @@ pub struct SensorData {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
-pub struct SensorsData {
-    pub id: VehicleId,
-    pub timestamp: i64,
-
-    pub sensors: Vec<SensorData>,
+pub struct System {
+    pub sensors: Vec<Sensor>,
     pub arm_ready: bool,
 
     pub battery_current: f32,
@@ -80,12 +71,19 @@ pub struct SensorsData {
     pub battery_remaining: i8
 }
 
-impl Default for FlightData {
-    fn default() -> FlightData {
-        Self {
-            id: VehicleId::new(),
-            timestamp: 0,
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+pub struct VehicleTelemetry {
+    pub vehicle_id: VehicleId,
+    pub timestamp: i64,
 
+    pub flight: Option<Flight>,
+    pub navigation: Option<Navigation>,
+    pub system: Option<System>
+}
+
+impl Default for Flight {
+    fn default() -> Flight {
+        Self {
             pitch: 0.0,
             roll: 0.0,
             yaw: 0.0,
@@ -107,12 +105,9 @@ impl Default for FlightData {
     }
 }
 
-impl Default for SnsData {
-    fn default() -> SnsData {
+impl Default for Navigation {
+    fn default() -> Navigation {
         Self {
-            id: VehicleId::new(),
-            timestamp: 0,
-
             position: Geodetic::default(),
             course: 0.0,
             ground_speed: 0.0,
@@ -124,15 +119,11 @@ impl Default for SnsData {
     }
 }
 
-impl Default for SensorsData {
-    fn default() -> SensorsData {
+impl Default for System {
+    fn default() -> System {
         Self {
-            id: VehicleId::new(),
-            timestamp: 0,
-
             sensors: Vec::new(),
             arm_ready: false,
-    
             battery_current: 0.0,
             battery_voltage: 0.0,
             battery_remaining: 0

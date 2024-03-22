@@ -24,6 +24,7 @@ export const vehicles = function () {
     let statusInterval: NodeJS.Timeout;
 
     const store = writable(new Map<string, Vehicle>(), (_, update) => {
+        // TODO: stop intervals if server is down
         descriptionInterval = setInterval(async () => {
             let descriptions = await VehiclesService.getVehicleDescriptions();
             update(vehicles => {

@@ -16,6 +16,7 @@ export const links = function () {
     let statusInterval: NodeJS.Timeout;
 
     const store = writable(new Map<string, Link>(), (_, update) => {
+        // TODO: stop intervals if server is down
         descriptionInterval = setInterval(async () => {
             let descriptions = await CommunicationService.getLinkDescriptions();
             update(links => {

@@ -1,80 +1,57 @@
 import { writable, get, derived } from "svelte/store";
 
-import type { FlightData, SnsData, SensorsData } from "$bindings/telemetry";
+import { VehicleTelemetry, type Flight, type Navigation, type System } from "$bindings/telemetry";
 import { nullGeodetic } from "$bindings/spatial";
-
-import { TelemetryService } from "$services/telemetry";
+import { ws_telemetry } from "$datasource/ws";
 import { onlineVehicles, selectedVehicleID } from "$stores/vehicles";
 
-export class VehicleTelemetry {
-    constructor() {
-        this.flight = defaultFlightData;
-        this.sns = defaultSnsData;
-        this.sensors = defaultSensorsData;
-    }
-
-    distanceToHome(): number {
-        return 0; // TODO: home & home distance
-    }
-
-    flight: FlightData
-    sns: SnsData
-    sensors: SensorsData
-}
-
 export const vehiclesTelemetry = function () {
-    let flightInterval: NodeJS.Timeout;
-    let snsInterval: NodeJS.Timeout;
-    let sensorsInterval: NodeJS.Timeout;
+    // TODO: move socket managment to telemetry service
+    let requestWsInterval: NodeJS.Timeout;
+    let ws: WebSocket | null = null;
 
     const store = writable(new Map<string, VehicleTelemetry>(), (_, update) => {
-        flightInterval = setInterval(async () => {
-            for (const vehicle of get(onlineVehicles)) {
-                const vehicleID = vehicle.description.id!;
-                let flightData = await TelemetryService.getVehicleFlightData(vehicleID);
-                if (flightData) {
-                    update(telemetry => {
-                        if (!telemetry.has(vehicleID)) {
-                            telemetry.set(vehicleID, new VehicleTelemetry())
-                        }
-                        (telemetry.get(vehicleID) as VehicleTelemetry).flight = flightData!;
-                        return telemetry;
-                    });
-                }
-            }
-        }, 200); // Refresh flight every 200ms
+        requestWsInterval = setInterval(async () => {
+            if (!ws) {
+                ws = ws_telemetry();
 
-        snsInterval = setInterval(async () => {
-            for (const vehicle of get(onlineVehicles)) {
-                const vehicleID = vehicle.description.id!;
-                let snsData = await TelemetryService.getVehicleSnsData(vehicleID);
-                if (snsData) {
-                    update(telemetry => {
-                        if (!telemetry.has(vehicleID)) {
-                            telemetry.set(vehicleID, new VehicleTelemetry())
-                        }
-                        (telemetry.get(vehicleID) as VehicleTelemetry).sns = snsData!;
-                        return telemetry;
-                    });
-                }
-            }
-        }, 1000); // Refresh sns every 1000ms
+                ws.addEventListener("open", event => {
+                    console.log("WebSocket connection established");
+                });
 
-        sensorsInterval = setInterval(async () => {
-            for (const vehicle of get(onlineVehicles)) {
-                const vehicleID = vehicle.description.id!;
-                let sensorsData = await TelemetryService.getVehicleSensorsData(vehicleID);
-                if (sensorsData) {
-                    update(telemetry => {
-                        if (!telemetry.has(vehicleID)) {
-                            telemetry.set(vehicleID, new VehicleTelemetry())
+                ws.addEventListener("message", event => {
+                    let telemetry: VehicleTelemetry = JSON.parse(event.data);
+                    if (!telemetry) {
+                        console.log("Error parsing telemetry: ", event.data);
+                        return;
+                    }
+
+                    update(vehiclesTelemetry => {
+                        if (vehiclesTelemetry.has(telemetry.vehicle_id)) {
+                            let actualTelemetry = vehiclesTelemetry.get(telemetry.vehicle_id)!;
+                            if (telemetry.timestamp > actualTelemetry.timestamp) {
+                                if (telemetry.flight) {
+                                    actualTelemetry.flight = telemetry.flight;
+                                }
+                                if (telemetry.navigation) {
+                                    actualTelemetry.navigation = telemetry.navigation;
+                                }
+                                if (telemetry.system) {
+                                    actualTelemetry.system = telemetry.system;
+                                }
+                            }
+                        } else {
+                            vehiclesTelemetry.set(telemetry.vehicle_id, telemetry);
                         }
-                        (telemetry.get(vehicleID) as VehicleTelemetry).sensors = sensorsData!;
-                        return telemetry;
+                        return vehiclesTelemetry;
                     });
-                }
+                });
+
+                ws.addEventListener("close", event => { ws = null; });
+                ws.addEventListener("error", event => { ws = null; });
             }
-        }, 500); // Refresh sensors every 500ms
+
+        }, 1000); // Check websocket every second
     });
 
     return {
@@ -82,18 +59,19 @@ export const vehiclesTelemetry = function () {
         count: () => get(store).size,
         telemetry: (vehicleId: string) => get(store).get(vehicleId),
         kill: () => {
-            clearInterval(flightInterval);
-            clearInterval(snsInterval);
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
         }
     }
 } ()
 
 export const selectedVehicleTelemetry = derived([vehiclesTelemetry, selectedVehicleID], ($data) => {
-    return $data[0].get($data[1]) || new VehicleTelemetry()
+    return $data[0].get($data[1]) || new VehicleTelemetry(get(selectedVehicleID))
 })
 
-export const defaultFlightData: FlightData = {
-    timestamp: 0,
+export const defaultFlight: Flight = {
     pitch: 0,
     roll: 0,
     yaw: 0,
@@ -108,8 +86,7 @@ export const defaultFlightData: FlightData = {
     wp_distance: 0
 }
 
-export const defaultSnsData: SnsData = {
-    timestamp: 0,
+export const defaultNavigation: Navigation = {
     position: nullGeodetic,
     course: 0,
     ground_speed: 0,
@@ -119,8 +96,7 @@ export const defaultSnsData: SnsData = {
     satellites_visible: 0
 }
 
-export const defaultSensorsData: SensorsData = {
-    timestamp: 0,
+export const defaultSystem: System = {
     sensors: [],
     arm_ready: false,
     battery_current: 0,

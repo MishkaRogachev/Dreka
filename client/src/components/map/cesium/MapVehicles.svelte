@@ -4,8 +4,9 @@ import { onMount } from "svelte";
 import type { MapInteractionCesium } from "$lib/map/cesium/interaction";
 import { MapVehicleCesium } from "$lib/map/cesium/vehicle";
 
+import type { VehicleTelemetry } from "$bindings/telemetry";
 import { Vehicle, vehicles } from "$stores/vehicles";
-import { VehicleTelemetry, vehiclesTelemetry } from "$stores/telemetry";
+import { vehiclesTelemetry } from "$stores/telemetry";
 
 import * as Cesium from 'cesium';
 
@@ -36,7 +37,7 @@ vehicles.subscribe((vehicles: Map<string, Vehicle>) => {
 
 vehiclesTelemetry.subscribe((tmi: Map<string, VehicleTelemetry>) => {
     tmi.forEach((tmi: VehicleTelemetry, vehicleID: string) => {
-        if (mapVehicles.has(vehicleID)) {
+        if (mapVehicles.has(vehicleID) && tmi.flight) {
             mapVehicles.get(vehicleID)?.updateFromFlight(tmi.flight);
         }
     });

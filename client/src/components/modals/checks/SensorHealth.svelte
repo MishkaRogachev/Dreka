@@ -1,7 +1,7 @@
 <script lang="ts">
-import { type SensorData } from "$bindings/telemetry";
+import { type Sensor } from "$bindings/telemetry";
 
-export let sensor: SensorData
+export let sensor: Sensor
 </script>
 
 <div class={"kbd " + (sensor.enabled ? sensor.health ? "" : "text-error" : "disabled" )}>

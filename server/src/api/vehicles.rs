@@ -1,12 +1,12 @@
 use actix_web::{get, post, delete, web, Responder, HttpResponse};
 
 use crate::models::vehicles::{VehicleId, VehicleDescription};
-use crate::context::AppContext;
+use super::context::ApiContext;
 
 #[get("/vehicles/description/{vehicle_id}")]
-pub async fn get_description(context: web::Data<AppContext>, path: web::Path<String>) -> impl Responder {
+pub async fn get_description(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let vehicle_id: VehicleId = path.into_inner();
-    let result = context.vehicles.vehicle(&vehicle_id).await;
+    let result = context.registry.vehicles.vehicle(&vehicle_id).await;
 
     match result {
         Ok(vehicle) => return HttpResponse::Ok().json(vehicle),
@@ -18,8 +18,8 @@ pub async fn get_description(context: web::Data<AppContext>, path: web::Path<Str
 }
 
 #[get("/vehicles/descriptions")]
-pub async fn get_descriptions(context: web::Data<AppContext>) -> impl Responder {
-    let result = context.vehicles.all_vehicles().await;
+pub async fn get_descriptions(context: web::Data<ApiContext>) -> impl Responder {
+    let result = context.registry.vehicles.all_vehicles().await;
 
     match result {
         Ok(vehicles) => return HttpResponse::Ok().json(vehicles),
@@ -31,9 +31,9 @@ pub async fn get_descriptions(context: web::Data<AppContext>) -> impl Responder 
 }
 
 #[get("/vehicles/status/{vehicle_id}")]
-pub async fn get_status(context: web::Data<AppContext>, path: web::Path<String>) -> impl Responder {
+pub async fn get_status(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let vehicle_id: VehicleId = path.into_inner();
-    let result = context.vehicles.status(&vehicle_id).await;
+    let result = context.registry.vehicles.status(&vehicle_id).await;
 
     match result {
         Ok(status) => return HttpResponse::Ok().json(status),
@@ -45,8 +45,8 @@ pub async fn get_status(context: web::Data<AppContext>, path: web::Path<String>)
 }
 
 #[get("/vehicles/statuses")]
-pub async fn get_statuses(context: web::Data<AppContext>) -> impl Responder {
-    let result = context.vehicles.all_statuses().await;
+pub async fn get_statuses(context: web::Data<ApiContext>) -> impl Responder {
+    let result = context.registry.vehicles.all_statuses().await;
 
     match result {
         Ok(statuses) => return HttpResponse::Ok().json(statuses),
@@ -58,9 +58,9 @@ pub async fn get_statuses(context: web::Data<AppContext>) -> impl Responder {
 }
 
 #[post("/vehicles/save")]
-pub async fn post_vehicle(context: web::Data<AppContext>, vehicle: web::Json<VehicleDescription>) -> impl Responder {
+pub async fn post_vehicle(context: web::Data<ApiContext>, vehicle: web::Json<VehicleDescription>) -> impl Responder {
     let vehicle = vehicle.into_inner();
-    let result = context.vehicles.save_vehicle( &vehicle).await;
+    let result = context.registry.vehicles.save_vehicle( &vehicle).await;
 
     match result {
         Ok(vehicle) => HttpResponse::Ok().json(vehicle),
@@ -72,10 +72,10 @@ pub async fn post_vehicle(context: web::Data<AppContext>, vehicle: web::Json<Veh
 }
 
 #[delete("/vehicles/remove/{vehicle_id}")]
-pub async fn delete_vehicle(context: web::Data<AppContext>, path: web::Path<String>) -> impl Responder {
+pub async fn delete_vehicle(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let vehicle_id: VehicleId = path.into_inner();
 
-    let result = context.vehicles.delete_vehicle(&vehicle_id).await;
+    let result = context.registry.vehicles.delete_vehicle(&vehicle_id).await;
     if let Err(err) = result {
         log::warn!("REST error: {}", &err); // TODO: add path here
         return HttpResponse::InternalServerError().json(err.to_string())

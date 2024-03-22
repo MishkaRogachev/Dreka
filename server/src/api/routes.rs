@@ -2,14 +2,21 @@ use std::net::SocketAddr;
 use actix_cors::Cors;
 use actix_web::{get, App, HttpServer, web::Data, Responder, HttpResponse};
 
-use crate::context::AppContext;
+use crate::{models::{events::ClentEvent, telemetry::VehicleTelemetry}, registry::registry};
 
 #[get("/")]
 async fn ping() -> impl Responder {
     HttpResponse::Ok().json("ok")
 }
 
-pub async fn serve(context: AppContext, address: &SocketAddr) -> anyhow::Result<()> {
+pub async fn serve(
+        registry: registry::Registry,
+        client_events_tx: flume::Sender<ClentEvent>,
+        telemetry_rx: flume::Receiver<VehicleTelemetry>,
+        address: &SocketAddr
+    ) -> anyhow::Result<()> {
+    let context = super::context::ApiContext::new(registry, client_events_tx, telemetry_rx);
+
     let result = HttpServer::new(move || {
         let cors = Cors::permissive();
         App::new()
@@ -28,9 +35,7 @@ pub async fn serve(context: AppContext, address: &SocketAddr) -> anyhow::Result<
             .service(super::vehicles::get_statuses)
             .service(super::vehicles::post_vehicle)
             .service(super::vehicles::delete_vehicle)
-            // .service(super::telemetry::get_flight_data)
-            // .service(super::telemetry::get_sns_data)
-            // .service(super::telemetry::get_sensors_data)
+            .service(super::telemetry::telemetry_ws)
             .app_data(Data::new(context.clone()))
     }).bind(address)?.run();
 

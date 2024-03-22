@@ -1,22 +1,27 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
-use crate::{context::AppContext, models::vehicles::{VehicleDescription, VehicleId}};
-use crate::persistence::{communication, vehicles};
+use crate::{models::{telemetry::VehicleTelemetry, vehicles::{VehicleDescription, VehicleId}}, registry::registry};
 
 pub struct MavlinkContext {
-    pub communication: Arc<communication::Persistence>,
-    pub vehicles: Arc<vehicles::Persistence>,
+    pub registry: registry::Registry,
     pub mav_vehicles: HashMap<u8, VehicleDescription>,
-    pub auto_add_vehicles: bool
+    pub auto_add_vehicles: bool,
+    telemetry_tx: flume::Sender<VehicleTelemetry>,
+    telemetry_rx: flume::Receiver<VehicleTelemetry>
 }
 
 impl MavlinkContext {
-    pub fn new(context: AppContext) -> Self {
+    pub fn new(
+        registry: registry::Registry,
+        telemetry_tx: flume::Sender<VehicleTelemetry>,
+        telemetry_rx: flume::Receiver<VehicleTelemetry>,
+    ) -> Self {
         Self {
-            communication: context.communication,
-            vehicles: context.vehicles,
+            registry,
             mav_vehicles: HashMap::new(),
-            auto_add_vehicles: true // TODO: to settings
+            auto_add_vehicles: true, // TODO: to settings
+            telemetry_tx,
+            telemetry_rx
         }
     }
 
@@ -24,6 +29,21 @@ impl MavlinkContext {
         match self.mav_vehicles.get(mav_id) {
             Some(vehicle) => Some(vehicle.id.clone()),
             None => None,
+        }
+    }
+
+    pub fn send_telemetry(&self, telemetry: VehicleTelemetry) -> anyhow::Result<()> {
+        match self.telemetry_tx.try_send(telemetry) {
+            Ok(_) => { Ok(()) },
+            Err(err) => match err {
+                flume::TrySendError::Full(telemetry) => {
+                    match self.telemetry_rx.recv() {
+                        Ok(_) => self.send_telemetry(telemetry),
+                        Err(err) => Err(err.into())
+                    }
+                }
+                flume::TrySendError::Disconnected(_) => { Ok(()) }
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 import { type VehicleDescription } from '$bindings/vehicles';
-import type { FlightData } from '$bindings/telemetry';
+import type { Flight } from '$bindings/telemetry';
 import { toColorCode } from '$bindings/colors';
 
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
@@ -38,7 +38,7 @@ export class MapVehicleCesium {
         this.path.setBaseColor(color);
     }
 
-    updateFromFlight(flight: FlightData) {
+    updateFromFlight(flight: Flight) {
         const cartesian = flight.position.longitude === 0 && flight.position.latitude === 0
             ? Cesium.Cartesian3.ZERO
             : Cesium.Cartesian3.fromDegrees(flight.position.longitude, flight.position.latitude, flight.position.altitude);

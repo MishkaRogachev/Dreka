@@ -3,7 +3,8 @@ use tokio::{time, sync::Mutex};
 use tokio_util::sync::CancellationToken;
 use mavlink;
 
-use crate::{context::AppContext, models::communication};
+use crate::models::telemetry::VehicleTelemetry;
+use crate::{registry::registry, models::communication};
 use crate::services::communication::traits;
 
 use super::{commands::CommandHandler, telemetry::TelemetryHandler, heartbeat::HeartbeatHandler, context::MavlinkContext};
@@ -13,7 +14,9 @@ const RESET_STATS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_
 const ONLINE_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(2000);
 
 pub struct MavlinkConnection {
-    context: AppContext,
+    registry: registry::Registry,
+    telemetry_tx: flume::Sender<VehicleTelemetry>,
+    telemetry_rx: flume::Receiver<VehicleTelemetry>,
     mav_address: String,
     mav_version: mavlink::MavlinkVersion,
     token: Option<CancellationToken>,
@@ -29,9 +32,17 @@ struct MavlinkConnectionInternal {
 }
 
 impl MavlinkConnection {
-    pub fn new(context: AppContext, link_type: &communication::LinkType, protocol: &communication::MavlinkProtocolVersion) -> Self {
+    pub fn new(
+        registry: registry::Registry,
+        telemetry_tx: flume::Sender<VehicleTelemetry>,
+        telemetry_rx: flume::Receiver<VehicleTelemetry>,
+        link_type: &communication::LinkType,
+        protocol: &communication::MavlinkProtocolVersion
+    ) -> Self {
         Self {
-            context,
+            registry,
+            telemetry_tx,
+            telemetry_rx,
             mav_address: link_type.to_mavlink(),
             mav_version: protocol.to_mavlink(),
             token: None,
@@ -77,7 +88,11 @@ impl traits::IConnection for MavlinkConnection {
         self.token = Some(token);
 
         let mut last_stats_reset = time::Instant::now();
-        let mav_context = Arc::new(Mutex::new(MavlinkContext::new(self.context.clone())));
+        let mav_context = Arc::new(Mutex::new(MavlinkContext::new(
+            self.registry.clone(),
+            self.telemetry_tx.clone(),
+            self.telemetry_rx.clone(),
+        )));
         let internal = self.internal.clone();
         let cloned_mav = mav.clone();
 

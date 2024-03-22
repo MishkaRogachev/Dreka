@@ -9,9 +9,9 @@ import { selectedVehicle, safetyCheck } from "$stores/vehicles";
 import { selectedVehicleTelemetry } from "$stores/telemetry";
 
 $: armed = $selectedVehicle?.status?.armed || false
-$: readyToArm = $selectedVehicleTelemetry.sensors.arm_ready
+$: readyToArm = $selectedVehicleTelemetry.system?.arm_ready
 
-$: sensors = $selectedVehicleTelemetry.sensors.sensors
+$: sensors = $selectedVehicleTelemetry.system?.sensors || []
 
 let armPressed: boolean = false
 let armProgress: number = 0

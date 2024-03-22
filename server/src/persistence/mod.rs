@@ -1,5 +1,3 @@
-pub mod vehicles;
-pub mod communication;
-mod traits;
-mod repository;
+pub mod traits;
+pub mod repository;
 mod repository_test;

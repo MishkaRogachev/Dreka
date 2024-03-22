@@ -18,10 +18,10 @@ let dms: boolean = true
 $: telemetry = $selectedVehicleTelemetry
 $: online = $selectedVehicle?.is_online()
 
-$: latitude = dms ? degreesToDmsString(telemetry.flight.position.latitude, false)
-                : telemetry.flight.position.latitude.toFixed(6)
-$: longitude = dms ? degreesToDmsString(telemetry.flight.position.longitude, true)
-                : telemetry.flight.position.longitude.toFixed(6)
+$: latitude = telemetry.flight ? (dms ? degreesToDmsString(telemetry.flight.position.latitude, false)
+                : telemetry.flight.position.latitude.toFixed(6)) : $i18n.t("N/A")
+$: longitude = telemetry.flight ? (dms ? degreesToDmsString(telemetry.flight.position.longitude, true)
+                : telemetry.flight.position.longitude.toFixed(6)) : $i18n.t("N/A")
 
 function coordsToClipboard() { navigator.clipboard.writeText(latitude + " " + longitude) }
 
@@ -47,24 +47,30 @@ function switchVehicleTracking() {} // TODO: center/track vehicle
     </div>
     <!-- FLIGHT DATA DISPLAY -->
         <Parameter name={ $i18n.t("GS") } tooltip={ $i18n.t("Ground (GPS) Speed") }
-            value={telemetry.sns.ground_speed}/>
+            value={telemetry.navigation ? telemetry.navigation.ground_speed : 0}/>
         <div class="row-span-3 col-span-2 relative">
-            <Ai online={online} pitch={telemetry.flight.pitch} roll={telemetry.flight.roll}/>
+            <Ai online={online}
+                pitch={telemetry.flight ? telemetry.flight.pitch : 0 }
+                roll={telemetry.flight ? telemetry.flight.roll : 0 }
+            />
         </div>
         <Parameter name={ $i18n.t("ASNS") } tooltip={ $i18n.t("Satellite (GPS) Altitude") }
-            value={ telemetry.sns.position.altitude }/>
+            value={ telemetry.navigation ? telemetry.navigation.position.altitude : 0 }/>
         <Parameter name={ $i18n.t("IAS") } tooltip={ $i18n.t("Indicated Air Speed") }
-            value={ telemetry.flight.indicated_airspeed }/>
+            value={ telemetry.flight ? telemetry.flight.indicated_airspeed : 0 }/>
         <Parameter name={ $i18n.t("AMSL") } tooltip={ $i18n.t("Altitude Above Mean Sea Level") }
-            value={ telemetry.flight.altitude_amsl }/>
+            value={ telemetry.flight ? telemetry.flight.altitude_amsl : 0 }/>
         <a class="text-sm">{ $i18n.t("m/s") }</a>
         <a class="text-sm">{ $i18n.t("m") }</a>
 
     <!-- NAVIGATION DATA DISPLAY -->
         <Parameter name={ $i18n.t("HDG") } tooltip={ $i18n.t("Heading") }
-            value={ formatHeading(telemetry.flight.yaw) }/>
+            value={ formatHeading(telemetry.flight ? telemetry.flight.yaw : 0) }/>
         <div class="row-span-3 col-span-2 relative">
-            <Hsi heading={telemetry.flight.yaw} course={telemetry.sns.course}/>
+            <Hsi
+                heading={telemetry.flight ? telemetry.flight.yaw : 0}
+                course={telemetry.navigation ? telemetry.navigation.course : 0}
+            />
             <div id="vehicleMark" class="absolute inset-0 flex items-center justify-center scale-150">
                 <VehicleTypeIcon 
                     vehicleType={$selectedVehicle?.description.vehicle_type} 
@@ -72,11 +78,11 @@ function switchVehicleTracking() {} // TODO: center/track vehicle
             </div>
         </div>
         <Parameter name={ $i18n.t("WPT") } tooltip={ $i18n.t("Distance to next waypoint") }
-            value={ telemetry.flight.wp_distance }/>
+            value={ telemetry.flight ? telemetry.flight.wp_distance : 0 }/>
         <Parameter name={ $i18n.t("CRS") } tooltip={ $i18n.t("Course (GPS)") }
-            value={ formatHeading(telemetry.sns.course) }/>
+            value={ telemetry.navigation ? formatHeading(telemetry.navigation.course) : 0 }/>
         <Parameter name={ $i18n.t("HOME") } tooltip={ $i18n.t("Distance to home point") }
-            value={ telemetry.distanceToHome() }/>
+            value={ 0 }/> <!-- TODO: home distance -->
         <a class="text-sm">&deg</a>
         <a class="text-sm">{ $i18n.t("m") }</a>
     </div>

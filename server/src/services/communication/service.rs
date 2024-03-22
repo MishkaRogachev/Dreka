@@ -1,9 +1,9 @@
 use std::collections::HashMap;
-use tokio::{sync::broadcast, time};
+use tokio::time;
 
-use crate::context::AppContext;
 use crate::models::communication::{LinkId, LinkDescription, LinkStatus, LinkProtocol, LinkType, MavlinkProtocolVersion};
-use crate::models::events::ClentEvent;
+use crate::models::{events::ClentEvent, telemetry::VehicleTelemetry};
+use crate::registry::registry;
 use super::{traits, mavlink::connection::MavlinkConnection};
 
 type LinkConnection = Box<dyn traits::IConnection + Send + Sync>;
@@ -12,8 +12,10 @@ type LinkConnections = HashMap<LinkId, LinkConnection>;
 const CHECK_CONNECTIONS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(250);
 
 pub struct Service {
-    context: AppContext,
-    rx: broadcast::Receiver<ClentEvent>,
+    registry: registry::Registry,
+    client_events_rx: flume::Receiver<ClentEvent>,
+    telemetry_tx: flume::Sender<VehicleTelemetry>,
+    telemetry_rx: flume::Receiver<VehicleTelemetry>,
     link_connections: LinkConnections
 }
 
@@ -45,8 +47,19 @@ fn dafault_links() -> Vec<LinkDescription> {
 }
 
 impl Service {
-    pub fn new(context: AppContext, rx: broadcast::Receiver<ClentEvent>) -> Self {
-        Self { context, rx, link_connections: LinkConnections::new() }
+    pub fn new(
+        registry: registry::Registry,
+        client_events_rx: flume::Receiver<ClentEvent>,
+        telemetry_tx: flume::Sender<VehicleTelemetry>,
+        telemetry_rx: flume::Receiver<VehicleTelemetry>,
+    ) -> Self {
+        Self {
+            registry,
+            client_events_rx,
+            telemetry_tx,
+            telemetry_rx,
+            link_connections: LinkConnections::new()
+        }
     }
 
     pub async fn start(&mut self) -> anyhow::Result<()> {
@@ -55,7 +68,7 @@ impl Service {
 
         for link in links {
             // Invalidate statuses
-            self.context.communication.update_status(&LinkStatus::default_for_id(&link.id)).await?;
+            self.registry.communication.update_status(&LinkStatus::default_for_id(&link.id)).await?;
 
             // Autoconect specified ones
             if link.autoconnect {
@@ -73,7 +86,7 @@ impl Service {
             interval.tick().await;
 
             // Listen requests from client
-            match self.rx.try_recv() {
+            match self.client_events_rx.try_recv() {
                 Ok(event) => {
                     let result = self.handle_client_event(event).await;
                     if let Err(err) = result {
@@ -81,7 +94,7 @@ impl Service {
                     }
                 },
                 Err(err) => {
-                    if err != tokio::sync::broadcast::error::TryRecvError::Empty {
+                    if err != flume::TryRecvError::Empty {
                         log::error!("RX error: {}", err);
                     }
                 }
@@ -95,7 +108,7 @@ impl Service {
                     }
                 }
 
-                if let Err(err) = self.context.communication.update_status(&status).await {
+                if let Err(err) = self.registry.communication.update_status(&status).await {
                     log::error!("Update status error: {}", err);
                 }
             }
@@ -103,11 +116,11 @@ impl Service {
     }
 
     async fn load_links(&self) -> anyhow::Result<Vec<LinkDescription>> {
-        let mut links = self.context.communication.all_links().await?;
+        let mut links = self.registry.communication.all_links().await?;
 
         if links.is_empty() {
             for link in dafault_links().iter() {
-                let link = self.context.communication.save_link(link).await?;
+                let link = self.registry.communication.save_link(link).await?;
                 links.push(link);
             }
         }
@@ -120,16 +133,31 @@ impl Service {
             return Ok(());
         }
 
-        let link = self.context.communication.link(link_id).await?;
-        let mut connection = create_connection(self.context.clone(), &link)?;
+        let link = self.registry.communication.link(link_id).await?;
+        let mut connection = self.create_connection(&link)?;
         if let Err(err) = connection.connect().await {
             log::warn!("Error enabling link: {}", err);
         }
 
         let status = collect_connection_status(&link_id, &connection).await;
-        self.context.communication.update_status(&status).await?;
+        self.registry.communication.update_status(&status).await?;
         self.link_connections.insert(link_id.to_string(), connection);
         Ok(())
+    }
+
+    fn create_connection(&self, link: &LinkDescription) -> anyhow::Result<LinkConnection> {
+        match &link.protocol {
+            LinkProtocol::Mavlink { link_type, protocol_version } => {
+                Ok(Box::new(MavlinkConnection::new(
+                    self.registry.clone(),
+                    self.telemetry_tx.clone(),
+                    self.telemetry_rx.clone(),
+                    link_type,
+                    protocol_version
+                )))
+            },
+            // NOTE: other protocols should be handled here
+        }
     }
 
     async fn disable_link(&mut self, link_id: &str) -> anyhow::Result<()> {
@@ -140,7 +168,7 @@ impl Service {
 
         let mut connection = self.link_connections.remove(link_id).unwrap();
         connection.disconnect().await?;
-        self.context.communication.update_status(&LinkStatus::default_for_id(&link_id)).await?;
+        self.registry.communication.update_status(&LinkStatus::default_for_id(&link_id)).await?;
         Ok(())
     }
 
@@ -149,20 +177,10 @@ impl Service {
             ClentEvent::SetLinkEnabled { link_id, connected } => {
                 if connected {
                     return self.enable_link(&link_id).await;
-                } else {
-                    return self.disable_link(&link_id).await;
                 }
+                return self.disable_link(&link_id).await;
             }
         }
-    }
-}
-
-fn create_connection(context: AppContext, link: &LinkDescription) -> anyhow::Result<LinkConnection> {
-    match &link.protocol {
-        LinkProtocol::Mavlink { link_type, protocol_version } => {
-            Ok(Box::new(MavlinkConnection::new(context, link_type, protocol_version)))
-        },
-        // NOTE: other protocols should be handled here
     }
 }
 

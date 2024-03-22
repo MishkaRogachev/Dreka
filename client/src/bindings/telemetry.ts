@@ -1,7 +1,6 @@
 import { type Geodetic } from "$bindings/spatial";
 
-export interface FlightData {
-    timestamp: number,
+export interface Flight {
     pitch: number,
     roll: number,
     yaw: number,
@@ -16,8 +15,7 @@ export interface FlightData {
     wp_distance: number
 }
 
-export interface SnsData {
-    timestamp: number,
+export interface Navigation {
     position: Geodetic,
     course: number,
     ground_speed: number,
@@ -44,18 +42,34 @@ export enum SensorType {
     Avoidance = "Avoidance"
 }
 
-export interface SensorData {
+export interface Sensor {
     name: string,
     sensor: SensorType,
     enabled: boolean,
     health: boolean
 }
 
-export interface SensorsData {
-    timestamp: number,
-    sensors: Array<SensorData>,
+export interface System {
+    sensors: Array<Sensor>,
     arm_ready: boolean,
     battery_current: number,
     battery_voltage: number,
     battery_remaining: number
+}
+
+
+export class VehicleTelemetry {
+    constructor(vehicle_id: string) {
+        this.vehicle_id = vehicle_id
+        this.timestamp = Date.now();
+        this.flight = undefined;
+        this.navigation = undefined;
+        this.system = undefined;
+    }
+
+    vehicle_id: string
+    timestamp: number
+    flight?: Flight
+    navigation?: Navigation
+    system?: System
 }
