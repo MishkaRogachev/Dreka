@@ -51,6 +51,11 @@ export class MapVehicleCesium {
         this.model.setHpr(flight.yaw, flight.pitch, flight.roll);
     }
 
+    setSelected(selected: boolean) {
+        this.model.setSilhouetteColor(selected ? Cesium.Color.WHITE : Cesium.Color.GRAY);
+        this.path.setVisible(selected);
+    }
+
     private path: PathEntity
     private model: ModelEntity
     private pylon: PylonEntity

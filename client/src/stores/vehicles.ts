@@ -27,11 +27,14 @@ export const vehicles = function () {
         // TODO: stop intervals if server is down
         descriptionInterval = setInterval(async () => {
             let descriptions = await VehiclesService.getVehicleDescriptions();
+            if (!descriptions) {
+                return;
+            }
             update(vehicles => {
                 let usedIds = new Array<string>();
 
                 // Add and update existing vehicles
-                for (const description of descriptions) {
+                for (const description of descriptions!) {
                     const id = description.id!;
                     usedIds.push(id);
 
@@ -39,8 +42,6 @@ export const vehicles = function () {
                         vehicles.get(id)!.description = description;
                     } else {
                         vehicles.set(id, new Vehicle(description));
-                        if (get(selectedVehicleID) === "")
-                            selectedVehicleID.set(id);
                     }
                 }
 
@@ -48,17 +49,40 @@ export const vehicles = function () {
                 for (const id of vehicles.keys()) {
                     if (!usedIds.includes(id)) {
                         vehicles.delete(id);
+                        if (get(selectedVehicleID) == id) {
+                            selectedVehicleID.set("");
+                        }
                     }
                 }
+
+                // Update selected vehicle id
+                if (get(selectedVehicleID) === "") {
+                    // Select first online vehicle
+                    for (const id of vehicles.keys()) {
+                        if (vehicles.get(id)!.is_online()) {
+                            selectedVehicleID.set(id);
+                            break;
+                        }
+                    }
+
+                    // Select first vehicle if no online vehicle
+                    if (get(selectedVehicleID) === "" && vehicles.size > 0) {
+                        selectedVehicleID.set(vehicles.keys().next().value);
+                    }
+                }
+
                 return vehicles;
             });
         }, 1000); // Refresh description every second
 
         statusInterval = setInterval(async () => {
             let statuses = await VehiclesService.getVehicleStatuses();
+            if (!statuses) {
+                return;
+            }
 
             update(vehicles => {
-                for (const status of statuses) {
+                for (const status of statuses!) {
                     if (vehicles.has(status.id)) {
                         vehicles.get(status.id)!.status = status;
                     }

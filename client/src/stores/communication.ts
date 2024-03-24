@@ -19,11 +19,14 @@ export const links = function () {
         // TODO: stop intervals if server is down
         descriptionInterval = setInterval(async () => {
             let descriptions = await CommunicationService.getLinkDescriptions();
+            if (!descriptions) {
+                return;
+            }
             update(links => {
                 let usedIds = new Array<string>();
 
                 // Add and update existing links
-                for (const description of descriptions) {
+                for (const description of descriptions!) {
                     const id = description.id!;
                     usedIds.push(id);
 
@@ -46,9 +49,11 @@ export const links = function () {
 
         statusInterval = setInterval(async () => {
             let statuses = await CommunicationService.getLinkStatuses();
-
+            if (!statuses) {
+                return;
+            }
             update(links => {
-                for (const status of statuses) {
+                for (const status of statuses!) {
                     if (links.has(status.id)) {
                         links.get(status.id)!.status = status
                     }

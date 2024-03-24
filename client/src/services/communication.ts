@@ -6,16 +6,16 @@ export class CommunicationService {
         return await send_request("/comm/links/description/" + linkId, { method: "GET" }) || null;
     }
 
-    static async getLinkDescriptions(): Promise<Array<LinkDescription>> {
-        return await send_request("/comm/links/descriptions", { method: "GET" }) || [];
+    static async getLinkDescriptions(): Promise<Array<LinkDescription> | null> {
+        return await send_request("/comm/links/descriptions", { method: "GET" }) || null;
     }
 
     static async getLinkStatus(linkId: string): Promise<LinkStatus | null> {
         return await send_request("/comm/links/status/" + linkId, { method: "GET" }) || null;
     }
 
-    static async getLinkStatuses(): Promise<Array<LinkStatus>> {
-        return await send_request("/comm/links/statuses", { method: "GET" }) || [];
+    static async getLinkStatuses(): Promise<Array<LinkStatus> | null> {
+        return await send_request("/comm/links/statuses", { method: "GET" }) || null;
     }
 
     static async saveLinkDescription(link: LinkDescription): Promise<LinkDescription | null> {

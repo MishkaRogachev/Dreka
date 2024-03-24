@@ -13,14 +13,17 @@ export class BaseEntity {
         this.cesium = cesium;
 
         this._baseColor = Cesium.Color.WHITE;
+        this._visible = true;
     }
 
     done() {}
     baseColor(): Cesium.Color { return this._baseColor; }
     setBaseColor(baseColor: Cesium.Color) { this._baseColor = baseColor; }
+    setVisible(visible: boolean) { this._visible = visible; }
 
     protected cesium: Cesium.Viewer
     protected _baseColor: Cesium.Color
+    protected _visible: boolean
 }
 
 export class BasePointEntity extends BaseEntity implements Interactable {
@@ -318,7 +321,7 @@ export class ModelEntity extends BasePointEntity {
             minimumPixelSize: 196,
             maximumScale: 80000,
             colorBlendMode: Cesium.ColorBlendMode.REPLACE,
-            silhouetteSize: 1
+            silhouetteSize: 2.0
         });
     }
 
@@ -349,6 +352,10 @@ export class PathEntity extends BaseEntity {
     clear() {
         this._track.forEach(entity => this.cesium.entities.remove(entity));
         this._track = [];
+    }
+
+    setVisible(visible: boolean) {
+        this._track.forEach(entity => entity.show = visible);
     }
 
     addCartesian(cartesian: Cesium.Cartesian3) {

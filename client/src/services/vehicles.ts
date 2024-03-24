@@ -6,16 +6,16 @@ export class VehiclesService {
         return await send_request("/vehicles/description/" + vehicleId, { method: "GET" }) || null;
     }
 
-    static async getVehicleDescriptions(): Promise<Array<VehicleDescription>> {
-        return await send_request("/vehicles/descriptions", { method: "GET" }) || [];
+    static async getVehicleDescriptions(): Promise<Array<VehicleDescription> | null> {
+        return await send_request("/vehicles/descriptions", { method: "GET" }) || null;
     }
 
     static async getVehicleStatus(vehicleId: string): Promise<VehicleStatus | null> {
         return await send_request("/vehicles/status/" + vehicleId, { method: "GET" }) || null;
     }
 
-    static async getVehicleStatuses(): Promise<Array<VehicleStatus>> {
-        return await send_request("/vehicles/statuses", { method: "GET" }) || [];
+    static async getVehicleStatuses(): Promise<Array<VehicleStatus> | null> {
+        return await send_request("/vehicles/statuses", { method: "GET" }) || null;
     }
 
     static async saveVehicleDescription(vehicle: VehicleDescription): Promise<VehicleDescription | null> {
