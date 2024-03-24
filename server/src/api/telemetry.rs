@@ -44,7 +44,7 @@ impl actix::StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocketA
             Ok(ws::Message::Pong(_)) => {},
             Ok(ws::Message::Text(_)) => { /* Handle text message */ },
             Ok(ws::Message::Close(reason)) => {
-                log::info!("Closing the telemetry websocket connection..");
+                log::info!("Closing the telemetry websocket connection");
                 ctx.close(reason)
             },
             _ => {}
@@ -54,7 +54,6 @@ impl actix::StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocketA
 
 #[get("/telemetry/ws")]
 pub async fn telemetry_ws(context: web::Data<ApiContext>, req: HttpRequest, stream: web::Payload) -> impl Responder {
-    log::info!("Start..");
     let actor = WebSocketActor::new(context.telemetry_rx.clone());
     match ws::start(actor, &req, stream) {
         Ok(res) => {

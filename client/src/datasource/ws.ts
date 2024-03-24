@@ -41,7 +41,6 @@ export class WsWatchdog {
         });
 
         this.ws.addEventListener("message", event => {
-            console.log("event:", event);
             this.listeners.forEach(listener => { listener(event.data); });
         });
 

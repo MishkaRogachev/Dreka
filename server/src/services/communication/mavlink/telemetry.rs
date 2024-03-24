@@ -165,7 +165,7 @@ impl TelemetryHandler {
             navigation: Some(navigation),
             system: None
         }) {
-            log::error!("Update flight telemetry error: {}", err);
+            log::error!("Update navigation telemetry error: {}", err);
         }
     }
 
@@ -180,7 +180,7 @@ impl TelemetryHandler {
             navigation: None,
             system: Some(system)
         }) {
-            log::error!("Update flight telemetry error: {}", err);
+            log::error!("Update system telemetry error: {}", err);
         }
     }
 }

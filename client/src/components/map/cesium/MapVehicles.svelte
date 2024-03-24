@@ -1,6 +1,4 @@
 <script lang="ts">
-import { onMount } from "svelte";
-
 import type { MapInteractionCesium } from "$lib/map/cesium/interaction";
 import { MapVehicleCesium } from "$lib/map/cesium/vehicle";
 
@@ -30,6 +28,7 @@ vehicles.subscribe((vehicles: Map<string, Vehicle>) => {
     // Delete vehicles removed by server
     for (const id of mapVehicles.keys()) {
         if (!usedIds.includes(id)) {
+            mapVehicles.get(id)?.done();
             mapVehicles.delete(id);
         }
     }
@@ -42,11 +41,5 @@ vehiclesTelemetry.subscribe((tmi: Map<string, VehicleTelemetry>) => {
         }
     });
 })
-
-// let mapVehicles: MapVehicleCesium;
-
-// onMount(async () => {
-
-// })
 
 </script>
