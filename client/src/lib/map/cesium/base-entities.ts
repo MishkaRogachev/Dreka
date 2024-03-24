@@ -326,9 +326,9 @@ export class ModelEntity extends BasePointEntity {
     setSilhouetteColor(silhouetteColor: Cesium.Color) { this._silhouetteColor = silhouetteColor; }
 
     setHpr(heading: number, pitch: number, roll: number) {
-        this._hpr = new Cesium.HeadingPitchRoll(Cesium.Math.toRadians(heading),
-                                                Cesium.Math.toRadians(-roll),
-                                                Cesium.Math.toRadians(pitch));
+        this._hpr = new Cesium.HeadingPitchRoll(Cesium.Math.toRadians(heading - 90),
+                                                Cesium.Math.toRadians(pitch),
+                                                Cesium.Math.toRadians(roll));
     }
 
     private _hpr: Cesium.HeadingPitchRoll;

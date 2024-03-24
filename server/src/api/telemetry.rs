@@ -1,13 +1,17 @@
+use std::time::Duration;
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
 use actix_web_actors::ws;
+use actix::AsyncContext;
 use flume::Receiver;
 
 use crate::models::telemetry::VehicleTelemetry;
 
 use super::context::ApiContext;
 
+const POLL_INTERVAL: Duration = Duration::from_millis(5);
+
 pub struct WebSocketActor {
-    telemetry_rx: Receiver<VehicleTelemetry>,
+    telemetry_rx: Receiver<VehicleTelemetry>
 }
 
 impl WebSocketActor {
@@ -21,13 +25,15 @@ impl actix::Actor for WebSocketActor {
 
     fn started(&mut self, ctx: &mut Self::Context) {
         log::info!("Starting the telemetry websocket connection..");
-        let telemetry_rx = self.telemetry_rx.clone();
-        while let Ok(telemetry) = telemetry_rx.try_recv() {
-            match serde_json::to_string(&telemetry) {
-                Ok(json) => ctx.text(json),
-                Err(err) => log::warn!("Failed to serialize telemetry: {:?}", err),
-            };
-        }
+
+        ctx.run_interval(POLL_INTERVAL, |myself, ctx| {
+            if let Ok(telemetry) = myself.telemetry_rx.try_recv() {
+                match serde_json::to_string(&telemetry) {
+                    Ok(json) => ctx.text(json),
+                    Err(err) => log::warn!("Failed to serialize telemetry: {:?}", err),
+                };
+            }
+        });
     }
 }
 
@@ -37,7 +43,10 @@ impl actix::StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocketA
             Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
             Ok(ws::Message::Pong(_)) => {},
             Ok(ws::Message::Text(_)) => { /* Handle text message */ },
-            Ok(ws::Message::Close(reason)) => ctx.close(reason),
+            Ok(ws::Message::Close(reason)) => {
+                log::info!("Closing the telemetry websocket connection..");
+                ctx.close(reason)
+            },
             _ => {}
         }
     }

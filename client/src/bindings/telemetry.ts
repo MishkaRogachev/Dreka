@@ -57,10 +57,9 @@ export interface System {
     battery_remaining: number
 }
 
-
 export class VehicleTelemetry {
-    constructor(vehicle_id: string) {
-        this.vehicle_id = vehicle_id
+    constructor() {
+        this.vehicle_id = "";
         this.timestamp = Date.now();
         this.flight = undefined;
         this.navigation = undefined;
