@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
-use crate::{models::{telemetry::VehicleTelemetry, vehicles::{VehicleDescription, VehicleId}}, registry::registry};
+use crate::models::{telemetry::VehicleTelemetry, vehicles::VehicleId};
+use crate::registry::registry;
 
 pub struct MavlinkContext {
     pub registry: registry::Registry,
-    pub mav_vehicles: HashMap<u8, VehicleDescription>,
+    pub mav_vehicles: HashMap<u8, VehicleId>,
     pub auto_add_vehicles: bool,
     telemetry_tx: flume::Sender<VehicleTelemetry>,
     telemetry_rx: flume::Receiver<VehicleTelemetry>
@@ -26,10 +27,14 @@ impl MavlinkContext {
     }
 
     pub fn vehicle_id_from_mav_id(&self, mav_id: &u8) -> Option<VehicleId>{
-        match self.mav_vehicles.get(mav_id) {
-            Some(vehicle) => Some(vehicle.id.clone()),
-            None => None,
-        }
+        self.mav_vehicles.get(mav_id).cloned()
+    }
+
+    pub fn mav_id_from_vehicle_id(&self, vehicle_id: &VehicleId) -> Option<u8> {
+        self.mav_vehicles
+            .iter()
+            .find(|(_, v_id)| v_id == &vehicle_id)
+            .map(|(mav_id, _)| *mav_id)
     }
 
     pub fn send_telemetry(&self, telemetry: VehicleTelemetry) -> anyhow::Result<()> {

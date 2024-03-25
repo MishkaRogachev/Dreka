@@ -42,7 +42,7 @@ function closeDropdown() {
                         id: "",
                         name: $i18n.t("New Vehicle") + " (MAV " + mavId + ")",
                         protocol_id: { MavlinkId: { mav_id: mavId } },
-                        color: EntityColor.Slate,
+                        color: EntityColor.Teal,
                         vehicle_type: VehicleType.Auto,
                         features: []
                     });

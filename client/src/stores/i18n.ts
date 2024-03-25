@@ -37,5 +37,3 @@ locale.subscribe(localeValue => {
 i18next.changeLanguage
 
 export let i18n = createI18nStore(i18next);
-
-

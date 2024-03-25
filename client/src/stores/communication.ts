@@ -3,6 +3,9 @@ import { writable, get } from 'svelte/store';
 import { type LinkDescription, type LinkStatus } from '$bindings/communication';
 import { CommunicationService } from '$services/communication';
 
+const UPDATE_DESCRIPTION_INTERVAL = 1000;
+const UPDATE_STATUS_INTERVAL = 250;
+
 export class Link {
     constructor(description: LinkDescription) {
         this.description = description;
@@ -45,7 +48,7 @@ export const links = function () {
                 }
                 return links;
             });
-        }, 2000); // Refresh description every second
+        }, UPDATE_DESCRIPTION_INTERVAL);
 
         statusInterval = setInterval(async () => {
             let statuses = await CommunicationService.getLinkStatuses();
@@ -60,7 +63,7 @@ export const links = function () {
                 }
                 return links;
             });
-        }, 500); // Refresh status every 500ms
+        }, UPDATE_STATUS_INTERVAL);
     });
 
     return {

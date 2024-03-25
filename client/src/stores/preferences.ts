@@ -1,6 +1,7 @@
 import { writable, get } from 'svelte/store';
 
-const userKey = "user";
+const USER_KEY = "user";
+const SAVE_PREFERENCES_INTERVAL = 1000;
 
 export const userPreferences = writable(getPreferences());
 
@@ -10,11 +11,11 @@ export function readPreferences() {
 
 export function savePreferences() {
     let data = JSON.stringify(Object.fromEntries(get(userPreferences)));
-    localStorage.setItem(userKey, data);
+    localStorage.setItem(USER_KEY, data);
 }
 
 function getPreferences(): Map<string, string> {
-    let localData = localStorage.getItem(userKey);
+    let localData = localStorage.getItem(USER_KEY);
     if (!!localData) {
         let parsed = JSON.parse(localData);
         if (!!parsed) {
@@ -25,4 +26,4 @@ function getPreferences(): Map<string, string> {
 }
 
 // Save user preferences every second
-let interval = setInterval(() => { savePreferences(); }, 1000);
+let interval = setInterval(() => { savePreferences(); }, SAVE_PREFERENCES_INTERVAL);

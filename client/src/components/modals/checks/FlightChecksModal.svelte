@@ -5,8 +5,9 @@ import BaseModal from "$components/common/BaseModal.svelte";
 import SensorHealth from '$components/modals/checks/SensorHealth.svelte';
 
 import { i18n } from "$stores/i18n";
-import { selectedVehicle, safetyCheck } from "$stores/vehicles";
+import { selectedVehicle, selectedVehicleID, safetyCheck } from "$stores/vehicles";
 import { selectedVehicleTelemetry } from "$stores/telemetry";
+import { commands } from '$stores/commands';
 
 $: armed = $selectedVehicle?.status?.armed || false
 $: readyToArm = $selectedVehicleTelemetry.system?.arm_ready
@@ -17,8 +18,10 @@ let armPressed: boolean = false
 let armProgress: number = 0
 let interval: any;
 
-function commandVehicleArm(arm: boolean) {
-    console.log("---> TODO: ARM/DISARM:", arm)
+function armDisarmVehicle(arm: boolean) {
+    if ($selectedVehicleID) {
+        commands.executeCommand($selectedVehicleID, { ArmDisarm: { arm: arm } });
+    }
 }
 
 onMount(async () => {
@@ -29,7 +32,7 @@ onMount(async () => {
             if (armProgress > 100) {
                 armPressed = false;
                 armProgress = 0;
-                commandVehicleArm(!armed);
+                armDisarmVehicle(!armed);
             }
         } else {
             armProgress = 0;
@@ -79,7 +82,7 @@ onDestroy(async () => { clearInterval(interval); })
 
     <!-- ARM/DISARM -->
     <div class="form-control grow-0">
-        <button class={"btn " + (armed ? "btn-error" : "btn-secondary") } disabled={!$safetyCheck} 
+        <button class={"btn " + (armed ? "btn-error" : "btn-secondary") } disabled={!$safetyCheck && $selectedVehicleID.length > 0}
             on:mousedown={() => armPressed = true} on:mouseup={() => armPressed = false} on:mouseleave={() => armPressed = false}>
             <div class={armPressed ? "radial-progress absolute left-2" : ""} style="--value:{armProgress}; --size:2rem;" role="progressbar" />
             { armed ? $i18n.t("DISARM VEHICLE (Long press)") : readyToArm ? $i18n.t("READY TO ARM (Long press to arm)") : $i18n.t("NOT READY (Long press to arm anyway)") }

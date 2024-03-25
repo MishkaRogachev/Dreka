@@ -80,9 +80,9 @@ impl Service {
         }
 
         let mut interval = time::interval(CHECK_CONNECTIONS_INTERVAL);
-        interval.tick().await;  // skip first tick
 
-        loop { // NOTE: NO await? in this loop, use logger!
+        // NOTE: NO await? in this loop, use logger!
+        loop {
             interval.tick().await;
 
             // Listen requests from client

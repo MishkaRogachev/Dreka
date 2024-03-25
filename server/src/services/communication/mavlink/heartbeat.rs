@@ -96,7 +96,7 @@ impl HeartbeatHandler {
         let vehicle = context.registry.vehicles.vehicle_by_protocol_id(&protocol_id).await?;
         match vehicle {
             Some(vehicle) => {
-                context.mav_vehicles.insert(mav_id, vehicle.clone());
+                context.mav_vehicles.insert(mav_id, vehicle.id.clone());
                 return Ok(Some(vehicle));
             },
             None => {
@@ -109,7 +109,7 @@ impl HeartbeatHandler {
                         vehicle_type: VehicleType::Auto,
                         features: Vec::new()
                     }).await?;
-                    context.mav_vehicles.insert(mav_id, vehicle.clone());
+                    context.mav_vehicles.insert(mav_id, vehicle.id.clone());
                     return Ok(Some(vehicle));
                 }
                 return Ok(None);

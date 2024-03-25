@@ -96,7 +96,6 @@ impl traits::IConnection for MavlinkConnection {
         let internal = self.internal.clone();
         let cloned_mav = mav.clone();
 
-        // parse incomming packets
         tokio::task::spawn(async move {
             let mut heartbeat_handler = HeartbeatHandler::new(mav_context.clone());
             let mut telemetry_handler = TelemetryHandler::new(mav_context.clone());
@@ -113,6 +112,7 @@ impl traits::IConnection for MavlinkConnection {
                     last_stats_reset = time::Instant::now();
                 }
 
+                // Parse incomming packets
                 match cloned_mav.recv() {
                     Ok((header, msg)) => {
                         let mut lock = internal.lock().await;
@@ -128,7 +128,6 @@ impl traits::IConnection for MavlinkConnection {
                         if let std::io::ErrorKind::WouldBlock = err.kind() {
                             //no messages currently available to receive -- wait a while
                             tokio::time::sleep(MAVLINK_POLL_INTERVAL).await;
-                            continue;
                         } else {
                             cloned_token.cancel();
                             let mut lock = internal.lock().await;
@@ -143,8 +142,15 @@ impl traits::IConnection for MavlinkConnection {
                     _ => {}
                 }
 
+                // Send commands
+                for command in command_handler.process_commands().await {
+                    match cloned_mav.send_default(&command) {
+                        Ok(_) => {},
+                        Err(error) => println!("Mavlink send error: {:?}", error),
+                    }
+                }
+
                 if cloned_token.is_cancelled() {
-                    command_handler.done().await;
                     return;
                 }
             }

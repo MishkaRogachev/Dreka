@@ -36,6 +36,10 @@ pub async fn serve(
             .service(super::vehicles::post_vehicle)
             .service(super::vehicles::delete_vehicle)
             .service(super::telemetry::telemetry_ws)
+            .service(super::commands::execute_command)
+            .service(super::commands::cancel_command)
+            .service(super::commands::get_command)
+            .service(super::commands::get_commands)
             .app_data(Data::new(context.clone()))
     }).bind(address)?.run();
 

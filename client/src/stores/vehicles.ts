@@ -6,6 +6,9 @@ import { EntityColor } from '$bindings/colors';
 
 export const IS_ONLINE_TIMEOUT = 2000;
 
+const UPDATE_DESCRIPTION_INTERVAL = 1000;
+const UPDATE_STATUS_INTERVAL = 250;
+
 export class Vehicle {
     constructor(description: VehicleDescription) {
         this.description = description;
@@ -73,7 +76,7 @@ export const vehicles = function () {
 
                 return vehicles;
             });
-        }, 1000); // Refresh description every second
+        }, UPDATE_DESCRIPTION_INTERVAL);
 
         statusInterval = setInterval(async () => {
             let statuses = await VehiclesService.getVehicleStatuses();
@@ -89,7 +92,7 @@ export const vehicles = function () {
                 }
                 return vehicles;
             });
-        }, 250); // Refresh status every 250ms
+        }, UPDATE_STATUS_INTERVAL);
     });
 
     return {

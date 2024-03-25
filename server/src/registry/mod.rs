@@ -1,3 +1,4 @@
 pub mod registry;
-mod vehicles;
 mod communication;
+mod vehicles;
+mod commands;
