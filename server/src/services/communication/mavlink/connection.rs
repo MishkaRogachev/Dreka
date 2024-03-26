@@ -7,7 +7,7 @@ use crate::models::telemetry::VehicleTelemetry;
 use crate::{registry::registry, models::communication};
 use crate::services::communication::traits;
 
-use super::{commands::CommandHandler, telemetry::TelemetryHandler, heartbeat::HeartbeatHandler, context::MavlinkContext};
+use super::{commands::handler::CommandHandler, telemetry::TelemetryHandler, heartbeat::HeartbeatHandler, context::MavlinkContext};
 
 const MAVLINK_POLL_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(5);
 const RESET_STATS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(1000);
