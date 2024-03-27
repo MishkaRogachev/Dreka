@@ -22,7 +22,7 @@ export type LinkProtocol = {
 };
 
 export interface LinkDescription {
-    id?: string,
+    id: string,
     protocol: LinkProtocol,
     name: String
     autoconnect: boolean,

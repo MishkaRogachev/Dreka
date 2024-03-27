@@ -4,7 +4,7 @@ use mavlink::{MavHeader, common::{MavMessage, ATTITUDE_DATA, VFR_HUD_DATA, GLOBA
 use tokio::sync::Mutex;
 
 use super::{context::MavlinkContext, utils};
-use crate::models::telemetry::{Flight, Navigation, Sensor, SensorType, System, VehicleTelemetry};
+use crate::models::{events::ServerEvent, telemetry::*};
 
 pub struct TelemetryHandler {
     context: Arc<Mutex<MavlinkContext>>,
@@ -143,12 +143,14 @@ impl TelemetryHandler {
         self.mav_flight_map.insert(mav_id, flight.clone());
 
         let context = self.context.lock().await;
-        if let Err(err) = context.send_telemetry(VehicleTelemetry{
-            vehicle_id: context.vehicle_id_from_mav_id(&mav_id).unwrap(),
-            timestamp: chrono::prelude::Utc::now().timestamp_millis(),
-            flight: Some(flight),
-            navigation: None,
-            system: None
+        if let Err(err) = context.send_event(ServerEvent::TelemetryUpdated {
+            telemetry: VehicleTelemetry {
+                vehicle_id: context.vehicle_id_from_mav_id(&mav_id).unwrap(),
+                timestamp: chrono::prelude::Utc::now().timestamp_millis(),
+                flight: Some(flight),
+                navigation: None,
+                system: None
+            }
         }) {
             log::error!("Update flight telemetry error: {}", err);
         }
@@ -158,12 +160,14 @@ impl TelemetryHandler {
         self.mav_navi_map.insert(mav_id, navigation.clone());
 
         let context = self.context.lock().await;
-        if let Err(err) = context.send_telemetry(VehicleTelemetry{
-            vehicle_id: context.vehicle_id_from_mav_id(&mav_id).unwrap(),
-            timestamp: chrono::prelude::Utc::now().timestamp_millis(),
-            flight: None,
-            navigation: Some(navigation),
-            system: None
+        if let Err(err) = context.send_event(ServerEvent::TelemetryUpdated {
+            telemetry: VehicleTelemetry {
+                vehicle_id: context.vehicle_id_from_mav_id(&mav_id).unwrap(),
+                timestamp: chrono::prelude::Utc::now().timestamp_millis(),
+                flight: None,
+                navigation: Some(navigation),
+                system: None
+            }
         }) {
             log::error!("Update navigation telemetry error: {}", err);
         }
@@ -173,12 +177,14 @@ impl TelemetryHandler {
         self.mav_system_map.insert(mav_id, system.clone());
 
         let context = self.context.lock().await;
-        if let Err(err) = context.send_telemetry(VehicleTelemetry{
-            vehicle_id: context.vehicle_id_from_mav_id(&mav_id).unwrap(),
-            timestamp: chrono::prelude::Utc::now().timestamp_millis(),
-            flight: None,
-            navigation: None,
-            system: Some(system)
+        if let Err(err) = context.send_event(ServerEvent::TelemetryUpdated {
+            telemetry: VehicleTelemetry {
+                vehicle_id: context.vehicle_id_from_mav_id(&mav_id).unwrap(),
+                timestamp: chrono::prelude::Utc::now().timestamp_millis(),
+                flight: None,
+                navigation: None,
+                system: Some(system)
+            }
         }) {
             log::error!("Update system telemetry error: {}", err);
         }

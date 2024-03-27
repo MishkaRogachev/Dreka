@@ -20,6 +20,20 @@ pub async fn execute_command(context: web::Data<ApiContext>, path: web::Path<Str
     }
 }
 
+#[delete("/commands/cancel/{command_id}")]
+pub async fn cancel_command(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
+    let command_id = &path.into_inner();
+    let result = context.registry.commands.drop_vehicle_command(command_id).await;
+
+    match result {
+        Ok(_) => return HttpResponse::Ok().json(command_id),
+        Err(err) => {
+            log::warn!("REST: error {}", &err);
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
+    }
+}
+
 #[get("/commands/{command_id}")]
 pub async fn get_command(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let command_id = &path.into_inner();
@@ -40,20 +54,6 @@ pub async fn get_commands(context: web::Data<ApiContext>) -> impl Responder {
 
     match result {
         Ok(commands) => return HttpResponse::Ok().json(commands),
-        Err(err) => {
-            log::warn!("REST: error {}", &err);
-            HttpResponse::InternalServerError().json(err.to_string())
-        }
-    }
-}
-
-#[delete("/commands/cancel/{command_id}")]
-pub async fn cancel_command(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
-    let command_id = &path.into_inner();
-    let result = context.registry.commands.drop_vehicle_command(command_id).await;
-
-    match result {
-        Ok(_) => return HttpResponse::Ok().json(command_id),
         Err(err) => {
             log::warn!("REST: error {}", &err);
             HttpResponse::InternalServerError().json(err.to_string())

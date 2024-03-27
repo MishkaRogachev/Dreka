@@ -3,5 +3,5 @@ mod context;
 
 mod communication;
 mod vehicles;
-mod telemetry;
+mod websocket;
 mod commands;

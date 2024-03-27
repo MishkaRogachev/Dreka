@@ -22,7 +22,7 @@ export type ProtocolId = {
     MavlinkId?: MavlinkProtocolId
 };
 export interface VehicleDescription {
-    id?: string,
+    id: string,
     name: string,
     color: EntityColor,
     vehicle_type: VehicleType,

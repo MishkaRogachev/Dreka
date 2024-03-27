@@ -1,16 +1,13 @@
 import { writable, get, derived } from "svelte/store";
 
-import { WS_TELEMETRY_URL, WsWatchdog, type WsListener } from "$datasource/ws";
+import { EventsService } from "$services/events";
 import { VehicleTelemetry } from "$bindings/telemetry";
 import { selectedVehicleID } from "$stores/vehicles";
 
 export const vehiclesTelemetry = function () {
-    let watchdog = new WsWatchdog(WS_TELEMETRY_URL)
-    let listener: WsListener;
-
     const store = writable(new Map<string, VehicleTelemetry>(), (_, update) => {
-        listener = (data: any) => {
-            let telemetry = JSON.parse(data) as VehicleTelemetry;
+        let listener = (data: any) => {
+            let telemetry = data["telemetry"]
             if (!telemetry) {
                 return;
             }
@@ -35,16 +32,14 @@ export const vehiclesTelemetry = function () {
                 return vehiclesTelemetry;
             });
         }
-        watchdog.subscribe(listener);
+        EventsService.subscribe("TelemetryUpdated", listener);
     });
-
-    watchdog.start();
 
     return {
         subscribe: store.subscribe,
         count: () => get(store).size,
         telemetry: (vehicleId: string) => get(store).get(vehicleId),
-        kill: () => { watchdog.unsubscribe(listener); watchdog.stop();}
+        kill: () => {}
     }
 } ()
 

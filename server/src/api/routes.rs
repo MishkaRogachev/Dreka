@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 use actix_cors::Cors;
 use actix_web::{get, App, HttpServer, web::Data, Responder, HttpResponse};
 
-use crate::{models::{events::ClentEvent, telemetry::VehicleTelemetry}, registry::registry};
+use crate::{models::events::{ClentEvent, ServerEvent}, registry::registry};
 
 #[get("/")]
 async fn ping() -> impl Responder {
@@ -11,11 +11,11 @@ async fn ping() -> impl Responder {
 
 pub async fn serve(
         registry: registry::Registry,
-        client_events_tx: flume::Sender<ClentEvent>,
-        telemetry_rx: flume::Receiver<VehicleTelemetry>,
+        client_events: flume::Sender<ClentEvent>,
+        server_events: flume::Receiver<ServerEvent>,
         address: &SocketAddr
     ) -> anyhow::Result<()> {
-    let context = super::context::ApiContext::new(registry, client_events_tx, telemetry_rx);
+    let context = super::context::ApiContext::new(registry, client_events, server_events);
 
     let result = HttpServer::new(move || {
         let cors = Cors::permissive();
@@ -35,7 +35,7 @@ pub async fn serve(
             .service(super::vehicles::get_statuses)
             .service(super::vehicles::post_vehicle)
             .service(super::vehicles::delete_vehicle)
-            .service(super::telemetry::telemetry_ws)
+            .service(super::websocket::telemetry_ws)
             .service(super::commands::execute_command)
             .service(super::commands::cancel_command)
             .service(super::commands::get_command)

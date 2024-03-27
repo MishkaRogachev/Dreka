@@ -92,7 +92,7 @@ pub async fn set_link_connected(context: web::Data<ApiContext>, path: web::Path<
     let link_id: LinkId = path.into_inner();
     let connected = enabled.into_inner();
 
-    match context.client_events_tx.send(ClentEvent::SetLinkEnabled { link_id: link_id.to_owned(), connected }) {
+    match context.client_events.send(ClentEvent::SetLinkEnabled { link_id: link_id.to_owned(), enabled: connected }) {
         Ok(_) => HttpResponse::Ok(),
         Err(_) => HttpResponse::InternalServerError()
     }

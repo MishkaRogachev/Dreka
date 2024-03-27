@@ -1,4 +1,4 @@
-export const WS_TELEMETRY_URL = "ws://127.0.0.1:45486/telemetry/ws"
+export const WEBSOCKET_URL = "ws://127.0.0.1:45486/ws"
 
 export type WsListener = (data: any) => void;
 

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use tokio::time;
 
 use crate::models::communication::{LinkId, LinkDescription, LinkStatus, LinkProtocol, LinkType, MavlinkProtocolVersion};
-use crate::models::{events::ClentEvent, telemetry::VehicleTelemetry};
+use crate::models::events::{ClentEvent, ServerEvent};
 use crate::registry::registry;
 use super::{traits, mavlink::connection::MavlinkConnection};
 
@@ -14,8 +14,8 @@ const CHECK_CONNECTIONS_INTERVAL: tokio::time::Duration = tokio::time::Duration:
 pub struct Service {
     registry: registry::Registry,
     client_events_rx: flume::Receiver<ClentEvent>,
-    telemetry_tx: flume::Sender<VehicleTelemetry>,
-    telemetry_rx: flume::Receiver<VehicleTelemetry>,
+    server_events_tx: flume::Sender<ServerEvent>,
+    server_events_rx: flume::Receiver<ServerEvent>,
     link_connections: LinkConnections
 }
 
@@ -50,14 +50,14 @@ impl Service {
     pub fn new(
         registry: registry::Registry,
         client_events_rx: flume::Receiver<ClentEvent>,
-        telemetry_tx: flume::Sender<VehicleTelemetry>,
-        telemetry_rx: flume::Receiver<VehicleTelemetry>,
+        server_events_tx: flume::Sender<ServerEvent>,
+        server_events_rx: flume::Receiver<ServerEvent>,
     ) -> Self {
         Self {
             registry,
             client_events_rx,
-            telemetry_tx,
-            telemetry_rx,
+            server_events_tx,
+            server_events_rx,
             link_connections: LinkConnections::new()
         }
     }
@@ -150,8 +150,8 @@ impl Service {
             LinkProtocol::Mavlink { link_type, protocol_version } => {
                 Ok(Box::new(MavlinkConnection::new(
                     self.registry.clone(),
-                    self.telemetry_tx.clone(),
-                    self.telemetry_rx.clone(),
+                    self.server_events_tx.clone(),
+                    self.server_events_rx.clone(),
                     link_type,
                     protocol_version
                 )))
@@ -174,12 +174,13 @@ impl Service {
 
     async fn handle_client_event(&mut self, event: ClentEvent) -> anyhow::Result<()> {
         match event {
-            ClentEvent::SetLinkEnabled { link_id, connected } => {
+            ClentEvent::SetLinkEnabled { link_id, enabled: connected } => {
                 if connected {
                     return self.enable_link(&link_id).await;
                 }
                 return self.disable_link(&link_id).await;
-            }
+            },
+            _ => Ok(())
         }
     }
 }

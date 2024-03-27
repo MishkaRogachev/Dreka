@@ -1,28 +1,28 @@
 use std::collections::HashMap;
 
-use crate::models::{telemetry::VehicleTelemetry, vehicles::VehicleId};
+use crate::models::{events::ServerEvent, vehicles::VehicleId};
 use crate::registry::registry;
 
 pub struct MavlinkContext {
     pub registry: registry::Registry,
     pub mav_vehicles: HashMap<u8, VehicleId>,
     pub auto_add_vehicles: bool,
-    telemetry_tx: flume::Sender<VehicleTelemetry>,
-    telemetry_rx: flume::Receiver<VehicleTelemetry>
+    server_events_tx: flume::Sender<ServerEvent>,
+    server_events_rx: flume::Receiver<ServerEvent>
 }
 
 impl MavlinkContext {
     pub fn new(
         registry: registry::Registry,
-        telemetry_tx: flume::Sender<VehicleTelemetry>,
-        telemetry_rx: flume::Receiver<VehicleTelemetry>,
+        server_events_tx: flume::Sender<ServerEvent>,
+        server_events_rx: flume::Receiver<ServerEvent>,
     ) -> Self {
         Self {
             registry,
             mav_vehicles: HashMap::new(),
             auto_add_vehicles: true, // TODO: to settings
-            telemetry_tx,
-            telemetry_rx
+            server_events_tx,
+            server_events_rx
         }
     }
 
@@ -37,13 +37,13 @@ impl MavlinkContext {
             .map(|(mav_id, _)| *mav_id)
     }
 
-    pub fn send_telemetry(&self, telemetry: VehicleTelemetry) -> anyhow::Result<()> {
-        match self.telemetry_tx.try_send(telemetry) {
+    pub fn send_event(&self, telemetry: ServerEvent) -> anyhow::Result<()> {
+        match self.server_events_tx.try_send(telemetry) {
             Ok(_) => { Ok(()) },
             Err(err) => match err {
                 flume::TrySendError::Full(telemetry) => {
-                    match self.telemetry_rx.recv() {
-                        Ok(_) => self.send_telemetry(telemetry),
+                    match self.server_events_rx.recv() {
+                        Ok(_) => self.send_event(telemetry),
                         Err(err) => Err(err.into())
                     }
                 }
