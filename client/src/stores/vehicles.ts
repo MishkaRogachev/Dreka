@@ -1,7 +1,7 @@
 import { writable, derived, get } from 'svelte/store';
 
 import type { WsListener } from '$datasource/ws';
-import { EventsService } from '$services/events';
+import { ClientSideEvents, EventsService } from '$services/events';
 import { VehiclesService } from '$services/vehicles';
 import { type VehicleDescription, type VehicleStatus, VehicleType } from '$bindings/vehicles';
 import { EntityColor } from '$bindings/colors';
@@ -25,6 +25,7 @@ export const vehicles = function () {
     let vehicleUpdated: WsListener;
     let vehicleRemoved: WsListener;
     let statusUpdated: WsListener;
+    let wsConnected: WsListener;
 
     const store = writable(new Map<string, Vehicle>(), (_, update) => {
         vehicleUpdated = (data: any) => {
@@ -74,19 +75,21 @@ export const vehicles = function () {
             });
         }
 
-        EventsService.subscribe("VehicleUpdated", vehicleUpdated);
-        EventsService.subscribe("VehicleRemoved", vehicleRemoved);
-        EventsService.subscribe("VehicleStatusUpdated", statusUpdated);
-
-        VehiclesService.getVehicleDescriptions().then((descriptions) => {
+        wsConnected = async (_data: any) => {
+            // TODO: request statuses for all vehicles on startup
+            let descriptions = await VehiclesService.getVehicleDescriptions();
             if (descriptions) {
-                update(vehicles => {
-                    return new Map(descriptions.map(description => [description.id, new Vehicle(description)]));
+                update(_ => {
+                    return new Map(descriptions!.map(description => [description.id, new Vehicle(description)]));
                 });
                 selectNextAvailableVehicle(get(store));
             }
-        });
-        // TODO: request statuses for all vehicles on startup
+        }
+
+        EventsService.subscribe("VehicleUpdated", vehicleUpdated);
+        EventsService.subscribe("VehicleRemoved", vehicleRemoved);
+        EventsService.subscribe("VehicleStatusUpdated", statusUpdated);
+        EventsService.subscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
     });
 
     return {
@@ -126,6 +129,7 @@ export const vehicles = function () {
             EventsService.unsubscribe("VehicleUpdated", vehicleUpdated);
             EventsService.unsubscribe("VehicleRemoved", vehicleRemoved);
             EventsService.unsubscribe("VehicleStatusUpdated", statusUpdated);
+            EventsService.unsubscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
         }
     }
 } ()

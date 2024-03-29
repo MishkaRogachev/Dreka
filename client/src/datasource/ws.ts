@@ -2,10 +2,17 @@ export const WEBSOCKET_URL = "ws://127.0.0.1:45486/ws"
 
 export type WsListener = (data: any) => void;
 
+export enum MsEventType {
+    Open = "open",
+    Close = "close",
+    Message = "message",
+    Error = "error",
+}
+
 export class WsWatchdog {
     constructor(url: string) {
         this.ws = null;
-        this.listeners = [];
+        this.listeners = new Map<MsEventType, Function>();
         this.interval = null;
         this.url = url;
     }
@@ -36,28 +43,27 @@ export class WsWatchdog {
         console.log("Connecting to WebSocket");
         this.ws = new WebSocket(this.url);
 
-        this.ws.addEventListener("open", event => {
-            console.log("WebSocket connection established");
-        });
-
-        this.ws.addEventListener("message", event => {
-            this.listeners.forEach(listener => { listener(event.data); });
-        });
-
-        this.ws.addEventListener("close", event => { this.ws = null; });
-        this.ws.addEventListener("error", event => { this.ws = null; });
+        this.setupEventListener(MsEventType.Open);
+        this.setupEventListener(MsEventType.Close);
+        this.setupEventListener(MsEventType.Message);
+        this.setupEventListener(MsEventType.Error);
     }
 
-    subscribe(listener: WsListener) {
-        this.listeners.push(listener);
+    private setupEventListener(eventType: MsEventType) {
+        this.ws!.addEventListener(eventType, event => {
+            const cb = this.listeners.get(eventType);
+            if (cb) {
+                cb(event);
+            }
+        });
     }
 
-    unsubscribe(listener: WsListener) {
-        this.listeners = this.listeners.filter(item => item !== listener);
+    setCallback(event: MsEventType, cb: WsListener) {
+        this.listeners.set(event, cb);
     }
 
     private url: string;
     private interval: NodeJS.Timeout | null;
     private ws: WebSocket | null;
-    private listeners: Array<Function>
+    private listeners: Map<MsEventType, Function>
 }

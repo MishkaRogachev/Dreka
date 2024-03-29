@@ -1,25 +1,50 @@
 import type { ServerEvent } from "$bindings/events";
-import { WEBSOCKET_URL, WsWatchdog, type WsListener } from "$datasource/ws";
+import { WEBSOCKET_URL, WsWatchdog, type WsListener, MsEventType } from "$datasource/ws";
+
+export enum ClientSideEvents {
+    WsConnectionOpened = "WsConnectionOpened",
+    WsConnectionClosed = "WsConnectionClosed",
+}
 
 export class EventsContext {
     watchdog = new WsWatchdog(WEBSOCKET_URL);
-    listeners: Map<keyof ServerEvent, WsListener[]> = new Map();
+    eventListeners: Map<string, WsListener[]> = new Map();
 }
 
 export class EventsService {
     static init() {
-        this.context.watchdog.subscribe((data: any) => {
-            let event = JSON.parse(data) as ServerEvent;
-            if (!event) {
-                console.warn("Invalid event received: ", data);
-                return;
-            }
-            let eventType = Object.keys(event)[0] as keyof ServerEvent;
-
-            let eventListeners = this.context.listeners.get(eventType);
+        this.context.watchdog.setCallback(MsEventType.Open, (event: any) => {
+            console.log("WebSocket connection established");
+            let eventListeners = this.context.eventListeners.get(ClientSideEvents.WsConnectionOpened);
             if (eventListeners) {
                 for (const listener of eventListeners) {
-                    listener(event[eventType]);
+                    listener(event);
+                }
+            }
+        });
+
+        this.context.watchdog.setCallback(MsEventType.Close, (event: any) => {
+            console.log("Closing the websocket connection");
+            let eventListeners = this.context.eventListeners.get(ClientSideEvents.WsConnectionClosed);
+            if (eventListeners) {
+                for (const listener of eventListeners) {
+                    listener(event);
+                }
+            }
+        });
+
+        this.context.watchdog.setCallback(MsEventType.Message, (event: any) => {
+            let message = JSON.parse(event.data) as ServerEvent;
+            if (!message) {
+                console.warn("Invalid message event received: ", message);
+                return;
+            }
+            let eventType = Object.keys(message)[0] as keyof ServerEvent;
+
+            let eventListeners = this.context.eventListeners.get(eventType);
+            if (eventListeners) {
+                for (const listener of eventListeners) {
+                    listener(message[eventType]);
                 }
             }
         });
@@ -28,17 +53,17 @@ export class EventsService {
 
     static done() {
         this.context.watchdog.stop();
-        this.context.listeners.clear();
+        this.context.eventListeners.clear();
     }
 
-    static subscribe(eventType: keyof ServerEvent, listener: WsListener) {
-        const eventListeners = this.context.listeners.get(eventType) || [];
+    static subscribe(eventType: string, listener: WsListener) {
+        const eventListeners = this.context.eventListeners.get(eventType) || [];
         eventListeners.push(listener);
-        this.context.listeners.set(eventType, eventListeners);
+        this.context.eventListeners.set(eventType, eventListeners);
     }
 
-    static unsubscribe(eventType: keyof ServerEvent, listener: WsListener) {
-        const eventListeners = this.context.listeners.get(eventType);
+    static unsubscribe(eventType: string, listener: WsListener) {
+        const eventListeners = this.context.eventListeners.get(eventType);
         if (eventListeners) {
             const index = eventListeners.indexOf(listener);
             if (index !== -1) {

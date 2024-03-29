@@ -1,7 +1,7 @@
 import { writable, get } from 'svelte/store';
 
 import type { WsListener } from "$datasource/ws";
-import { EventsService } from "$services/events";
+import { ClientSideEvents, EventsService } from "$services/events";
 import { CommunicationService } from '$services/communication';
 import { type LinkDescription, type LinkStatus } from '$bindings/communication';
 
@@ -17,6 +17,7 @@ export const links = function () {
     let linkUpdated: WsListener;
     let linkRemoved: WsListener;
     let statusUpdated: WsListener;
+    let wsConnected: WsListener;
 
     const store = writable(new Map<string, Link>(), (_, update) => {
         linkUpdated = (data: any) => {
@@ -63,17 +64,20 @@ export const links = function () {
             });
         }
 
+        wsConnected = async (_data: any) => {
+            // TODO: request statuses for all vehicles on startup
+            let descriptions = await CommunicationService.getLinkDescriptions();
+            if (descriptions) {
+                update(_ => {
+                    return new Map(descriptions!.map(description => [description.id, new Link(description)]));
+                });
+            }
+        }
+
         EventsService.subscribe("LinkUpdated", linkUpdated);
         EventsService.subscribe("LinkRemoved", linkRemoved);
         EventsService.subscribe("LinkStatusUpdated", statusUpdated);
-
-        CommunicationService.getLinkDescriptions().then((descriptions) => {
-            if (descriptions) {
-                update(links => {
-                    return new Map(descriptions.map(description => [description.id, new Link(description)]));
-                });
-            }
-        });
+        EventsService.subscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
     });
 
     return {
@@ -116,6 +120,7 @@ export const links = function () {
             EventsService.unsubscribe("LinkUpdated", linkUpdated);
             EventsService.unsubscribe("LinkRemoved", linkRemoved);
             EventsService.unsubscribe("LinkStatusUpdated", statusUpdated);
+            EventsService.subscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
         }
     }
 } ()
