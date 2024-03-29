@@ -65,7 +65,7 @@ impl CommandHandler {
         let context = self.context.lock().await;
         let mut result = Vec::new();
 
-        // TODO: should be relaced with a command queue
+        // TODO: replace with listening client events
         match context.registry.commands.all_vehicle_commands().await {
             Ok(commands) => {
                 for command in commands {

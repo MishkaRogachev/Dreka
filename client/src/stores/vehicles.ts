@@ -17,6 +17,10 @@ export class Vehicle {
 
     is_online: boolean
 
+    checkIsOnline() {
+        this.is_online = !!this.status && (Date.now() - this.status.last_heartbeat) < IS_ONLINE_TIMEOUT;
+    }
+
     description: VehicleDescription
     status: VehicleStatus | undefined
 }
@@ -77,20 +81,25 @@ export const vehicles = function () {
         }
 
         wsConnected = async (_data: any) => {
-            // TODO: request statuses for all vehicles on startup
             let descriptions = await VehiclesService.getVehicleDescriptions();
             if (descriptions) {
-                update(_ => {
-                    return new Map(descriptions!.map(description => [description.id, new Vehicle(description)]));
-                });
-                selectNextAvailableVehicle(get(store));
+                let vehicles = new Map(descriptions!.map(description => [description.id, new Vehicle(description)]));
+                for (let [id, vehicle] of vehicles) {
+                    let status = await VehiclesService.getVehicleStatus(id)
+                    if (status) {
+                        vehicle.status = status;
+                        vehicle.checkIsOnline();
+                    }
+                }
+                selectNextAvailableVehicle(vehicles);
+                update(_ => { return vehicles; });
             }
         }
 
         onlineInterval = setInterval(() => {
             update(vehicles => {
                 for (let [_, vehicle] of vehicles) {
-                    vehicle.is_online = !!vehicle.status && (Date.now() - vehicle.status.last_heartbeat) < IS_ONLINE_TIMEOUT;
+                    vehicle.checkIsOnline();
                 }
                 return vehicles;
             });

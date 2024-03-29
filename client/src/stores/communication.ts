@@ -65,12 +65,16 @@ export const links = function () {
         }
 
         wsConnected = async (_data: any) => {
-            // TODO: request statuses for all vehicles on startup
             let descriptions = await CommunicationService.getLinkDescriptions();
             if (descriptions) {
-                update(_ => {
-                    return new Map(descriptions!.map(description => [description.id, new Link(description)]));
-                });
+                let links = new Map(descriptions!.map(description => [description.id, new Link(description)]));
+                for (let [id, link] of links) {
+                    let status = await CommunicationService.getLinkStatus(id)
+                    if (status) {
+                        link.status = status;
+                    }
+                }
+                update(_ => { return links; });
             }
         }
 

@@ -5,7 +5,6 @@ use super::vehicles::{VehicleDescription, VehicleId, VehicleStatus};
 use super::telemetry::VehicleTelemetry;
 use super::commands::{CommandId, VehicleCommand, VehicleCommandState};
 
-// TODO: consider to move events to an event bus
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[derive(Clone)]
 pub enum ClientEvent {

@@ -10,26 +10,28 @@ import { Vehicle, vehicles, usedVehicleTypes, selectedVehicleID, usedVehicleColo
 
 import { i18n } from "$stores/i18n";
 
-export let editingVehicleID = ""
+export let editingVehicleID = "";
+export let vehicle: Vehicle;
 
-export let vehicle: Vehicle
-export let changed: boolean = false
-
-let descriptionCopy: VehicleDescription = vehicle.description
+let descriptionCopy: VehicleDescription = cloneDescription();
+let changed = false;
 
 afterUpdate(async () => {
     if (editingVehicleID !== vehicle.description.id) {
-        descriptionCopy = vehicle.description;
+        descriptionCopy = cloneDescription();
     } else {
         changed = JSON.stringify(descriptionCopy) !== JSON.stringify(vehicle.description);
     }
 });
 
+function cloneDescription() {
+    return JSON.parse(JSON.stringify(vehicle.description));
+}
 </script>
 
 <div class="collapse collapse-arrow bg-base-200">
     <input type="radio" checked={ editingVehicleID === vehicle.description.id } name="communication-vehicles-accordion"
-        on:change={() => { editingVehicleID = vehicle.description.id || "" }}/>
+        on:change={() => { editingVehicleID = vehicle.description.id }}/>
     <div class="collapse-title flex flex-row gap-4 w-full items-center">
         <!-- VEHICLE INDICATOR -->
         <div class="indicator h-min">
@@ -81,7 +83,7 @@ afterUpdate(async () => {
 
         <div class="w-full btn-sm mt-4 flex">
             <button disabled={ vehicle.is_online } class="btn btn-sm btn-wide btn-outline btn-secondary px-1 ml-2"
-                on:click={() => { vehicles.removeVehicle(vehicle.description.id || "") }}>
+                on:click={() => { vehicles.removeVehicle(vehicle.description.id) }}>
                 { $i18n.t("Remove") }
             </button>
 
@@ -89,7 +91,7 @@ afterUpdate(async () => {
 
             <div class="join btn-sm p-0">
                 <button disabled={!changed} class="btn btn-sm btn-wide btn-primary join-item px-1 ml-2"
-                    on:click={()=> { descriptionCopy = vehicle.description }}>
+                    on:click={()=> { descriptionCopy = cloneDescription() }}>
                     { $i18n.t("Discard") }
                 </button>
                 <button disabled={!changed} class="btn btn-sm btn-wide btn-accent join-item px-1 ml-2"

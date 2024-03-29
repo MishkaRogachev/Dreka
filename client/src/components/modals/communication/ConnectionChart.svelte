@@ -7,28 +7,33 @@ import { cssColorToHex } from '$lib/common/formats';
 
 export let status: LinkStatus | undefined
 
+let ready: boolean = false
 let ctx: any
 let chartCanvas: any
 let chart: any
 
 $: {
-    if (status) {
-        if (status.is_connected) {
-            let time = new Date().getTime();
-            addStatusLog(time, status.bytes_sent, status.bytes_received);
-        } else {
-            clearLogs();
-        }
+    if (status && status.is_connected) {
+        let time = new Date().getTime();
+        addStatusLog(time, status.bytes_sent, status.bytes_received);
+    } else {
+        clearLogs();
     }
 }
 
 function addStatusLog(time: number, tx: number, rx: number) {
+    if (!ready)
+        return;
+
     chart.data.datasets[0].data.push({ x: time, y: tx });
     chart.data.datasets[1].data.push({ x: time, y: rx });
     chart.update();
 }
 
 function clearLogs() {
+    if (!ready)
+        return;
+
     chart.data.datasets[0].data = []
     chart.data.datasets[1].data = []
     chart.update();
@@ -75,6 +80,7 @@ onMount(async () => {
             },
         }
     });
+    ready = true;
 })
 
 </script>
