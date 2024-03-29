@@ -1,13 +1,12 @@
 import { writable, derived, get } from 'svelte/store';
 
-import { type VehicleDescription, type VehicleStatus, VehicleType } from '$bindings/vehicles';
+import type { WsListener } from '$datasource/ws';
+import { EventsService } from '$services/events';
 import { VehiclesService } from '$services/vehicles';
+import { type VehicleDescription, type VehicleStatus, VehicleType } from '$bindings/vehicles';
 import { EntityColor } from '$bindings/colors';
 
 export const IS_ONLINE_TIMEOUT = 2000;
-
-const UPDATE_DESCRIPTION_INTERVAL = 1000;
-const UPDATE_STATUS_INTERVAL = 250;
 
 export class Vehicle {
     constructor(description: VehicleDescription) {
@@ -23,76 +22,71 @@ export class Vehicle {
 }
 
 export const vehicles = function () {
-    let descriptionInterval: NodeJS.Timeout;
-    let statusInterval: NodeJS.Timeout;
+    let vehicleUpdated: WsListener;
+    let vehicleRemoved: WsListener;
+    let statusUpdated: WsListener;
 
     const store = writable(new Map<string, Vehicle>(), (_, update) => {
-        // TODO: stop intervals if server is down
-        descriptionInterval = setInterval(async () => {
-            let descriptions = await VehiclesService.getVehicleDescriptions();
-            if (!descriptions) {
-                return;
-            }
-            update(vehicles => {
-                let usedIds = new Array<string>();
-
-                // Add and update existing vehicles
-                for (const description of descriptions!) {
-                    const id = description.id!;
-                    usedIds.push(id);
-
-                    if (vehicles.has(id)) {
-                        vehicles.get(id)!.description = description;
-                    } else {
-                        vehicles.set(id, new Vehicle(description));
-                    }
-                }
-
-                // Delete vehicles removed by server
-                for (const id of vehicles.keys()) {
-                    if (!usedIds.includes(id)) {
-                        vehicles.delete(id);
-                        if (get(selectedVehicleID) == id) {
-                            selectedVehicleID.set("");
-                        }
-                    }
-                }
-
-                // Update selected vehicle id
-                if (get(selectedVehicleID) === "") {
-                    // Select first online vehicle
-                    for (const id of vehicles.keys()) {
-                        if (vehicles.get(id)!.is_online()) {
-                            selectedVehicleID.set(id);
-                            break;
-                        }
-                    }
-
-                    // Select first vehicle if no online vehicle
-                    if (get(selectedVehicleID) === "" && vehicles.size > 0) {
-                        selectedVehicleID.set(vehicles.keys().next().value);
-                    }
-                }
-
-                return vehicles;
-            });
-        }, UPDATE_DESCRIPTION_INTERVAL);
-
-        statusInterval = setInterval(async () => {
-            let statuses = await VehiclesService.getVehicleStatuses();
-            if (!statuses) {
+        vehicleUpdated = (data: any) => {
+            let vehicle = data["vehicle"] as VehicleDescription;
+            if (!vehicle) {
                 return;
             }
 
             update(vehicles => {
-                for (const status of statuses!) {
-                    if (vehicles.has(status.id)) {
-                        vehicles.get(status.id)!.status = status;
+                if (vehicles.has(vehicle.id)) {
+                    vehicles.get(vehicle.id)!.description = vehicle;
+                } else {
+                    vehicles.set(vehicle.id, new Vehicle(vehicle));
+                }
+                return vehicles;
+            });
+        }
+
+        vehicleRemoved = (data: any) => {
+            let vehicle_id = data["vehicle_id"] as string;
+            if (!vehicle_id) {
+                return;
+            }
+
+            update(vehicles => {
+                if (vehicles.has(vehicle_id)) {
+                    vehicles.delete(vehicle_id);
+                    if (get(selectedVehicleID) == vehicle_id) {
+                        selectNextAvailableVehicle(vehicles);
                     }
                 }
                 return vehicles;
             });
-        }, UPDATE_STATUS_INTERVAL);
+        }
+
+        statusUpdated = (data: any) => {
+            let status = data["status"] as VehicleStatus;
+            if (!status) {
+                return;
+            }
+
+            update(vehicles => {
+                if (vehicles.has(status.id)) {
+                    vehicles.get(status.id)!.status = status;
+                }
+                return vehicles;
+            });
+        }
+
+        EventsService.subscribe("VehicleUpdated", vehicleUpdated);
+        EventsService.subscribe("VehicleRemoved", vehicleRemoved);
+        EventsService.subscribe("VehicleStatusUpdated", statusUpdated);
+
+        VehiclesService.getVehicleDescriptions().then((descriptions) => {
+            if (descriptions) {
+                update(vehicles => {
+                    return new Map(descriptions.map(description => [description.id, new Vehicle(description)]));
+                });
+                selectNextAvailableVehicle(get(store));
+            }
+        });
+        // TODO: request statuses for all vehicles on startup
     });
 
     return {
@@ -106,7 +100,7 @@ export const vehicles = function () {
             let vehicle: Vehicle | undefined
             if (descriptionBack && descriptionBack.id) {
                 store.update(vehicles => {
-                    const id = description.id!;
+                    const id = descriptionBack!.id;
                     if (vehicles.has(id)) {
                         vehicles.get(id)!.description = descriptionBack!;
                     } else {
@@ -129,8 +123,9 @@ export const vehicles = function () {
             }
         },
         kill: () => {
-            clearInterval(descriptionInterval);
-            clearInterval(statusInterval);
+            EventsService.unsubscribe("VehicleUpdated", vehicleUpdated);
+            EventsService.unsubscribe("VehicleRemoved", vehicleRemoved);
+            EventsService.unsubscribe("VehicleStatusUpdated", statusUpdated);
         }
     }
 } ()
@@ -168,3 +163,17 @@ export const usedVehicleTypes = [ VehicleType.Unknown, VehicleType.Auto, Vehicle
 export const usedVehicleColors = [ EntityColor.Teal, EntityColor.Cyan, EntityColor.Sky, EntityColor.Blue, EntityColor.Indigo, EntityColor.Violet ]
 
 export var safetyCheck = writable(false)
+
+function selectNextAvailableVehicle(vehicles: Map<string, Vehicle>) {
+    let idToSelect = ""
+    for (let [id, vehicle] of vehicles) {
+        if (vehicle.is_online()) {
+            idToSelect = id;
+            break;
+        }
+        if (!idToSelect.length) {
+            idToSelect = id;
+        }
+    }
+    selectedVehicleID.set(idToSelect);
+}

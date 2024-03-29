@@ -1,6 +1,6 @@
 use actix_web::{get, post, put, delete, web, Responder, HttpResponse};
 
-use crate::models::{communication::{LinkId, LinkDescription}, events::ClentEvent};
+use crate::models::{communication::{LinkId, LinkDescription}, events::ClientEvent};
 use super::context::ApiContext;
 
 #[get("/comm/links/description/{link_id}")]
@@ -92,7 +92,7 @@ pub async fn set_link_connected(context: web::Data<ApiContext>, path: web::Path<
     let link_id: LinkId = path.into_inner();
     let connected = enabled.into_inner();
 
-    match context.client_events.send(ClentEvent::SetLinkEnabled { link_id: link_id.to_owned(), enabled: connected }) {
+    match context.client_bus.publish(ClientEvent::SetLinkEnabled { link_id: link_id.to_owned(), enabled: connected }) {
         Ok(_) => HttpResponse::Ok(),
         Err(_) => HttpResponse::InternalServerError()
     }

@@ -3,7 +3,7 @@ use tokio::sync::Mutex;
 
 use mavlink::{MavHeader, common::{MavMessage, MavType, MavState, MavModeFlag}};
 
-use crate::models::{colors::EntityColor, vehicles::{ProtocolId, VehicleDescription, VehicleState, VehicleStatus, VehicleType}};
+use crate::models::{colors::EntityColor, vehicles::*};
 use super::context::MavlinkContext;
 
 impl VehicleType {
@@ -64,26 +64,27 @@ impl HeartbeatHandler {
                     // Chanage type if auto
                     if vehicle.vehicle_type == VehicleType::Auto {
                         vehicle.vehicle_type = VehicleType::from_mavlink(heartbeat_data.mavtype);
-                        let saved = context.registry.vehicles.save_vehicle(&vehicle).await;
-                        if let Err(err) = saved {
+
+                        // Save vehicle to registry
+                        if let Err(err) = context.registry.vehicles.save_vehicle(&vehicle).await {
                             log::error!("Save vehicle description error: {:?}", &err);
                         }
                     }
 
-                    // Save vehicle status
+                    // TODO: vehicle modes
+                    // TODO: vehicle flags
+
                     let status = VehicleStatus {
                         id: vehicle.id,
                         last_heartbeat: chrono::prelude::Utc::now().timestamp_millis(),
                         state: VehicleState::from_mavlink(heartbeat_data.system_status),
                         armed: heartbeat_data.base_mode.intersects(MavModeFlag::MAV_MODE_FLAG_SAFETY_ARMED)
                     };
-                    let saved = context.registry.vehicles.update_status(&status).await;
-                    if let Err(err) = saved {
+
+                    // Update vehicle status in registry
+                    if let Err(err) = context.registry.vehicles.update_status(&status).await {
                         log::error!("Save vehicle status error: {:?}", &err);
                     }
-
-                    // TODO: vehicle modes
-                    // TODO: vehicle flags
                 },
                 None => {} // Do nothing if there is no vehicle for this mavlink id
             }
@@ -101,6 +102,7 @@ impl HeartbeatHandler {
             },
             None => {
                 if context.auto_add_vehicles {
+                    // Create new vehicle and add it to registry
                     let vehicle = context.registry.vehicles.save_vehicle(&VehicleDescription {
                         id: String::new(),
                         protocol_id,

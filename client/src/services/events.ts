@@ -3,7 +3,7 @@ import { WEBSOCKET_URL, WsWatchdog, type WsListener } from "$datasource/ws";
 
 export class EventsContext {
     watchdog = new WsWatchdog(WEBSOCKET_URL);
-    listeners: Map<keyof ServerEvent, WsListener> = new Map();
+    listeners: Map<keyof ServerEvent, WsListener[]> = new Map();
 }
 
 export class EventsService {
@@ -14,10 +14,14 @@ export class EventsService {
                 console.warn("Invalid event received: ", data);
                 return;
             }
+            let eventType = Object.keys(event)[0] as keyof ServerEvent;
 
-            this.context.listeners.forEach((listener, eventType) => {
-                listener(event[eventType]);
-            });
+            let eventListeners = this.context.listeners.get(eventType);
+            if (eventListeners) {
+                for (const listener of eventListeners) {
+                    listener(event[eventType]);
+                }
+            }
         });
         this.context.watchdog.start();
     }
@@ -28,11 +32,19 @@ export class EventsService {
     }
 
     static subscribe(eventType: keyof ServerEvent, listener: WsListener) {
-        this.context.listeners.set(eventType, listener);
+        const eventListeners = this.context.listeners.get(eventType) || [];
+        eventListeners.push(listener);
+        this.context.listeners.set(eventType, eventListeners);
     }
 
-    static unsubscribe(eventType: keyof ServerEvent) {
-        this.context.listeners.delete(eventType);
+    static unsubscribe(eventType: keyof ServerEvent, listener: WsListener) {
+        const eventListeners = this.context.listeners.get(eventType);
+        if (eventListeners) {
+            const index = eventListeners.indexOf(listener);
+            if (index !== -1) {
+                eventListeners.splice(index, 1);
+            }
+        }
     }
 
     private static context = new EventsContext();

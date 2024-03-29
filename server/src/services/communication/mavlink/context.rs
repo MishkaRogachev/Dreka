@@ -1,28 +1,24 @@
 use std::collections::HashMap;
 
-use crate::models::{events::ServerEvent, vehicles::VehicleId};
+use crate::models::events::ServerEvent;
+use crate::models::vehicles::VehicleId;
+use crate::registry::bus;
 use crate::registry::registry;
 
 pub struct MavlinkContext {
     pub registry: registry::Registry,
+    pub server_bus: bus::EventBus::<ServerEvent>,
     pub mav_vehicles: HashMap<u8, VehicleId>,
     pub auto_add_vehicles: bool,
-    server_events_tx: flume::Sender<ServerEvent>,
-    server_events_rx: flume::Receiver<ServerEvent>
 }
 
 impl MavlinkContext {
-    pub fn new(
-        registry: registry::Registry,
-        server_events_tx: flume::Sender<ServerEvent>,
-        server_events_rx: flume::Receiver<ServerEvent>,
-    ) -> Self {
+    pub fn new(registry: registry::Registry, server_bus: bus::EventBus<ServerEvent>) -> Self {
         Self {
             registry,
+            server_bus,
             mav_vehicles: HashMap::new(),
             auto_add_vehicles: true, // TODO: to settings
-            server_events_tx,
-            server_events_rx
         }
     }
 
@@ -35,20 +31,5 @@ impl MavlinkContext {
             .iter()
             .find(|(_, v_id)| v_id == &vehicle_id)
             .map(|(mav_id, _)| *mav_id)
-    }
-
-    pub fn send_event(&self, telemetry: ServerEvent) -> anyhow::Result<()> {
-        match self.server_events_tx.try_send(telemetry) {
-            Ok(_) => { Ok(()) },
-            Err(err) => match err {
-                flume::TrySendError::Full(telemetry) => {
-                    match self.server_events_rx.recv() {
-                        Ok(_) => self.send_event(telemetry),
-                        Err(err) => Err(err.into())
-                    }
-                }
-                flume::TrySendError::Disconnected(_) => { Ok(()) }
-            }
-        }
     }
 }

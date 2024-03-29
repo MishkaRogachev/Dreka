@@ -2,7 +2,8 @@ use std::net::SocketAddr;
 use actix_cors::Cors;
 use actix_web::{get, App, HttpServer, web::Data, Responder, HttpResponse};
 
-use crate::{models::events::{ClentEvent, ServerEvent}, registry::registry};
+use crate::models::events::{ClientEvent, ServerEvent};
+use crate::registry::{bus, registry};
 
 #[get("/")]
 async fn ping() -> impl Responder {
@@ -11,11 +12,11 @@ async fn ping() -> impl Responder {
 
 pub async fn serve(
         registry: registry::Registry,
-        client_events: flume::Sender<ClentEvent>,
-        server_events: flume::Receiver<ServerEvent>,
+        server_bus: bus::EventBus::<ServerEvent>,
+        client_bus: bus::EventBus::<ClientEvent>,
         address: &SocketAddr
     ) -> anyhow::Result<()> {
-    let context = super::context::ApiContext::new(registry, client_events, server_events);
+    let context = super::context::ApiContext::new(registry, server_bus, client_bus);
 
     let result = HttpServer::new(move || {
         let cors = Cors::permissive();

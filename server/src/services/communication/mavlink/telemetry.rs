@@ -143,7 +143,7 @@ impl TelemetryHandler {
         self.mav_flight_map.insert(mav_id, flight.clone());
 
         let context = self.context.lock().await;
-        if let Err(err) = context.send_event(ServerEvent::TelemetryUpdated {
+        if let Err(err) = context.server_bus.publish(ServerEvent::TelemetryUpdated {
             telemetry: VehicleTelemetry {
                 vehicle_id: context.vehicle_id_from_mav_id(&mav_id).unwrap(),
                 timestamp: chrono::prelude::Utc::now().timestamp_millis(),
@@ -160,7 +160,7 @@ impl TelemetryHandler {
         self.mav_navi_map.insert(mav_id, navigation.clone());
 
         let context = self.context.lock().await;
-        if let Err(err) = context.send_event(ServerEvent::TelemetryUpdated {
+        if let Err(err) = context.server_bus.publish(ServerEvent::TelemetryUpdated {
             telemetry: VehicleTelemetry {
                 vehicle_id: context.vehicle_id_from_mav_id(&mav_id).unwrap(),
                 timestamp: chrono::prelude::Utc::now().timestamp_millis(),
@@ -177,7 +177,7 @@ impl TelemetryHandler {
         self.mav_system_map.insert(mav_id, system.clone());
 
         let context = self.context.lock().await;
-        if let Err(err) = context.send_event(ServerEvent::TelemetryUpdated {
+        if let Err(err) = context.server_bus.publish(ServerEvent::TelemetryUpdated {
             telemetry: VehicleTelemetry {
                 vehicle_id: context.vehicle_id_from_mav_id(&mav_id).unwrap(),
                 timestamp: chrono::prelude::Utc::now().timestamp_millis(),

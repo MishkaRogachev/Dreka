@@ -1,10 +1,9 @@
 import { writable, get } from 'svelte/store';
 
-import { type LinkDescription, type LinkStatus } from '$bindings/communication';
+import type { WsListener } from "$datasource/ws";
+import { EventsService } from "$services/events";
 import { CommunicationService } from '$services/communication';
-
-const UPDATE_DESCRIPTION_INTERVAL = 1000;
-const UPDATE_STATUS_INTERVAL = 250;
+import { type LinkDescription, type LinkStatus } from '$bindings/communication';
 
 export class Link {
     constructor(description: LinkDescription) {
@@ -15,55 +14,66 @@ export class Link {
 }
 
 export const links = function () {
-    let descriptionInterval: NodeJS.Timeout;
-    let statusInterval: NodeJS.Timeout;
+    let linkUpdated: WsListener;
+    let linkRemoved: WsListener;
+    let statusUpdated: WsListener;
 
     const store = writable(new Map<string, Link>(), (_, update) => {
-        // TODO: stop intervals if server is down
-        descriptionInterval = setInterval(async () => {
-            let descriptions = await CommunicationService.getLinkDescriptions();
-            if (!descriptions) {
+        linkUpdated = (data: any) => {
+            let link = data["link"] as LinkDescription;
+            if (!link) {
                 return;
             }
+
             update(links => {
-                let usedIds = new Array<string>();
-
-                // Add and update existing links
-                for (const description of descriptions!) {
-                    const id = description.id!;
-                    usedIds.push(id);
-
-                    if (links.has(id)) {
-                        links.get(id)!.description = description
-                    } else {
-                        links.set(id, new Link(description))
-                    }
-                }
-
-                // Delete links removed by server
-                for (const id of links.keys()) {
-                    if (!usedIds.includes(id)) {
-                        links.delete(id)
-                    }
+                if (links.has(link.id)) {
+                    links.get(link.id)!.description = link;
+                } else {
+                    links.set(link.id, new Link(link));
                 }
                 return links;
             });
-        }, UPDATE_DESCRIPTION_INTERVAL);
+        }
 
-        statusInterval = setInterval(async () => {
-            let statuses = await CommunicationService.getLinkStatuses();
-            if (!statuses) {
+        linkRemoved = (data: any) => {
+            let link_id = data["link_id"] as string;
+            if (!link_id) {
                 return;
             }
+
             update(links => {
-                for (const status of statuses!) {
-                    if (links.has(status.id)) {
-                        links.get(status.id)!.status = status
-                    }
+                if (links.has(link_id)) {
+                    links.delete(link_id);
                 }
                 return links;
             });
-        }, UPDATE_STATUS_INTERVAL);
+        }
+
+        statusUpdated = (data: any) => {
+            let status = data["status"] as LinkStatus;
+            if (!status) {
+                return;
+            }
+
+            update(links => {
+                if (links.has(status.id)) {
+                    links.get(status.id)!.status = status;
+                }
+                return links;
+            });
+        }
+
+        EventsService.subscribe("LinkUpdated", linkUpdated);
+        EventsService.subscribe("LinkRemoved", linkRemoved);
+        EventsService.subscribe("LinkStatusUpdated", statusUpdated);
+
+        CommunicationService.getLinkDescriptions().then((descriptions) => {
+            if (descriptions) {
+                update(links => {
+                    return new Map(descriptions.map(description => [description.id, new Link(description)]));
+                });
+            }
+        });
     });
 
     return {
@@ -77,7 +87,7 @@ export const links = function () {
             let link: Link | undefined
             if (descriptionBack && descriptionBack.id) {
                 store.update(links => {
-                    const id = description.id!;
+                    const id = descriptionBack!.id;
                     if (links.has(id)) {
                         links.get(id)!.description = descriptionBack!
                     } else {
@@ -94,7 +104,7 @@ export const links = function () {
             if (linkIdBack) {
                 store.update(links => {
                     // @ts-ignore
-                    links.delete(linkIdBack);
+                    let removed = links.delete(linkIdBack!);
                     return links;
                 })
             }
@@ -103,8 +113,9 @@ export const links = function () {
             await CommunicationService.setLinkEnabled(linkId, connected);
         },
         kill: () => {
-            clearInterval(descriptionInterval);
-            clearInterval(statusInterval);
+            EventsService.unsubscribe("LinkUpdated", linkUpdated);
+            EventsService.unsubscribe("LinkRemoved", linkRemoved);
+            EventsService.unsubscribe("LinkStatusUpdated", statusUpdated);
         }
     }
 } ()

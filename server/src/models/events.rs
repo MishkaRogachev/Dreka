@@ -8,7 +8,7 @@ use super::commands::{CommandId, VehicleCommand, VehicleCommandState};
 // TODO: consider to move events to an event bus
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[derive(Clone)]
-pub enum ClentEvent {
+pub enum ClientEvent {
     // Communication
     SetLinkEnabled { link_id: String, enabled: bool },
     // Commands

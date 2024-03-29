@@ -1,19 +1,19 @@
-use crate::models::events::{ClentEvent, ServerEvent};
-use crate::registry::registry;
+use crate::models::events::{ClientEvent, ServerEvent};
+use crate::registry::{bus, registry};
 
 #[derive(Clone)]
 pub struct ApiContext {
     pub registry: registry::Registry,
-    pub client_events: flume::Sender<ClentEvent>,
-    pub server_events: flume::Receiver<ServerEvent>
+    pub server_bus: bus::EventBus::<ServerEvent>,
+    pub client_bus: bus::EventBus::<ClientEvent>,
 }
 
 impl ApiContext {
     pub fn new(
         registry: registry::Registry,
-        client_events: flume::Sender<ClentEvent>,
-        server_events: flume::Receiver<ServerEvent>
+        server_bus: bus::EventBus::<ServerEvent>,
+        client_bus: bus::EventBus::<ClientEvent>,
     ) -> Self {
-        Self { registry, client_events, server_events }
+        Self { registry, server_bus, client_bus }
     }
 }

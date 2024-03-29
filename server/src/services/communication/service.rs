@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use tokio::time;
 
 use crate::models::communication::{LinkId, LinkDescription, LinkStatus, LinkProtocol, LinkType, MavlinkProtocolVersion};
-use crate::models::events::{ClentEvent, ServerEvent};
+use crate::models::events::{ClientEvent, ServerEvent};
+use crate::registry::bus;
 use crate::registry::registry;
 use super::{traits, mavlink::connection::MavlinkConnection};
 
@@ -13,9 +14,8 @@ const CHECK_CONNECTIONS_INTERVAL: tokio::time::Duration = tokio::time::Duration:
 
 pub struct Service {
     registry: registry::Registry,
-    client_events_rx: flume::Receiver<ClentEvent>,
-    server_events_tx: flume::Sender<ServerEvent>,
-    server_events_rx: flume::Receiver<ServerEvent>,
+    server_bus: bus::EventBus::<ServerEvent>,
+    client_bus: bus::EventBus::<ClientEvent>,
     link_connections: LinkConnections
 }
 
@@ -49,15 +49,13 @@ fn dafault_links() -> Vec<LinkDescription> {
 impl Service {
     pub fn new(
         registry: registry::Registry,
-        client_events_rx: flume::Receiver<ClentEvent>,
-        server_events_tx: flume::Sender<ServerEvent>,
-        server_events_rx: flume::Receiver<ServerEvent>,
+        server_bus: bus::EventBus::<ServerEvent>,
+        client_bus: bus::EventBus::<ClientEvent>
     ) -> Self {
         Self {
             registry,
-            client_events_rx,
-            server_events_tx,
-            server_events_rx,
+            server_bus,
+            client_bus,
             link_connections: LinkConnections::new()
         }
     }
@@ -68,7 +66,7 @@ impl Service {
 
         for link in links {
             // Invalidate statuses
-            self.registry.communication.update_status(&LinkStatus::default_for_id(&link.id)).await?;
+            self.reset_link_status(&link.id).await?;
 
             // Autoconect specified ones
             if link.autoconnect {
@@ -81,12 +79,12 @@ impl Service {
 
         let mut interval = time::interval(CHECK_CONNECTIONS_INTERVAL);
 
-        // NOTE: NO await? in this loop, use logger!
+        let mut client_events_rx = self.client_bus.subscribe();
         loop {
             interval.tick().await;
 
             // Listen requests from client
-            match self.client_events_rx.try_recv() {
+            match client_events_rx.try_recv() {
                 Ok(event) => {
                     let result = self.handle_client_event(event).await;
                     if let Err(err) = result {
@@ -94,7 +92,7 @@ impl Service {
                     }
                 },
                 Err(err) => {
-                    if err != flume::TryRecvError::Empty {
+                    if err != tokio::sync::broadcast::error::TryRecvError::Empty {
                         log::error!("RX error: {}", err);
                     }
                 }
@@ -150,8 +148,7 @@ impl Service {
             LinkProtocol::Mavlink { link_type, protocol_version } => {
                 Ok(Box::new(MavlinkConnection::new(
                     self.registry.clone(),
-                    self.server_events_tx.clone(),
-                    self.server_events_rx.clone(),
+                    self.server_bus.clone(),
                     link_type,
                     protocol_version
                 )))
@@ -160,7 +157,7 @@ impl Service {
         }
     }
 
-    async fn disable_link(&mut self, link_id: &str) -> anyhow::Result<()> {
+    async fn disable_link(&mut self, link_id: &LinkId) -> anyhow::Result<()> {
         if !self.link_connections.contains_key(link_id) {
             log::warn!("No connection found for link {}", link_id);
             return Ok(());
@@ -168,13 +165,12 @@ impl Service {
 
         let mut connection = self.link_connections.remove(link_id).unwrap();
         connection.disconnect().await?;
-        self.registry.communication.update_status(&LinkStatus::default_for_id(&link_id)).await?;
-        Ok(())
+        self.reset_link_status(link_id).await
     }
 
-    async fn handle_client_event(&mut self, event: ClentEvent) -> anyhow::Result<()> {
+    async fn handle_client_event(&mut self, event: ClientEvent) -> anyhow::Result<()> {
         match event {
-            ClentEvent::SetLinkEnabled { link_id, enabled: connected } => {
+            ClientEvent::SetLinkEnabled { link_id, enabled: connected } => {
                 if connected {
                     return self.enable_link(&link_id).await;
                 }
@@ -182,6 +178,11 @@ impl Service {
             },
             _ => Ok(())
         }
+    }
+
+    async fn reset_link_status(&self, link_id: &LinkId) -> anyhow::Result<()> {
+        self.registry.communication.update_status(&LinkStatus::default_for_id(link_id)).await?;
+        Ok(())
     }
 }
 

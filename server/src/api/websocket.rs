@@ -2,7 +2,7 @@ use std::time::Duration;
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
 use actix_web_actors::ws;
 use actix::AsyncContext;
-use flume::Receiver;
+use tokio::sync::broadcast::Receiver;
 
 use crate::models::events::ServerEvent;
 
@@ -54,7 +54,7 @@ impl actix::StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocketA
 
 #[get("/ws")]
 pub async fn telemetry_ws(context: web::Data<ApiContext>, req: HttpRequest, stream: web::Payload) -> impl Responder {
-    let actor = WebSocketActor::new(context.server_events.clone());
+    let actor = WebSocketActor::new(context.server_bus.subscribe());
     match ws::start(actor, &req, stream) {
         Ok(res) => {
             return res;

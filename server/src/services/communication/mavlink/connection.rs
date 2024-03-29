@@ -4,6 +4,7 @@ use tokio_util::sync::CancellationToken;
 use mavlink;
 
 use crate::models::events::ServerEvent;
+use crate::registry::bus;
 use crate::{registry::registry, models::communication};
 use crate::services::communication::traits;
 
@@ -15,8 +16,7 @@ const ONLINE_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_milli
 
 pub struct MavlinkConnection {
     registry: registry::Registry,
-    server_events_tx: flume::Sender<ServerEvent>,
-    server_events_rx: flume::Receiver<ServerEvent>,
+    server_bus: bus::EventBus::<ServerEvent>,
     mav_address: String,
     mav_version: mavlink::MavlinkVersion,
     token: Option<CancellationToken>,
@@ -34,15 +34,13 @@ struct MavlinkConnectionInternal {
 impl MavlinkConnection {
     pub fn new(
         registry: registry::Registry,
-        server_events_tx: flume::Sender<ServerEvent>,
-        server_events_rx: flume::Receiver<ServerEvent>,
+        server_bus: bus::EventBus::<ServerEvent>,
         link_type: &communication::LinkType,
         protocol: &communication::MavlinkProtocolVersion
     ) -> Self {
         Self {
             registry,
-            server_events_tx,
-            server_events_rx,
+            server_bus,
             mav_address: link_type.to_mavlink(),
             mav_version: protocol.to_mavlink(),
             token: None,
@@ -90,8 +88,7 @@ impl traits::IConnection for MavlinkConnection {
         let mut last_stats_reset = time::Instant::now();
         let mav_context = Arc::new(Mutex::new(MavlinkContext::new(
             self.registry.clone(),
-            self.server_events_tx.clone(),
-            self.server_events_rx.clone(),
+            self.server_bus.clone(),
         )));
         let internal = self.internal.clone();
         let cloned_mav = mav.clone();

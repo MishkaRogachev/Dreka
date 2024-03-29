@@ -36,8 +36,8 @@ export enum CommandState {
 }
 
 export interface VehicleCommandState {
+    id: string;
     vehicle_id: string;
-    command_id: string;
     attempt: number;
     state: CommandState;
 }
