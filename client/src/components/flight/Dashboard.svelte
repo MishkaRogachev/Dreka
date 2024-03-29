@@ -16,7 +16,7 @@ import switchIcon from "$assets/svg/switch.svg?raw";
 let dms: boolean = true
 
 $: telemetry = $selectedVehicleTelemetry
-$: online = $selectedVehicle?.is_online()
+$: online = $selectedVehicle?.is_online
 
 $: latitude = telemetry.flight ? (dms ? degreesToDmsString(telemetry.flight.position.latitude, false)
                 : telemetry.flight.position.latitude.toFixed(6)) : $i18n.t("N/A")

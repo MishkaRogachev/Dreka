@@ -24,7 +24,7 @@ function closeDropdown() {
             <div class="flex gap-x-2 items-center grow">
                 <VehicleTypeIcon vehicleType={vehicle.description.vehicle_type} color={vehicle.description.color}/>
                 <a class="grow">{vehicle.description.name}</a>
-                <span class={"badge badge-xs " + (vehicle.is_online() ? "bg-success" : "bg-neutral-content")} ></span>
+                <span class={"badge badge-xs " + (vehicle.is_online ? "bg-success" : "bg-neutral-content")} ></span>
             </div>
         </li>
     {/each}

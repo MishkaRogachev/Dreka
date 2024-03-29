@@ -4,7 +4,7 @@ import { VehicleState } from "$bindings/vehicles";
 import { i18n } from "$stores/i18n";
 import { selectedVehicle, safetyCheck } from "$stores/vehicles";
 
-$: is_online = $selectedVehicle?.is_online() || false
+$: is_online = $selectedVehicle?.is_online || false
 $: vehicleState = $selectedVehicle?.status?.state || VehicleState.Unknown
 $: armed = $selectedVehicle?.status?.armed || false
 $: readyToArm = true // TODO: SYS_STATUS

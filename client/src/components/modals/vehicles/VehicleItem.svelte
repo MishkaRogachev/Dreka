@@ -34,7 +34,7 @@ afterUpdate(async () => {
         <!-- VEHICLE INDICATOR -->
         <div class="indicator h-min">
             <span class={"indicator-item badge badge-xs " +
-                (vehicle.is_online() ? "bg-success" : "bg-neutral-content")} >
+                (vehicle.is_online ? "bg-success" : "bg-neutral-content")} >
             </span>
             <VehicleTypeIcon vehicleType={vehicle.description.vehicle_type} color={vehicle.description.color}/>
         </div>
@@ -65,7 +65,7 @@ afterUpdate(async () => {
 
             <!-- VEHICLE TYPE -->
             <h1 class="font-medium my-2 w-full">{ $i18n.t("Type") }</h1>
-            <select class="select w-full" bind:value={ descriptionCopy.vehicle_type } disabled={ vehicle.is_online() }>
+            <select class="select w-full" bind:value={ descriptionCopy.vehicle_type } disabled={ vehicle.is_online }>
                 {#each usedVehicleTypes as type, i}
                 <option value={type} disabled={i === 0}> { $i18n.t(type) }</option>
                 {/each}
@@ -75,12 +75,12 @@ afterUpdate(async () => {
 
             <!-- PROTOCOL ID -->
             {#if descriptionCopy.protocol_id.MavlinkId}
-                <MavlinkIdEdit bind:protocol_id={ descriptionCopy.protocol_id.MavlinkId } disabled={ vehicle.is_online() }/>
+                <MavlinkIdEdit bind:protocol_id={ descriptionCopy.protocol_id.MavlinkId } disabled={ vehicle.is_online }/>
             {/if}
         </div>
 
         <div class="w-full btn-sm mt-4 flex">
-            <button disabled={vehicle.is_online()} class="btn btn-sm btn-wide btn-outline btn-secondary px-1 ml-2"
+            <button disabled={ vehicle.is_online } class="btn btn-sm btn-wide btn-outline btn-secondary px-1 ml-2"
                 on:click={() => { vehicles.removeVehicle(vehicle.description.id || "") }}>
                 { $i18n.t("Remove") }
             </button>

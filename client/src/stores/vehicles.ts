@@ -6,16 +6,16 @@ import { VehiclesService } from '$services/vehicles';
 import { type VehicleDescription, type VehicleStatus, VehicleType } from '$bindings/vehicles';
 import { EntityColor } from '$bindings/colors';
 
-export const IS_ONLINE_TIMEOUT = 2000;
+const ONLINE_CHECK_INTERVAL = 250;
+const IS_ONLINE_TIMEOUT = 2000;
 
 export class Vehicle {
     constructor(description: VehicleDescription) {
         this.description = description;
+        this.is_online = false;
     }
 
-    is_online(): boolean {
-        return Boolean(!!this.status && (Date.now() - this.status.last_heartbeat) < IS_ONLINE_TIMEOUT)
-    }
+    is_online: boolean
 
     description: VehicleDescription
     status: VehicleStatus | undefined
@@ -26,6 +26,7 @@ export const vehicles = function () {
     let vehicleRemoved: WsListener;
     let statusUpdated: WsListener;
     let wsConnected: WsListener;
+    let onlineInterval: NodeJS.Timeout;
 
     const store = writable(new Map<string, Vehicle>(), (_, update) => {
         vehicleUpdated = (data: any) => {
@@ -86,6 +87,16 @@ export const vehicles = function () {
             }
         }
 
+        onlineInterval = setInterval(() => {
+            update(vehicles => {
+                for (let [_, vehicle] of vehicles) {
+                    vehicle.is_online = !!vehicle.status && (Date.now() - vehicle.status.last_heartbeat) < IS_ONLINE_TIMEOUT;
+                }
+                return vehicles;
+            });
+
+        }, ONLINE_CHECK_INTERVAL);
+
         EventsService.subscribe("VehicleUpdated", vehicleUpdated);
         EventsService.subscribe("VehicleRemoved", vehicleRemoved);
         EventsService.subscribe("VehicleStatusUpdated", statusUpdated);
@@ -130,6 +141,7 @@ export const vehicles = function () {
             EventsService.unsubscribe("VehicleRemoved", vehicleRemoved);
             EventsService.unsubscribe("VehicleStatusUpdated", statusUpdated);
             EventsService.unsubscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
+            clearInterval(onlineInterval);
         }
     }
 } ()
@@ -141,7 +153,7 @@ export const selectedVehicle = derived([vehicles, selectedVehicleID], ($data) =>
 })
 
 export const onlineVehicles = derived(vehicles, ($vehicles) => {
-    return Array.from($vehicles.values()).filter(vehicle => vehicle.is_online());
+    return Array.from($vehicles.values()).filter(vehicle => vehicle.is_online);
 })
 
 export const occupiedMavlinkIds = derived(vehicles, ($vehicles) => {
@@ -171,7 +183,7 @@ export var safetyCheck = writable(false)
 function selectNextAvailableVehicle(vehicles: Map<string, Vehicle>) {
     let idToSelect = ""
     for (let [id, vehicle] of vehicles) {
-        if (vehicle.is_online()) {
+        if (vehicle.is_online) {
             idToSelect = id;
             break;
         }
