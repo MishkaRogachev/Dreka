@@ -45,6 +45,11 @@ export const vehicles = function () {
                 } else {
                     vehicles.set(vehicle.id, new Vehicle(vehicle));
                 }
+
+                if (get(selectedVehicleID) == "") {
+                    selectedVehicleID.set(vehicle.id);
+                }
+
                 return vehicles;
             });
         }

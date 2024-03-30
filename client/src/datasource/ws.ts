@@ -25,6 +25,10 @@ export class WsWatchdog {
         this.interval = setInterval(() => {
             if (!this.ws) {
                 this.connect();
+            } else {
+                if (this.ws.readyState === WebSocket.CLOSED) {
+                    this.connect();
+                }
             }
         }, 1000);
     }
