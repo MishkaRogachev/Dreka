@@ -7,7 +7,7 @@ import SensorHealth from '$components/modals/checks/SensorHealth.svelte';
 import { i18n } from "$stores/i18n";
 import { selectedVehicle, selectedVehicleID, safetyCheck } from "$stores/vehicles";
 import { selectedVehicleTelemetry } from "$stores/telemetry";
-import { commands } from '$stores/commands';
+import { commandExecutions } from '$stores/commands';
 
 $: armed = $selectedVehicle?.status?.armed || false
 $: readyToArm = $selectedVehicleTelemetry.system?.arm_ready
@@ -16,17 +16,25 @@ $: sensors = $selectedVehicleTelemetry.system?.sensors || []
 
 let armPressed: boolean = false
 let armProgress: number = 0
-let interval: any;
+let armToken: string | null = null
+let armInterval: any;
 
-function armDisarmVehicle(arm: boolean) {
-    if ($selectedVehicleID) {
-        commands.executeCommand($selectedVehicleID, { ArmDisarm: { arm: arm } });
+async function armDisarmVehicle(arm: boolean) {
+    armToken = await commandExecutions.executeCommand(
+        { ArmDisarm: { arm: arm } },
+        { Vehicle: { vehicle_id: $selectedVehicleID }
+    });
+}
+
+async function cancelArmDisarm() {
+    if (armToken) {
+        await commandExecutions.cancelCommand(armToken);
     }
 }
 
 onMount(async () => {
-    // Update arm progress every 200ms
-    interval = setInterval(() => {
+    // Update arm progress every 100ms
+    armInterval = setInterval(() => {
         if (armPressed) {
             armProgress += 10;
             if (armProgress > 100) {
@@ -40,7 +48,7 @@ onMount(async () => {
     }, 100);
 })
 
-onDestroy(async () => { clearInterval(interval); })
+onDestroy(async () => { clearInterval(armInterval); })
 
 </script>
 

@@ -1,9 +1,9 @@
-use mavlink::common::{MavMessage, MavCmd};
-use mavlink::common::{COMMAND_LONG_DATA, MISSION_SET_CURRENT_DATA, MISSION_ITEM_DATA, RC_CHANNELS_OVERRIDE_DATA};
+use mavlink::common::*;
 
+use crate::models::commands::Command;
 use crate::models::spatial::Geodetic;
 
-pub fn arm_disarm(mav_id: u8, arm: bool, attempt: u8) -> MavMessage {
+fn arm_disarm(mav_id: u8, arm: bool, attempt: u8) -> MavMessage {
     log::info!("Mav: {} Arm/Disarm: {}", mav_id, arm);
     MavMessage::COMMAND_LONG(COMMAND_LONG_DATA{
         param1: arm as i32 as f32,
@@ -20,16 +20,7 @@ pub fn arm_disarm(mav_id: u8, arm: bool, attempt: u8) -> MavMessage {
     })
 }
 
-pub fn set_waypoint(mav_id: u8, wp: u16) -> MavMessage {
-    log::info!("Mav: {} Set Waypoint: {}", mav_id, wp);
-    MavMessage::MISSION_SET_CURRENT(MISSION_SET_CURRENT_DATA{
-        seq: wp,
-        target_system: mav_id,
-        target_component: 0,
-    })
-}
-
-pub fn nav_to(mav_id: u8, position: &Geodetic) -> MavMessage {
+fn nav_to(mav_id: u8, position: &Geodetic) -> MavMessage {
     log::info!("Mav: {} Nav to: {:?}", mav_id, position);
     MavMessage::MISSION_ITEM(MISSION_ITEM_DATA{
         param1: 0.0,
@@ -49,7 +40,7 @@ pub fn nav_to(mav_id: u8, position: &Geodetic) -> MavMessage {
     })
 }
 
-pub fn takeoff(mav_id: u8, altitude: f32, attempt: u8) -> MavMessage {
+fn takeoff(mav_id: u8, altitude: f32, attempt: u8) -> MavMessage {
     log::info!("Mav: {} Takeoff to: {}", mav_id, altitude);
     MavMessage::COMMAND_LONG(COMMAND_LONG_DATA{
         param1: 0.0,
@@ -66,7 +57,7 @@ pub fn takeoff(mav_id: u8, altitude: f32, attempt: u8) -> MavMessage {
     })
 }
 
-pub fn go_around(mav_id: u8, attempt: u8) -> MavMessage {
+fn go_around(mav_id: u8, attempt: u8) -> MavMessage {
     log::info!("Mav: {} Go Around", mav_id);
     MavMessage::COMMAND_LONG(COMMAND_LONG_DATA{
         param1: 0.0,
@@ -83,7 +74,7 @@ pub fn go_around(mav_id: u8, attempt: u8) -> MavMessage {
     })
 }
 
-pub fn set_servo(mav_id: u8, channel: u16, value: u16, attempt: u8) -> MavMessage {
+fn set_servo(mav_id: u8, channel: u16, value: u16, attempt: u8) -> MavMessage {
     log::info!("Mav: {} Set Servo: {} to {}", mav_id, channel, value);
     MavMessage::COMMAND_LONG(COMMAND_LONG_DATA{
         param1: channel as f32,
@@ -100,7 +91,7 @@ pub fn set_servo(mav_id: u8, channel: u16, value: u16, attempt: u8) -> MavMessag
     })
 }
 
-pub fn override_servos(mav_id: u8, servos: &std::collections::BTreeMap<u16, u16>) -> MavMessage {
+fn override_servos(mav_id: u8, servos: &std::collections::BTreeMap<u16, u16>) -> MavMessage {
     log::info!("Mav: {} Override Servos: {:?}", mav_id, servos);
     MavMessage::RC_CHANNELS_OVERRIDE(RC_CHANNELS_OVERRIDE_DATA{
         target_system: mav_id,
@@ -114,4 +105,39 @@ pub fn override_servos(mav_id: u8, servos: &std::collections::BTreeMap<u16, u16>
         chan7_raw: *servos.get(&6).unwrap_or(&0),
         chan8_raw: *servos.get(&7).unwrap_or(&0),
     })
+}
+
+pub struct EncodedCommand {
+    pub message: MavMessage,
+    pub cmd: MavCmd,
+}
+
+pub fn encode_command(command: &Command, mav_id: u8, attempt: u8) -> Option<EncodedCommand> {
+    match command {
+        Command::ArmDisarm { arm } => Option::Some(EncodedCommand {
+            message: arm_disarm(mav_id, *arm, attempt),
+            cmd: MavCmd::MAV_CMD_COMPONENT_ARM_DISARM,
+        }),
+        Command::NavTo { position } => Option::Some(EncodedCommand {
+            message: nav_to(mav_id, position),
+            cmd: MavCmd::MAV_CMD_NAV_WAYPOINT,
+        }),
+        Command::Takeoff { altitude } => Option::Some(EncodedCommand {
+            message: takeoff(mav_id, *altitude, attempt),
+            cmd: MavCmd::MAV_CMD_NAV_TAKEOFF,
+        }),
+        Command::GoAround {} => Option::Some(EncodedCommand {
+            message: go_around(mav_id, attempt),
+            cmd: MavCmd::MAV_CMD_DO_GO_AROUND,
+        }),
+        Command::SetServo { channel, value } => Option::Some(EncodedCommand {
+            message: set_servo(mav_id, *channel, *value, attempt),
+            cmd: MavCmd::MAV_CMD_DO_SET_SERVO,
+        }),
+        Command::OverrideServos { servos } => Option::Some(EncodedCommand {
+            message: override_servos(mav_id, &servos),
+            cmd: MavCmd::MAV_CMD_DO_SET_SERVO,
+        }),
+        _ => None
+    }
 }

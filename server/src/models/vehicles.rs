@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::colors::EntityColor;
 
 pub type VehicleId = String;
+pub type PayloadId = String;
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum VehicleType {

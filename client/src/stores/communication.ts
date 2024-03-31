@@ -124,7 +124,7 @@ export const links = function () {
             EventsService.unsubscribe("LinkUpdated", linkUpdated);
             EventsService.unsubscribe("LinkRemoved", linkRemoved);
             EventsService.unsubscribe("LinkStatusUpdated", statusUpdated);
-            EventsService.subscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
+            EventsService.unsubscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
         }
     }
 } ()

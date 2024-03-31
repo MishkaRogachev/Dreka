@@ -1,24 +1,28 @@
-import type { VehicleCommand, VehicleCommandState } from "$bindings/commands";
+import type { ExecuteCommandRequest, CommandExecution } from "$bindings/commands";
 import { send_request, default_headers } from "$datasource/rest";
 
 export class CommandService {
-    static async executeCommand(vehicleId: string, command: VehicleCommand): Promise<VehicleCommandState | null> {
-        return await send_request("/commands/exec/" + vehicleId, {
+    static async executeCommand(request: ExecuteCommandRequest): Promise<string | null> {
+        return await send_request("/commands/execute/", {
             method: "POST",
-            body: JSON.stringify(command),
+            body: JSON.stringify(request),
             headers: default_headers
         }) || null;
     }
 
-    static async stopCommand(commandId: string): Promise<VehicleCommandState | null> {
-        return await send_request("/commands/stop/" + commandId, { method: "PUT" }) || null;
+    static async cancelCommand(command_id: string): Promise<string | null> {
+        return await send_request("/commands/cancel/", {
+            method: "PUT",
+            body: JSON.stringify(command_id),
+            headers: default_headers
+        }) || null;
     }
 
-    static async getCommand(commandId: string): Promise<VehicleCommandState | null> {
-        return await send_request("/command/" + commandId, { method: "GET" }) || null;
+    static async getCommandExecution(id: string): Promise<CommandExecution | null> {
+        return await send_request("/commands/execution/" + id, { method: "GET" }) || null;
     }
 
-    static async getCommands(): Promise<VehicleCommandState[] | null> {
-        return await send_request("/commands", { method: "GET" }) || null;
+    static async getCommandExecutions(): Promise<CommandExecution[] | null> {
+        return await send_request("/commands/executions", { method: "GET" }) || null;
     }
 }

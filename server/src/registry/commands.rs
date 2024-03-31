@@ -1,59 +1,58 @@
 use std::sync::Arc;
+use anyhow::Ok;
 use surrealdb::{engine::local::Db, Surreal};
 
 use crate::persistence::{repository, traits};
 use crate::models::events::ServerEvent;
-use crate::models::vehicles::VehicleId;
-use crate::models::commands::{CommandId, CommandState, VehicleCommand, VehicleCommandState};
+use crate::models::commands::{CommandExecution, CommandId, CommandExecutor};
 
 use super::bus;
 
 #[derive(Clone)]
 pub struct Persistence {
-    vehicle_commands: Arc<dyn traits::IRepository<VehicleCommandState> + Send + Sync>,
+    executions: Arc<dyn traits::IRepository<CommandExecution> + Send + Sync>,
     bus: bus::EventBus<ServerEvent>
 }
 
 impl Persistence {
     pub fn new(db: Surreal<Db>, bus: bus::EventBus<ServerEvent>) -> Self {
         Self {
-            vehicle_commands: Arc::new(repository::Repository::new(db.clone(), "vehicle_commands")),
+            executions: Arc::new(repository::Repository::new(db.clone(), "vehicle_commands")),
             bus
         }
     }
 
-    pub async fn register_vehicle_command(&self, vehicle_id: &VehicleId, command: &VehicleCommand) -> anyhow::Result<VehicleCommandState> {
-        let command_state = self.vehicle_commands.create(&VehicleCommandState {
-            id: String::new(),
-            vehicle_id: vehicle_id.clone(),
-            command: command.clone(),
-            attempt: 0,
-            state: CommandState::Initial
-        }).await?;
-
-        self.bus.publish(ServerEvent::CommandUpdated { command: command_state.clone() })?;
-        Ok(command_state)
+    pub fn update_execution(&self, execution: CommandExecution) -> anyhow::Result<()> {
+        self.bus.publish(ServerEvent::CommandExecutionUpdated { execution })
     }
 
-    pub async fn get_vehicle_command(&self, command_id: &CommandId) -> anyhow::Result<VehicleCommandState> {
-        self.vehicle_commands.read(command_id).await
+    pub async fn save_execution(&self, execution: &CommandExecution) -> anyhow::Result<CommandExecution> {
+        let execution = if execution.id.is_empty() {
+            self.executions.create(execution).await?
+        } else {
+            self.executions.update(execution).await?
+        };
+
+        self.update_execution(execution.clone())?;
+        Ok(execution)
     }
 
-    pub async fn update_vehicle_command(&self, command_state: &VehicleCommandState) -> anyhow::Result<VehicleCommandState> {
-        let command_state = self.vehicle_commands.update(command_state).await?;
+    pub async fn remove_execution(&self, id: &CommandId) -> anyhow::Result<()> {
+        self.executions.delete(id).await?;
 
-        self.bus.publish(ServerEvent::CommandUpdated { command: command_state.clone() })?;
-        Ok(command_state)
-    }
-
-    pub async fn drop_vehicle_command(&self, command_id: &CommandId) -> anyhow::Result<()> {
-        self.vehicle_commands.delete(command_id).await?;
-
-        self.bus.publish(ServerEvent::CommandRemoved { command_id: command_id.clone() })?;
+        self.bus.publish(ServerEvent::CommandExecutionRemoved { command_id: id.into() })?;
         Ok(())
     }
 
-    pub async fn all_vehicle_commands(&self) -> anyhow::Result<Vec<VehicleCommandState>> {
-        self.vehicle_commands.read_all().await
+    pub async fn get_execution(&self, id: &CommandId) -> anyhow::Result<CommandExecution> {
+        self.executions.read(id).await
+    }
+
+    pub async fn get_all_executions(&self) -> anyhow::Result<Vec<CommandExecution>> {
+        self.executions.read_all().await
+    }
+
+    pub async fn get_by_executors(&self, executor: &CommandExecutor) -> anyhow::Result<Vec<CommandExecution>> {
+        self.executions.read_where("executor", serde_json::json!(executor)).await
     }
 }

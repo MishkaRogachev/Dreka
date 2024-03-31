@@ -149,6 +149,7 @@ impl Service {
                 Ok(Box::new(MavlinkConnection::new(
                     self.registry.clone(),
                     self.server_bus.clone(),
+                    self.client_bus.clone(),
                     link_type,
                     protocol_version
                 )))

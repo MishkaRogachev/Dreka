@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::communication::{LinkDescription, LinkId, LinkStatus};
 use super::vehicles::{VehicleDescription, VehicleId, VehicleStatus};
 use super::telemetry::VehicleTelemetry;
-use super::commands::{CommandId, VehicleCommand, VehicleCommandState};
+use super::commands::{CommandId, CommandExecution, ExecuteCommandRequest};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[derive(Clone)]
@@ -11,7 +11,8 @@ pub enum ClientEvent {
     // Communication
     SetLinkEnabled { link_id: String, enabled: bool },
     // Commands
-    ExecuteCommand { vehicle_id: VehicleId, command: VehicleCommand },
+    ExecuteCommand { request: ExecuteCommandRequest, command_id: CommandId },
+    CancelCommand { command_id: CommandId },
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -24,13 +25,13 @@ pub enum ServerEvent {
 
     // Vehicles
     VehicleUpdated { vehicle: VehicleDescription },
-    VehicleRemoved { vehicle_id: String },
+    VehicleRemoved { vehicle_id: VehicleId },
     VehicleStatusUpdated { status: VehicleStatus },
 
     // Telemetry
     TelemetryUpdated { telemetry: VehicleTelemetry },
 
     // Commands
-    CommandUpdated { command: VehicleCommandState },
-    CommandRemoved { command_id: CommandId },
+    CommandExecutionUpdated { execution: CommandExecution },
+    CommandExecutionRemoved { command_id: CommandId },
 }

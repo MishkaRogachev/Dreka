@@ -1,7 +1,7 @@
 import type { LinkDescription, LinkStatus } from "$bindings/communication";
 import type { VehicleTelemetry } from "$bindings/telemetry";
 import type { VehicleDescription, VehicleStatus } from "$bindings/vehicles";
-import type { VehicleCommandState } from "$bindings/commands";
+import type { CommandExecution } from "$bindings/commands";
 
 export interface ServerEvent {
     LinkUpdated?: { link: LinkDescription };
@@ -11,6 +11,6 @@ export interface ServerEvent {
     VehicleRemoved?: { vehicle_id: string };
     VehicleStatusUpdated?: { status: VehicleStatus };
     TelemetryUpdated?: { telemetry: VehicleTelemetry };
-    CommandUpdated?: { command: VehicleCommandState };
-    CommandRemoved?: { command_id: string };
+    CommandExecutionUpdated?: { execution: CommandExecution };
+    CommandExecutionRemoved?: { id: string };
 }

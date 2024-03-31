@@ -27,6 +27,11 @@ impl Persistence {
 
     pub async fn save_vehicle(&self, vehicle: &VehicleDescription) -> anyhow::Result<VehicleDescription> {
         let vehicle = if vehicle.id.is_empty() {
+            let same_protocol_exists = self.vehicle_by_protocol_id(&vehicle.protocol_id).await?;
+            if same_protocol_exists.is_some() {
+                return Err(anyhow::anyhow!("Vehicle with protocol_id {:?} already exists", vehicle.protocol_id));
+            }
+
             let new_vehicle = self.vehicle_descriptions.create(vehicle).await?;
             self.vehicle_statuses.create(&VehicleStatus::default_for_id(&new_vehicle.id)).await?;
             new_vehicle

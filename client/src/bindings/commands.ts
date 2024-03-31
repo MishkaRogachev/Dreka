@@ -1,11 +1,10 @@
 import { type Geodetic } from "$bindings/spatial";
 
-export interface VehicleCommand {
+export interface Command {
     ArmDisarm?: { arm: boolean };
     SetMode?: { mode: string };
     SetWaypoint?: { wp: number };
     ReturnToLaunch?: {};
-    GoTo?: { wp: number };
     NavTo?: { position: Geodetic };
     SetReturn?: { position: Geodetic };
     SetAltitude?: { altitude: number };
@@ -23,21 +22,31 @@ export interface VehicleCommand {
     GoAround?: {};
 }
 
-export enum CommandState {
-    Initial = 'Initial',
-    Sent = 'Sent',
-    Accepted = 'Accepted',
-    Rejected = 'Rejected',
-    Denied = 'Denied',
-    Unsupported = 'Unsupported',
-    Failed = 'Failed',
-    InProgress = 'InProgress',
-    Canceled = 'Canceled'
+export interface CommandState {
+    Initial?: {};                           // Initial state
+    Sent?: { attempt: number };             // Command sent to executor
+    Accepted?: {};                          // Command accepted by executor
+    Rejected?: {};                          // Command rejected by executor
+    Denied?: {};                            // Command denied by executor
+    Unsupported?: {};                       // Command unsupported by executor or protocol
+    Failed?: {};                            // Command failed to execute by protocol
+    InProgress?: { progress: number };      // Command in progress by executor
+    Canceled?: {};                          // Command canceled by user
 }
 
-export interface VehicleCommandState {
+export interface CommandExecutor {
+    Vehicle?: { vehicle_id: string };
+    Payload?: { vehicle_id: string, payload_id: string };
+}
+
+export interface ExecuteCommandRequest {
+    command: Command,
+    executor: CommandExecutor
+}
+
+export interface CommandExecution {
     id: string;
-    vehicle_id: string;
-    attempt: number;
+    command: Command;
+    executor: CommandExecutor;
     state: CommandState;
 }

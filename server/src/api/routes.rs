@@ -23,6 +23,7 @@ pub async fn serve(
         App::new()
             .wrap(cors)
             .service(ping)
+            .service(super::websocket::events_ws)
             .service(super::communication::get_descriptions)
             .service(super::communication::get_description)
             .service(super::communication::get_status)
@@ -36,11 +37,10 @@ pub async fn serve(
             .service(super::vehicles::get_statuses)
             .service(super::vehicles::post_vehicle)
             .service(super::vehicles::delete_vehicle)
-            .service(super::websocket::telemetry_ws)
             .service(super::commands::execute_command)
             .service(super::commands::cancel_command)
-            .service(super::commands::get_command)
-            .service(super::commands::get_commands)
+            .service(super::commands::get_command_execution)
+            .service(super::commands::get_command_executions)
             .app_data(Data::new(context.clone()))
     }).bind(address)?.run();
 

@@ -53,7 +53,7 @@ impl actix::StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocketA
 }
 
 #[get("/ws")]
-pub async fn telemetry_ws(context: web::Data<ApiContext>, req: HttpRequest, stream: web::Payload) -> impl Responder {
+pub async fn events_ws(context: web::Data<ApiContext>, req: HttpRequest, stream: web::Payload) -> impl Responder {
     let actor = WebSocketActor::new(context.server_bus.subscribe());
     match ws::start(actor, &req, stream) {
         Ok(res) => {

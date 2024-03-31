@@ -2,8 +2,7 @@ use std::collections::HashMap;
 
 use crate::models::events::ServerEvent;
 use crate::models::vehicles::VehicleId;
-use crate::registry::bus;
-use crate::registry::registry;
+use crate::registry::{bus, registry};
 
 pub struct MavlinkContext {
     pub registry: registry::Registry,
@@ -13,7 +12,10 @@ pub struct MavlinkContext {
 }
 
 impl MavlinkContext {
-    pub fn new(registry: registry::Registry, server_bus: bus::EventBus<ServerEvent>) -> Self {
+    pub fn new(
+        registry: registry::Registry,
+        server_bus: bus::EventBus<ServerEvent>
+    ) -> Self {
         Self {
             registry,
             server_bus,
