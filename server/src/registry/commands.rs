@@ -51,8 +51,4 @@ impl Persistence {
     pub async fn get_all_executions(&self) -> anyhow::Result<Vec<CommandExecution>> {
         self.executions.read_all().await
     }
-
-    pub async fn get_by_executors(&self, executor: &CommandExecutor) -> anyhow::Result<Vec<CommandExecution>> {
-        self.executions.read_where("executor", serde_json::json!(executor)).await
-    }
 }

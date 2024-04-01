@@ -1,10 +1,10 @@
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-use mavlink::{MavHeader, common::{MavMessage, MavType, MavState, MavModeFlag}};
+use mavlink::{common::{MavAutopilot, MavMessage, MavModeFlag, MavState, MavType}, MavHeader};
 
 use crate::models::{colors::EntityColor, vehicles::*};
-use super::context::MavlinkContext;
+use super::{super::context::MavlinkContext, protocol};
 
 impl VehicleType {
     pub fn from_mavlink(mavtype: MavType) -> VehicleType {
@@ -60,25 +60,48 @@ impl HeartbeatHandler {
 
             match vehicle.unwrap() {
                 Some(mut vehicle) => {
+                    let mut save_vehicle: bool = false;
                     let context = self.context.lock().await;
                     // Chanage type if auto
                     if vehicle.vehicle_type == VehicleType::Auto {
                         vehicle.vehicle_type = VehicleType::from_mavlink(heartbeat_data.mavtype);
+                        save_vehicle = true;
+                    }
 
-                        // Save vehicle to registry
+                    let mode: VehicleMode;
+                    let available_modes: Vec<VehicleMode>;
+                    match heartbeat_data.autopilot {
+                        MavAutopilot::MAV_AUTOPILOT_ARDUPILOTMEGA => {
+                            mode = protocol::decode_apm_mode(heartbeat_data.mavtype, heartbeat_data.custom_mode);
+                            available_modes = protocol::available_apm_modes(heartbeat_data.mavtype);
+                        },
+                        // TODO: px4 modes
+                        _ => {
+                            mode = VehicleMode::None;
+                            available_modes = Vec::new();
+                        }
+                    }
+
+                    if vehicle.available_modes != available_modes {
+                        vehicle.available_modes = available_modes;
+                        save_vehicle = true;
+                    }
+
+                    if save_vehicle {
                         if let Err(err) = context.registry.vehicles.save_vehicle(&vehicle).await {
                             log::error!("Save vehicle description error: {:?}", &err);
                         }
                     }
 
-                    // TODO: vehicle modes
-                    // TODO: vehicle flags
+                    // TODO: vehicle 
+                    // MAV_MODE_FLAG_MANUAL_INPUT_ENABLED, MAV_MODE_FLAG_STABILIZE_ENABLED, MAV_MODE_FLAG_GUIDED_ENABLED, MAV_MODE_FLAG_AUTO_ENABLED
 
                     let status = VehicleStatus {
                         id: vehicle.id,
                         last_heartbeat: chrono::prelude::Utc::now().timestamp_millis(),
                         state: VehicleState::from_mavlink(heartbeat_data.system_status),
-                        armed: heartbeat_data.base_mode.intersects(MavModeFlag::MAV_MODE_FLAG_SAFETY_ARMED)
+                        armed: heartbeat_data.base_mode.intersects(MavModeFlag::MAV_MODE_FLAG_SAFETY_ARMED),
+                        mode
                     };
 
                     // Update vehicle status in registry
@@ -109,7 +132,8 @@ impl HeartbeatHandler {
                         name: format!("New Vehicle (MAV {})", mav_id).into(),
                         color: EntityColor::Cyan,
                         vehicle_type: VehicleType::Auto,
-                        features: Vec::new()
+                        features: Vec::new(),
+                        available_modes: Vec::new()
                     }).await?;
                     context.mav_vehicles.insert(mav_id, vehicle.id.clone());
                     return Ok(Some(vehicle));

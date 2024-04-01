@@ -38,6 +38,52 @@ pub enum VehicleState {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+pub enum VehicleMode {
+    None,
+    Initializing,
+    Manual,
+    Acro,
+    Stabilize,
+    AltHold,
+    PosHold,
+    AltCtrl,
+    PosCtrl,
+    Training,
+    Drift,
+    Sport,
+    Flip,
+    Break,
+    Throw,
+    Follow,
+    FlowHold,
+    ZigZag,
+    Autorotate,
+    FBWA,
+    FBWB,
+    Cruise,
+    Autotune,
+    Mission,
+    RTL,
+    SmartRTL,
+    Circle,
+    Loiter,
+    Orbit,
+    Guided,
+    Takeoff,
+    Land,
+    Avoidance,
+    Offboard,
+    Thermal,
+    QStabilize,
+    QHover,
+    QLoiter,
+    QLand,
+    QRTL,
+    QAutotune,
+    QAcro
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum ProtocolId {
     MavlinkId { mav_id: u8 },
 }
@@ -50,15 +96,17 @@ pub struct VehicleDescription {
     pub color: EntityColor,
     pub vehicle_type: VehicleType,
     pub protocol_id: ProtocolId,
-    pub features: Vec<VehicleFeatures>
+    pub features: Vec<VehicleFeatures>,
+    pub available_modes: Vec<VehicleMode>
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct VehicleStatus {
     pub id: VehicleId,
     pub last_heartbeat: i64,
+    pub armed: bool,
+    pub mode: VehicleMode,
     pub state: VehicleState,
-    pub armed: bool
 }
 
 impl VehicleStatus {
@@ -66,8 +114,9 @@ impl VehicleStatus {
         Self {
             id: vehicle_id.clone(),
             last_heartbeat: 0,
+            armed: false,
             state: VehicleState::Unknown,
-            armed: false
+            mode: VehicleMode::None
         }
     }
 }

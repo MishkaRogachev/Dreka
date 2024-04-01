@@ -7,7 +7,10 @@ use crate::models::events::{ClientEvent, ServerEvent};
 use crate::{registry::{registry, bus}, models::communication};
 use crate::services::communication::traits;
 
-use super::{commands::handler::CommandHandler, telemetry::TelemetryHandler, heartbeat::HeartbeatHandler, context::MavlinkContext};
+use super::commands::handler::CommandHandler;
+use super::telemetry::handler::TelemetryHandler;
+use super::heartbeat::handler::HeartbeatHandler;
+use super::context::MavlinkContext;
 
 const MAVLINK_POLL_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(5);
 const RESET_STATS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(1000);

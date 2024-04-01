@@ -3,7 +3,7 @@ mod tests {
     use test_case::test_case;
     use surrealdb::{engine::local::Mem, Surreal};
 
-    use crate::models::vehicles::{ProtocolId, VehicleDescription, VehicleFeatures, VehicleId, VehicleType};
+    use crate::models::vehicles::*;
     use crate::models::colors::EntityColor;
     use crate::persistence::{traits, repository};
 
@@ -22,7 +22,8 @@ mod tests {
         color: EntityColor::Teal,
         vehicle_type: VehicleType::FixedWing,
         protocol_id: ProtocolId::MavlinkId{ mav_id: 1 },
-        features: vec![VehicleFeatures::PetrolEngine, VehicleFeatures::Parachute]
+        features: vec![VehicleFeatures::PetrolEngine, VehicleFeatures::Parachute],
+        available_modes: vec![VehicleMode::RTL, VehicleMode::Loiter]
     }; "vehicle 1")]
 
     #[test_case(VehicleDescription {
@@ -31,7 +32,8 @@ mod tests {
         color: EntityColor::Cyan,
         vehicle_type: VehicleType::Vtol,
         protocol_id: ProtocolId::MavlinkId{ mav_id: 2 },
-        features: vec![VehicleFeatures::Lidar]
+        features: vec![VehicleFeatures::Lidar],
+        available_modes: Vec::new()
     }; "vehicle 2")]
 
     #[tokio::test]
@@ -53,7 +55,8 @@ mod tests {
             color: EntityColor::Cyan,
             vehicle_type: VehicleType::Vtol,
             protocol_id: ProtocolId::MavlinkId{ mav_id: 2 },
-            features: vec![VehicleFeatures::Lidar]
+            features: vec![VehicleFeatures::Lidar],
+            available_modes: vec![VehicleMode::Circle, VehicleMode::RTL]
         };
         let vehicle_back = repo.update(&vehicle).await.expect("Error updating vehicle");
         assert_eq!(vehicle, vehicle_back);
@@ -69,7 +72,8 @@ mod tests {
             color: EntityColor::Teal,
             vehicle_type: VehicleType::FixedWing,
             protocol_id: ProtocolId::MavlinkId{ mav_id: 1 },
-            features: vec![VehicleFeatures::PetrolEngine, VehicleFeatures::Parachute]
+            features: vec![VehicleFeatures::PetrolEngine, VehicleFeatures::Parachute],
+            available_modes: vec![VehicleMode::Circle, VehicleMode::RTL]
         },
         VehicleDescription {
             id: "explicit_vehicle_id".to_string(),
@@ -77,7 +81,8 @@ mod tests {
             color: EntityColor::Cyan,
             vehicle_type: VehicleType::Vtol,
             protocol_id: ProtocolId::MavlinkId{ mav_id: 2 },
-            features: vec![VehicleFeatures::Lidar]
+            features: vec![VehicleFeatures::Lidar],
+            available_modes: vec![VehicleMode::RTL, VehicleMode::Loiter]
         }
     ]; " list of vehicles")]
 

@@ -4,9 +4,7 @@ use mavlink::{MavHeader, common::*};
 
 use crate::models::commands::*;
 use crate::models::events::ClientEvent;
-
-use super::super::context::MavlinkContext;
-use super::protocol;
+use super::{super::context::MavlinkContext, protocol};
 
 const MAX_COMMAND_SEND_ATTEMPTS: u8 = 5;
 const COMMAND_SEND_INTERVAL: time::Duration = time::Duration::from_millis(2000);

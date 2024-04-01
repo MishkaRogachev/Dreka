@@ -3,8 +3,8 @@ use std::{sync::Arc, collections::HashMap};
 use mavlink::{MavHeader, common::*};
 use tokio::sync::Mutex;
 
-use super::{context::MavlinkContext, utils};
 use crate::models::{events::ServerEvent, telemetry::*};
+use super::{super::context::MavlinkContext, protocol};
 
 pub struct TelemetryHandler {
     context: Arc<Mutex<MavlinkContext>>,
@@ -43,9 +43,9 @@ impl TelemetryHandler {
     pub async fn handle_attitude(&mut self, mav_id: u8, attitude: &ATTITUDE_DATA) {
         let mut flight = self.mav_flight_map.get(&mav_id).cloned().unwrap_or_default();
 
-        flight.pitch = utils::decode_angles(attitude.pitch);
-        flight.roll = utils::decode_angles(attitude.roll);
-        flight.yaw = utils::decode_angles(attitude.yaw);
+        flight.pitch = protocol::decode_angles(attitude.pitch);
+        flight.roll = protocol::decode_angles(attitude.roll);
+        flight.yaw = protocol::decode_angles(attitude.yaw);
 
         self.update_flight(mav_id, flight).await;
     }
@@ -54,7 +54,7 @@ impl TelemetryHandler {
         let mut flight = self.mav_flight_map.get(&mav_id).cloned().unwrap_or_default();
 
         flight.indicated_airspeed = vfr_hud.airspeed;
-        flight.true_airspeed = utils::to_true_airspeed(vfr_hud.airspeed, vfr_hud.alt);
+        flight.true_airspeed = protocol::to_true_airspeed(vfr_hud.airspeed, vfr_hud.alt);
         flight.ground_speed = vfr_hud.groundspeed;
         flight.climb = vfr_hud.climb;
         flight.altitude_amsl = vfr_hud.alt;
@@ -66,9 +66,9 @@ impl TelemetryHandler {
     pub async fn handle_global_position(&mut self, mav_id: u8, global_pos: &GLOBAL_POSITION_INT_DATA) {
         let mut flight = self.mav_flight_map.get(&mav_id).cloned().unwrap_or_default();
 
-        flight.position.latitude = utils::decode_lat_lon(global_pos.lat);
-        flight.position.longitude = utils::decode_lat_lon(global_pos.lon);
-        flight.position.altitude = utils::decode_altitude(global_pos.alt);
+        flight.position.latitude = protocol::decode_lat_lon(global_pos.lat);
+        flight.position.longitude = protocol::decode_lat_lon(global_pos.lon);
+        flight.position.altitude = protocol::decode_altitude(global_pos.alt);
         flight.position.frame = crate::models::spatial::GeodeticFrame::Wgs84AboveSeaLevel;
 
         self.update_flight(mav_id, flight).await;
@@ -77,11 +77,11 @@ impl TelemetryHandler {
     pub async fn handle_gps_raw(&mut self, mav_id: u8, gps_raw: &GPS_RAW_INT_DATA) { 
         let mut navi = self.mav_navi_map.get(&mav_id).cloned().unwrap_or_default();
 
-        navi.position.latitude = utils::decode_lat_lon(gps_raw.lat);
-        navi.position.longitude = utils::decode_lat_lon(gps_raw.lon);
-        navi.position.altitude = utils::decode_altitude(gps_raw.alt);
-        navi.course = utils::decode_cog_or_hdg(gps_raw.cog);
-        navi.ground_speed = utils::decode_ground_speed(gps_raw.vel);
+        navi.position.latitude = protocol::decode_lat_lon(gps_raw.lat);
+        navi.position.longitude = protocol::decode_lat_lon(gps_raw.lon);
+        navi.position.altitude = protocol::decode_altitude(gps_raw.alt);
+        navi.course = protocol::decode_cog_or_hdg(gps_raw.cog);
+        navi.ground_speed = protocol::decode_ground_speed(gps_raw.vel);
         navi.fix = gps_raw.fix_type as u8;
         navi.eph = gps_raw.eph;
         navi.epv = gps_raw.epv;
@@ -93,8 +93,8 @@ impl TelemetryHandler {
     pub async fn handle_sys_data(&mut self, mav_id: u8, sys_data: &SYS_STATUS_DATA) { 
         let mut system = self.mav_system_map.get(&mav_id).cloned().unwrap_or_default();
 
-        system.battery_current = utils::decode_current(sys_data.current_battery);
-        system.battery_voltage = utils::decode_voltage(sys_data.voltage_battery);
+        system.battery_current = protocol::decode_current(sys_data.current_battery);
+        system.battery_voltage = protocol::decode_voltage(sys_data.voltage_battery);
         system.battery_remaining = sys_data.battery_remaining;
 
         system.sensors.clear();
