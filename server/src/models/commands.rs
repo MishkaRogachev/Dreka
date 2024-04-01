@@ -37,7 +37,7 @@ pub enum Command {
 pub enum CommandState {
     Initial             {},                         // Initial state
     Sent                { attempt: u8 },            // Command sent to executor
-    Acceped             {},                         // Command accepted by executor
+    Accepted             {},                         // Command accepted by executor
     Rejected            {},                         // Command rejected by executor
     Denied              {},                         // Command denied by executor
     Unsupported         {},                         // Command unsupported by executor or protocol

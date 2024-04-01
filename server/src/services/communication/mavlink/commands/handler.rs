@@ -63,8 +63,7 @@ impl CommandHandler {
     }
 
     async fn cancel_command_execution(&mut self, command_id: CommandId) {
-        let execution;
-        {
+        let execution; {
             let context = self.context.lock().await;
             match context.registry.commands.get_execution(&command_id).await {
                 Ok(exec) => execution = exec,
@@ -76,6 +75,7 @@ impl CommandHandler {
         }
 
         // TODO: use https://mavlink.io/en/messages/common.html#COMMAND_CANCEL for long running commands
+        log::info!("Canceling command: {:?}", execution);
 
         self.finish_comand_execution(execution, CommandState::Canceled {}).await
     }
@@ -110,8 +110,7 @@ impl CommandHandler {
         }
 
         // Get MAV ID for Vehicle
-        let mav_id;
-        {
+        let mav_id; {
             let context = self.context.lock().await;
             if let CommandExecutor::Vehicle { ref vehicle_id } = execution.executor {
                 let mav_id_opt = context.mav_id_from_vehicle_id(&vehicle_id);
@@ -164,8 +163,7 @@ impl CommandHandler {
     async fn collect_execution_messages(&mut self) -> Vec<MavMessage> {
         let mut messages = Vec::new();
 
-        let executions: Vec<CommandExecution>;
-        {
+        let executions: Vec<CommandExecution>; {
             let context = self.context.lock().await;
             match context.registry.commands.get_all_executions().await {
                 Ok(execs) => executions = execs,
@@ -190,8 +188,7 @@ impl CommandHandler {
             return;
         }
 
-        let execution: CommandExecution;
-        {
+        let execution: CommandExecution; {
             let context = self.context.lock().await;
             match context.registry.commands.get_execution(&id.clone().unwrap()).await {
                 Ok(exec) => execution = exec,
@@ -204,7 +201,7 @@ impl CommandHandler {
 
         match ack.result {
             MavResult::MAV_RESULT_ACCEPTED => {
-                self.finish_comand_execution(execution, CommandState::Acceped {}).await
+                self.finish_comand_execution(execution, CommandState::Accepted {}).await
             },
             MavResult::MAV_RESULT_TEMPORARILY_REJECTED => {
                 self.finish_comand_execution(execution, CommandState::Rejected {}).await

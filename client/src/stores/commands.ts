@@ -24,7 +24,7 @@ export const commandExecutions = function () {
         }
 
         executionRemoved = (data: any) => {
-            let id = data["id"] as string;
+            let id = data["command_id"] as string;
             if (!id) {
                 return;
             }

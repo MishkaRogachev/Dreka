@@ -2,7 +2,7 @@
 import { VehicleState } from "$bindings/vehicles";
 
 import { i18n } from "$stores/i18n";
-import { selectedVehicle, safetyCheck } from "$stores/vehicles";
+import { selectedVehicle } from "$stores/vehicles";
 
 $: is_online = $selectedVehicle?.is_online || false
 $: vehicleState = $selectedVehicle?.status?.state || VehicleState.Unknown
@@ -28,6 +28,5 @@ function toArmText(armed: boolean, readyToArm: boolean) {
     <button class={ "btn btn-xs " + toArmColorCode(is_online, armed, readyToArm)} on:click={() => {
         // @ts-ignore
         document.getElementById("flight_checks_modal")?.showModal();
-        $safetyCheck = false
     }}>{ toArmText(armed, readyToArm) }</button>
 </div>

@@ -192,8 +192,6 @@ export function getNextAvailableMavlinkId(): number | undefined {
 export const usedVehicleTypes = [ VehicleType.Unknown, VehicleType.Auto, VehicleType.FixedWing, VehicleType.Vtol, VehicleType.RotaryWing, VehicleType.Copter, VehicleType.Airship ]
 export const usedVehicleColors = [ EntityColor.Teal, EntityColor.Cyan, EntityColor.Sky, EntityColor.Blue, EntityColor.Indigo, EntityColor.Violet ]
 
-export var safetyCheck = writable(false)
-
 function selectNextAvailableVehicle(vehicles: Map<string, Vehicle>) {
     let idToSelect = ""
     for (let [id, vehicle] of vehicles) {

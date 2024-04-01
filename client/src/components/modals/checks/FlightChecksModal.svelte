@@ -1,23 +1,23 @@
 <script lang="ts">
-import { onMount, onDestroy } from 'svelte';
+import CommandButton from '$components/common/CommandButton.svelte';
 
 import BaseModal from "$components/common/BaseModal.svelte";
 import SensorHealth from '$components/modals/checks/SensorHealth.svelte';
 
 import { i18n } from "$stores/i18n";
-import { selectedVehicle, selectedVehicleID, safetyCheck } from "$stores/vehicles";
+import { selectedVehicle, selectedVehicleID } from "$stores/vehicles";
 import { selectedVehicleTelemetry } from "$stores/telemetry";
 import { commandExecutions } from '$stores/commands';
 
+import alertIcon from "$assets/svg/alert.svg?raw";
+
 $: armed = $selectedVehicle?.status?.armed || false
 $: readyToArm = $selectedVehicleTelemetry.system?.arm_ready
+$: armExecution = armToken ? $commandExecutions.get(armToken) : undefined
 
 $: sensors = $selectedVehicleTelemetry.system?.sensors || []
 
-let armPressed: boolean = false
-let armProgress: number = 0
 let armToken: string | null = null
-let armInterval: any;
 
 async function armDisarmVehicle(arm: boolean) {
     armToken = await commandExecutions.executeCommand(
@@ -31,24 +31,6 @@ async function cancelArmDisarm() {
         await commandExecutions.cancelCommand(armToken);
     }
 }
-
-onMount(async () => {
-    // Update arm progress every 100ms
-    armInterval = setInterval(() => {
-        if (armPressed) {
-            armProgress += 10;
-            if (armProgress > 100) {
-                armPressed = false;
-                armProgress = 0;
-                armDisarmVehicle(!armed);
-            }
-        } else {
-            armProgress = 0;
-        }
-    }, 100);
-})
-
-onDestroy(async () => { clearInterval(armInterval); })
 
 </script>
 
@@ -83,17 +65,28 @@ onDestroy(async () => { clearInterval(armInterval); })
 
     <div class="divider">
         <label class="label cursor-pointer gap-x-2">
-            <span class="label-text">{ $i18n.t("DANGER ZONE") }</span> 
-            <input type="checkbox" class="checkbox" bind:checked={$safetyCheck}/>
+            <span class="label-text">{ $i18n.t("DANGER ZONE") }</span>
         </label>
     </div>
 
-    <!-- ARM/DISARM -->
-    <div class="form-control grow-0">
-        <button class={"btn " + (armed ? "btn-error" : "btn-secondary") } disabled={!$safetyCheck && $selectedVehicleID.length > 0}
-            on:mousedown={() => armPressed = true} on:mouseup={() => armPressed = false} on:mouseleave={() => armPressed = false}>
-            <div class={armPressed ? "radial-progress absolute left-2" : ""} style="--value:{armProgress}; --size:2rem;" role="progressbar" />
-            { armed ? $i18n.t("DISARM VEHICLE (Long press)") : readyToArm ? $i18n.t("READY TO ARM (Long press to arm)") : $i18n.t("NOT READY (Long press to arm anyway)") }
-        </button>
+    <div role="alert" class={"alert" + (readyToArm ? "" : " alert-warning")}>
+        {@html alertIcon}
+        <div>
+            <h3 class="font-bold">{ armed ?
+                "Vehicle is ARMED" :
+                "Vehicle is DISARMED"}
+            </h3>
+            <div class="text-s">{ armed ?
+                "Disarming vehicle in flight can lead to a crash!" :
+                "Be careful when arming the vehicle!"}
+            </div>
+        </div>
+        <div>
+            <CommandButton btnClass="btn btn-wide btn-outline btn-secondary"
+                disabled={$selectedVehicleID.length === 0} state={armExecution?.state}
+                on:execute={() => armDisarmVehicle(!armed)} on:cancel={() => cancelArmDisarm()}>
+                { armed ? $i18n.t("DISARM VEHICLE") : $i18n.t("ARM VEHICLE") }
+            </CommandButton>
+        </div>
     </div>
 </BaseModal>
