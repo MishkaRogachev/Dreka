@@ -20,6 +20,23 @@ fn arm_disarm(mav_id: u8, arm: bool, attempt: u8) -> MavMessage {
     })
 }
 
+pub fn set_mode(mav_id: u8, mode: u32, attempt: u8) -> MavMessage {
+    log::info!("Mav: {} SetMode: {}", mav_id, mode);
+    MavMessage::COMMAND_LONG(COMMAND_LONG_DATA{
+        param1: 1.0,
+        param2: mode as f32,
+        param3: 0.0,
+        param4: 0.0,
+        param5: 0.0,
+        param6: 0.0,
+        param7: 0.0,
+        command: MavCmd::MAV_CMD_DO_SET_MODE,
+        target_system: mav_id,
+        target_component: 0,
+        confirmation: attempt,
+    })
+}
+
 fn nav_to(mav_id: u8, position: &Geodetic) -> MavMessage {
     log::info!("Mav: {} Nav to: {:?}", mav_id, position);
     MavMessage::MISSION_ITEM(MISSION_ITEM_DATA{
@@ -41,7 +58,7 @@ fn nav_to(mav_id: u8, position: &Geodetic) -> MavMessage {
 }
 
 fn takeoff(mav_id: u8, altitude: f32, attempt: u8) -> MavMessage {
-    log::info!("Mav: {} Takeoff to: {}", mav_id, altitude);
+    log::info!("Mav: {} Takeoff: {}", mav_id, altitude);
     MavMessage::COMMAND_LONG(COMMAND_LONG_DATA{
         param1: 0.0,
         param2: 0.0,
@@ -109,34 +126,41 @@ fn override_servos(mav_id: u8, servos: &std::collections::BTreeMap<u16, u16>) ->
 
 pub struct EncodedCommand {
     pub message: MavMessage,
-    pub cmd: MavCmd,
+    pub ack_cmd: Option<MavCmd>,
+}
+
+pub fn encode_set_mode(mode: u32, mav_id: u8, attempt: u8) -> EncodedCommand {
+    EncodedCommand {
+        message: set_mode(mav_id, mode, attempt),
+        ack_cmd: Some(MavCmd::MAV_CMD_DO_SET_MODE),
+    }
 }
 
 pub fn encode_command(command: &Command, mav_id: u8, attempt: u8) -> Option<EncodedCommand> {
     match command {
-        Command::ArmDisarm { arm } => Option::Some(EncodedCommand {
+        Command::ArmDisarm { arm } => Some(EncodedCommand {
             message: arm_disarm(mav_id, *arm, attempt),
-            cmd: MavCmd::MAV_CMD_COMPONENT_ARM_DISARM,
+            ack_cmd: Some(MavCmd::MAV_CMD_COMPONENT_ARM_DISARM),
         }),
-        Command::NavTo { position } => Option::Some(EncodedCommand {
+        Command::NavTo { position } => Some(EncodedCommand {
             message: nav_to(mav_id, position),
-            cmd: MavCmd::MAV_CMD_NAV_WAYPOINT,
+            ack_cmd: Some(MavCmd::MAV_CMD_NAV_WAYPOINT),
         }),
-        Command::Takeoff { altitude } => Option::Some(EncodedCommand {
+        Command::Takeoff { altitude } => Some(EncodedCommand {
             message: takeoff(mav_id, *altitude, attempt),
-            cmd: MavCmd::MAV_CMD_NAV_TAKEOFF,
+            ack_cmd: Some(MavCmd::MAV_CMD_NAV_TAKEOFF),
         }),
-        Command::GoAround {} => Option::Some(EncodedCommand {
+        Command::GoAround {} => Some(EncodedCommand {
             message: go_around(mav_id, attempt),
-            cmd: MavCmd::MAV_CMD_DO_GO_AROUND,
+            ack_cmd: Some(MavCmd::MAV_CMD_DO_GO_AROUND),
         }),
-        Command::SetServo { channel, value } => Option::Some(EncodedCommand {
+        Command::SetServo { channel, value } => Some(EncodedCommand {
             message: set_servo(mav_id, *channel, *value, attempt),
-            cmd: MavCmd::MAV_CMD_DO_SET_SERVO,
+            ack_cmd: Some(MavCmd::MAV_CMD_DO_SET_SERVO),
         }),
-        Command::OverrideServos { servos } => Option::Some(EncodedCommand {
+        Command::OverrideServos { servos } => Some(EncodedCommand {
             message: override_servos(mav_id, &servos),
-            cmd: MavCmd::MAV_CMD_DO_SET_SERVO,
+            ack_cmd: None,
         }),
         _ => None
     }

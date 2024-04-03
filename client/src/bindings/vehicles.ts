@@ -29,7 +29,7 @@ export enum VehicleState {
     FlightTermination = "FlightTermination",
 }
 
-enum VehicleMode {
+export enum VehicleMode {
     None = "None",
     Initilaizing = "Initializing",
     Manual = "Manual",

@@ -44,7 +44,8 @@ function closeDropdown() {
                         protocol_id: { MavlinkId: { mav_id: mavId } },
                         color: EntityColor.Teal,
                         vehicle_type: VehicleType.Auto,
-                        features: []
+                        features: [],
+                        available_modes: [],
                     });
                     if (!!created) {
                         editingVehicleID = created.description.id || "";

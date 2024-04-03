@@ -6,6 +6,8 @@ use mavlink::{common::{MavAutopilot, MavMessage, MavModeFlag, MavState, MavType}
 use crate::models::{colors::EntityColor, vehicles::*};
 use super::{super::context::MavlinkContext, protocol};
 
+const AUTO_ADD_VEHICLES: bool = true; // TODO: to settings
+
 impl VehicleType {
     pub fn from_mavlink(mavtype: MavType) -> VehicleType {
         match mavtype {
@@ -61,30 +63,30 @@ impl HeartbeatHandler {
             match vehicle.unwrap() {
                 Some(mut vehicle) => {
                     let mut save_vehicle: bool = false;
-                    let context = self.context.lock().await;
+                    let mut context = self.context.lock().await;
                     // Chanage type if auto
                     if vehicle.vehicle_type == VehicleType::Auto {
                         vehicle.vehicle_type = VehicleType::from_mavlink(heartbeat_data.mavtype);
                         save_vehicle = true;
                     }
 
-                    let mode: VehicleMode;
-                    let available_modes: Vec<VehicleMode>;
-                    match heartbeat_data.autopilot {
-                        MavAutopilot::MAV_AUTOPILOT_ARDUPILOTMEGA => {
-                            mode = protocol::decode_apm_mode(heartbeat_data.mavtype, heartbeat_data.custom_mode);
-                            available_modes = protocol::available_apm_modes(heartbeat_data.mavtype);
-                        },
-                        // TODO: px4 modes
-                        _ => {
-                            mode = VehicleMode::None;
-                            available_modes = Vec::new();
+                    if !context.mav_modes.contains_key(&header.system_id) || vehicle.available_modes.is_empty() {
+                        match heartbeat_data.autopilot {
+                            MavAutopilot::MAV_AUTOPILOT_ARDUPILOTMEGA => {
+                                context.mav_modes.insert(header.system_id, protocol::apm_modes(heartbeat_data.mavtype));
+                                vehicle.available_modes = protocol::available_apm_modes(heartbeat_data.mavtype);
+                                save_vehicle = true;
+                            },
+                            // TODO: px4 modes
+                            _ => {}
                         }
                     }
 
-                    if vehicle.available_modes != available_modes {
-                        vehicle.available_modes = available_modes;
-                        save_vehicle = true;
+                    let mode: VehicleMode;
+                    if let Some(modes) = context.mav_modes.get(&header.system_id) {
+                        mode = modes.get(&heartbeat_data.custom_mode).cloned().unwrap_or(VehicleMode::None);
+                    } else {
+                        mode = VehicleMode::None;
                     }
 
                     if save_vehicle {
@@ -93,8 +95,7 @@ impl HeartbeatHandler {
                         }
                     }
 
-                    // TODO: vehicle 
-                    // MAV_MODE_FLAG_MANUAL_INPUT_ENABLED, MAV_MODE_FLAG_STABILIZE_ENABLED, MAV_MODE_FLAG_GUIDED_ENABLED, MAV_MODE_FLAG_AUTO_ENABLED
+                    // TODO: MAV_MODE_FLAG_MANUAL_INPUT_ENABLED, MAV_MODE_FLAG_STABILIZE_ENABLED, MAV_MODE_FLAG_GUIDED_ENABLED, MAV_MODE_FLAG_AUTO_ENABLED
 
                     let status = VehicleStatus {
                         id: vehicle.id,
@@ -116,7 +117,7 @@ impl HeartbeatHandler {
 
     async fn obtain_vehicle(&mut self, mav_id: u8) -> anyhow::Result<Option<VehicleDescription>> {
         let mut context = self.context.lock().await;
-        let protocol_id = ProtocolId::MavlinkId { mav_id: mav_id };
+        let protocol_id = ProtocolId::MavlinkId { mav_id };
         let vehicle = context.registry.vehicles.vehicle_by_protocol_id(&protocol_id).await?;
         match vehicle {
             Some(vehicle) => {
@@ -124,7 +125,7 @@ impl HeartbeatHandler {
                 return Ok(Some(vehicle));
             },
             None => {
-                if context.auto_add_vehicles {
+                if AUTO_ADD_VEHICLES {
                     // Create new vehicle and add it to registry
                     let vehicle = context.registry.vehicles.save_vehicle(&VehicleDescription {
                         id: String::new(),

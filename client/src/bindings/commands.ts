@@ -1,8 +1,9 @@
 import { type Geodetic } from "$bindings/spatial";
+import type { VehicleMode } from "$bindings/vehicles";
 
 export interface Command {
     ArmDisarm?: { arm: boolean };
-    SetMode?: { mode: string };
+    SetMode?: { mode: VehicleMode };
     SetWaypoint?: { wp: number };
     ReturnToLaunch?: {};
     NavTo?: { position: Geodetic };

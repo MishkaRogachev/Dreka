@@ -1,10 +1,10 @@
-use std::{sync::Arc, collections::HashMap};
+use std::{collections::HashMap, sync::Arc};
 use tokio::{time, sync::Mutex, sync::broadcast::Receiver};
 use mavlink::{MavHeader, common::*};
 
 use crate::models::commands::*;
 use crate::models::events::ClientEvent;
-use super::{super::context::MavlinkContext, protocol};
+use super::{super::context::MavlinkContext, protocol::{self, EncodedCommand}};
 
 const MAX_COMMAND_SEND_ATTEMPTS: u8 = 5;
 const COMMAND_SEND_INTERVAL: time::Duration = time::Duration::from_millis(2000);
@@ -142,11 +142,32 @@ impl CommandHandler {
 
         // Try to encode command
         if let CommandState::Sent { attempt } = state {
-            // Use -1 for protocol confirmation
-            let encoded = protocol::encode_command(&execution.command, mav_id, attempt - 1);
+            let encoded: Option<EncodedCommand>;
+
+            if let Command::SetMode { mode } = &execution.command {
+                let context = self.context.lock().await;
+                let modes = context.mav_modes.get(&mav_id);
+                if modes.is_none() {
+                    log::warn!("Modes are not initialised for vehicle: {}", mav_id);
+                    return None;
+                }
+                let mode_code = modes.unwrap().iter()
+                    .find(|(_, value)| mode == *value)
+                    .map(|(&key, _)| key);
+                if mode_code.is_none() {
+                    log::warn!("Mode {:?} is not available for vehicle", mode);
+                    return None;
+                }
+                encoded = Some(protocol::encode_set_mode(mode_code.unwrap(), mav_id, attempt - 1));
+            } else {
+                encoded = protocol::encode_command(&execution.command, mav_id, attempt - 1);
+            }
+
             if let Some(encoded) = encoded {
                 log::info!("Sending command: {:?}", execution);
-                self.waiting_ack_executions.insert((encoded.cmd as u16, mav_id), execution.id.clone());
+                if let Some(ack_cmd) = encoded.ack_cmd {
+                    self.waiting_ack_executions.insert((ack_cmd as u16, mav_id), execution.id.clone());
+                }
                 self.executions_last_sent.insert(execution.id.clone(), time::Instant::now());
                 self.save_command_execution(execution, state).await;
                 return Some(encoded.message);

@@ -4,7 +4,7 @@ use surrealdb::{engine::local::Db, Surreal};
 
 use crate::persistence::{repository, traits};
 use crate::models::events::ServerEvent;
-use crate::models::commands::{CommandExecution, CommandId, CommandExecutor};
+use crate::models::commands::{CommandExecution, CommandId};
 
 use super::bus;
 

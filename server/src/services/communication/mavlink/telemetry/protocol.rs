@@ -8,9 +8,9 @@ pub fn decode_lat_lon(value: i32) -> f64 {
     return value as f64 / 1e7;
 }
 
-pub fn encode_lat_lon(value: f64) -> i32 {
-    return (value * 1e7) as i32;
-}
+// pub fn encode_lat_lon(value: f64) -> i32 {
+//     return (value * 1e7) as i32;
+// }
 
 pub fn decode_altitude(value: i32) -> f32 {
     return value as f32 / 1000.0;

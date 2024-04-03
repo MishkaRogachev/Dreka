@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
 use crate::models::events::ServerEvent;
-use crate::models::vehicles::VehicleId;
+use crate::models::vehicles::{VehicleId, VehicleMode};
 use crate::registry::{bus, registry};
 
 pub struct MavlinkContext {
-    pub registry: registry::Registry,
+    pub registry: registry::Registry, // TODO: move registry from context to handlers to reduce mutex locks
     pub server_bus: bus::EventBus::<ServerEvent>,
     pub mav_vehicles: HashMap<u8, VehicleId>,
-    pub auto_add_vehicles: bool,
+    pub mav_modes: HashMap<u8, HashMap<u32, VehicleMode>>,
 }
 
 impl MavlinkContext {
@@ -20,7 +20,7 @@ impl MavlinkContext {
             registry,
             server_bus,
             mav_vehicles: HashMap::new(),
-            auto_add_vehicles: true, // TODO: to settings
+            mav_modes: HashMap::new()
         }
     }
 

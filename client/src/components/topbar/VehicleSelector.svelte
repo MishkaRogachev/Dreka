@@ -19,7 +19,7 @@ function closeDropdown() {
     </summary>
     <ul class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
     {#each $vehicles.values() as vehicle}
-        <li class={"btn-wide flex " + (vehicle.description.id === $selectedVehicleID ? "font-bold" : "")}
+        <li class={"btn-wide flex " + (vehicle.description.id === $selectedVehicleID ? "text-white" : "")}
             on:click = {() => { selectedVehicleID.set(vehicle.description.id || ""); closeDropdown(); }}>
             <div class="flex gap-x-2 items-center grow">
                 <VehicleTypeIcon vehicleType={vehicle.description.vehicle_type} color={vehicle.description.color}/>

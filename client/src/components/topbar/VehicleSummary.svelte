@@ -1,4 +1,6 @@
 <script lang="ts">
+import VehicleModeSelector from "$components/topbar/VehicleModeSelector.svelte";
+
 import { VehicleState } from "$bindings/vehicles";
 
 import { i18n } from "$stores/i18n";
@@ -23,7 +25,8 @@ function toArmText(armed: boolean, readyToArm: boolean) {
 </script>
 
 <div class="flex items-center gap-x-2 font-bold">
-    <a>{ $i18n.t(vehicleState) }</a>
+    <VehicleModeSelector vehicle={ $selectedVehicle }/>
+    <a class="w-12 text-xs">{ $i18n.t(vehicleState) }</a>
     <span class={"badge badge-xs " + (is_online ? "bg-success" : "bg-neutral-content")} ></span>
     <button class={ "btn btn-xs " + toArmColorCode(is_online, armed, readyToArm)} on:click={() => {
         // @ts-ignore

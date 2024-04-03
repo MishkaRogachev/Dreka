@@ -11,6 +11,7 @@ import { commandExecutions } from '$stores/commands';
 
 import alertIcon from "$assets/svg/alert.svg?raw";
 
+$: is_online = $selectedVehicle?.is_online || false
 $: armed = $selectedVehicle?.status?.armed || false
 $: readyToArm = $selectedVehicleTelemetry.system?.arm_ready
 $: armExecution = armToken ? $commandExecutions.get(armToken) : undefined
@@ -69,8 +70,9 @@ async function cancelArmDisarm() {
         </label>
     </div>
 
-    <div role="alert" class={"alert" + (readyToArm ? "" : " alert-warning")}>
+    <div role="alert" class={"alert"}>
         {@html alertIcon}
+        <!-- (readyToArm ? "" : " alert-warning") -->
         <div>
             <h3 class="font-bold">{ armed ?
                 "Vehicle is ARMED" :
@@ -83,7 +85,7 @@ async function cancelArmDisarm() {
         </div>
         <div>
             <CommandButton btnClass="btn btn-wide btn-outline btn-secondary"
-                disabled={$selectedVehicleID.length === 0} state={armExecution?.state}
+                disabled={!is_online} state={armExecution?.state}
                 on:execute={() => armDisarmVehicle(!armed)} on:cancel={() => cancelArmDisarm()}>
                 { armed ? $i18n.t("DISARM VEHICLE") : $i18n.t("ARM VEHICLE") }
             </CommandButton>

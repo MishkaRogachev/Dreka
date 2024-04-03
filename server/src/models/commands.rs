@@ -1,14 +1,14 @@
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
-use super::{spatial::Geodetic, vehicles::{VehicleId, PayloadId}};
+use super::{spatial::Geodetic, vehicles::{PayloadId, VehicleId, VehicleMode}};
 
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[derive(Clone)]
 pub enum Command {
     ArmDisarm { arm: bool },
-    SetMode { mode: String },
+    SetMode { mode: VehicleMode },
 
     ReturnToLaunch {},
     NavTo { position: Geodetic },
