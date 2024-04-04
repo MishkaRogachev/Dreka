@@ -52,10 +52,11 @@ export class BasePointEntity extends BaseEntity implements Interactable {
         this._entity.label = new Cesium.LabelGraphics({
             text: text,
             showBackground: true,
-            backgroundColor: Cesium.Color.BLACK.withAlpha(0.9),
+            backgroundColor: Cesium.Color.fromCssColorString("#111827"),
             pixelOffset: new Cesium.Cartesian2(0, -25),
-            font: "12px sans-serif",
-            disableDepthTestDistance: Number.POSITIVE_INFINITY
+            font: "10px Helvetica",
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            show: new Cesium.CallbackProperty(() => { return this.hasPosition() }, false),
         });
     }
     removeLabel() { this._entity.label = undefined; }
