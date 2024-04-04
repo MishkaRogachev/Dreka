@@ -23,7 +23,7 @@ onMount(() => {
         <Menu/>
     </div>
 
-    <div class="navbar-end">
+    <div class="navbar-end font-bold">
         <VehicleSelector/>
         <VehicleSummary/>
     </div>

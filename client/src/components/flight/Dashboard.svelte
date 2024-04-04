@@ -32,17 +32,17 @@ function switchVehicleTracking() {} // TODO: center/track vehicle
 <div id="dashboard" class="absolute top-10 right-2 bg-base-200 p-4 rounded-md shadow-lg">
     <div class = "grid grid-cols-4 gap-2 text-center items-center justify-items-stretch">
     <!-- COORDINATES & TRACK VERHICLE -->
-    <div class="col-span-4 join">
+    <div class="col-span-4 join content-center">
         <div class="tooltip tooltip-left" data-tip={ $i18n.t("Center vehicle on map") }>
-            <button class="btn btn-sm px-1 join-item" on:click={switchVehicleTracking}>{@html centerIcon}</button>
+            <button class="btn btn-sm px-1 join-item h-full" on:click={switchVehicleTracking}>{@html centerIcon}</button>
         </div>
         <div class="tooltip tooltip-left grow" data-tip={ $i18n.t("Vehicle coordinates, click to copy") }>
-            <button class="btn btn-sm px-1 join-item font-mono text-right" on:click={coordsToClipboard}>
+            <button class="btn btn-sm px-1 join-item font-mono text-right h-full" on:click={coordsToClipboard}>
                 {latitude} <br/> {longitude}
             </button>
         </div>
         <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("DMS/D.D") }>
-            <button class="btn btn-sm px-1 join-item" on:click={() => { dms = !dms }}>{@html switchIcon}</button>
+            <button class="btn btn-sm px-1 join-item h-full" on:click={() => { dms = !dms }}>{@html switchIcon}</button>
         </div>
     </div>
     <!-- FLIGHT DATA DISPLAY -->

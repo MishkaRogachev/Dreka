@@ -36,21 +36,23 @@ function closeDropdown() {
 
 </script>
 
-<div id="vehicleModeSelectorDropdown" class="dropdown dropdown-end" use:clickOutside={closeDropdown}>
-    <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-24">
-        <a class="grow">{ currentMode }</a>
+<div class="tooltip tooltip-right" data-tip={ $i18n.t("Set vehicle mode") }>
+    <div id="vehicleModeSelectorDropdown" class="dropdown dropdown-end" use:clickOutside={closeDropdown}>
+        <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-24">
+            <a class="grow">{ currentMode }</a>
+        </div>
+        <ul tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
+        {#each availableModes as mode}
+            <li class="btn-wide flex" on:click = {() => { setVehicleMode(mode); closeDropdown(); }}>
+                <div class="flex gap-x-2 items-center grow">
+                    <a class={"grow " + (mode === currentMode ? "text-white" : "")}>
+                        { mode }
+                    </a>
+                    <CommandBadge state={modeExecution?.command.SetMode?.mode === mode ? modeExecution?.state : undefined}>
+                    </CommandBadge>
+                </div>
+            </li>
+        {/each}
+        </ul>
     </div>
-    <ul tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
-    {#each availableModes as mode}
-        <li class="btn-wide flex" on:click = {() => { setVehicleMode(mode); closeDropdown(); }}>
-            <div class="flex gap-x-2 items-center grow">
-                <a class={"grow " + (mode === currentMode ? "text-white" : "")}>
-                    { mode }
-                </a>
-                <CommandBadge state={modeExecution?.command.SetMode?.mode === mode ? modeExecution?.state : undefined}>
-                </CommandBadge>
-            </div>
-        </li>
-    {/each}
-    </ul>
 </div>

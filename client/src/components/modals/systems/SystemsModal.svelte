@@ -2,7 +2,7 @@
 import CommandButton from '$components/common/CommandButton.svelte';
 
 import BaseModal from "$components/common/BaseModal.svelte";
-import SensorHealth from '$components/modals/checks/SensorHealth.svelte';
+import SensorHealth from '$components/modals/systems/SensorHealth.svelte';
 
 import { i18n } from "$stores/i18n";
 import { selectedVehicle, selectedVehicleID } from "$stores/vehicles";
@@ -41,12 +41,12 @@ async function cancelArmDisarm() {
 }
 </style>
 
-<BaseModal id="flight_checks_modal">
+<BaseModal id="systems_modal">
     <form method="dialog">
         <!-- CLOSE -->
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
     </form>
-    <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Flight Checks") }</h3>
+    <h3 class="font-bold text-lg text-center mb-4">{ $i18n.t("Systems Panel") }</h3>
 
     <!-- CHECKS LIST COMPONENT -->
     <div class="grid grid-cols-2 gap-4 max-scroll-area-height overflow-y-auto">
