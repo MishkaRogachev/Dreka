@@ -26,9 +26,9 @@ function toArmText(armed: boolean, readyToArm: boolean) {
 
 <div class="flex items-center gap-x-2 font-bold">
     <VehicleModeSelector vehicle={ $selectedVehicle }/>
-    <a class="w-12 text-xs">{ $i18n.t(vehicleState) }</a>
-    <span class={"badge badge-xs " + (is_online ? "bg-success" : "bg-neutral-content")} ></span>
-    <button class={ "btn btn-xs " + toArmColorCode(is_online, armed, readyToArm)} on:click={() => {
+    <!-- TODO: state icon -->
+    <a class="w-36 text-sm">{ $i18n.t("State") + ": " + $i18n.t(vehicleState) }</a>
+    <button class={ "w-20 btn btn-xs " + toArmColorCode(is_online, armed, readyToArm)} on:click={() => {
         // @ts-ignore
         document.getElementById("flight_checks_modal")?.showModal();
     }}>{ toArmText(armed, readyToArm) }</button>

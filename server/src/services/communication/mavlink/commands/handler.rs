@@ -109,11 +109,15 @@ impl CommandHandler {
 
         // Get MAV ID for Vehicle
         let mav_id; {
-            let context = self.context.lock().await;
             if let CommandExecutor::Vehicle { ref vehicle_id } = execution.executor {
-                let mav_id_opt = context.mav_id_from_vehicle_id(&vehicle_id);
+                let mav_id_opt;
+                {
+                    let context = self.context.lock().await;
+                    mav_id_opt = context.mav_id_from_vehicle_id(&vehicle_id);
+                }
                 if mav_id_opt.is_none() {
                     log::warn!("Vehicle not found: {}", vehicle_id);
+                    self.finish_comand_execution(execution, CommandState::Failed {}).await;
                     return None;
                 }
                 mav_id = mav_id_opt.unwrap();

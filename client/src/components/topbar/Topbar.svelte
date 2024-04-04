@@ -23,10 +23,6 @@ onMount(() => {
         <Menu/>
     </div>
 
-    <div class="navbar-center">
-        <a>{dateTime.toLocaleTimeString()}</a>
-    </div>
-
     <div class="navbar-end">
         <VehicleSelector/>
         <VehicleSummary/>

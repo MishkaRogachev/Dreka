@@ -7,6 +7,8 @@ import { i18n } from '$stores/i18n';
 import { commandExecutions } from '$stores/commands';
 import type { Vehicle } from '$stores/vehicles';
 
+import CommandBadge from '$components/common/CommandBadge.svelte';
+
 export let vehicle: Vehicle | undefined;
 
 $: currentMode = vehicle?.status?.mode || VehicleMode.None;
@@ -34,18 +36,21 @@ function closeDropdown() {
 
 </script>
 
-<details id="vehicleModeSelectorDropdown" class="dropdown dropdown-end" use:clickOutside={closeDropdown}>
-    <summary class="select select-ghost select-xs m-1 gap-x-2 items-center">
+<div id="vehicleModeSelectorDropdown" class="dropdown dropdown-end" use:clickOutside={closeDropdown}>
+    <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-24">
         <a class="grow">{ currentMode }</a>
-    </summary>
-    <ul class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
+    </div>
+    <ul tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
     {#each availableModes as mode}
-        <li class={"btn-wide flex " + (currentMode === mode ? "text-white" : "")}
-            on:click = {() => { setVehicleMode(mode); closeDropdown(); }}>
+        <li class="btn-wide flex" on:click = {() => { setVehicleMode(mode); closeDropdown(); }}>
             <div class="flex gap-x-2 items-center grow">
-                <a class="grow">{ mode }</a>
+                <a class={"grow " + (mode === currentMode ? "text-white" : "")}>
+                    { mode }
+                </a>
+                <CommandBadge state={modeExecution?.command.SetMode?.mode === mode ? modeExecution?.state : undefined}>
+                </CommandBadge>
             </div>
         </li>
     {/each}
     </ul>
-</details>
+</div>

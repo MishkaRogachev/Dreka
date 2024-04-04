@@ -84,7 +84,7 @@ async function cancelArmDisarm() {
             </div>
         </div>
         <div>
-            <CommandButton btnClass="btn btn-wide btn-outline btn-secondary"
+            <CommandButton btnClass="btn btn-wide btn-warning"
                 disabled={!is_online} state={armExecution?.state}
                 on:execute={() => armDisarmVehicle(!armed)} on:cancel={() => cancelArmDisarm()}>
                 { armed ? $i18n.t("DISARM VEHICLE") : $i18n.t("ARM VEHICLE") }
