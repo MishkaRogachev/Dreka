@@ -2,8 +2,12 @@
 import Map from '$components/map/cesium/Map.svelte';
 import Dashboard from '$components/flight/Dashboard.svelte';
 
+import { dashboardVisible } from '$stores/app';
+
 export let visible: boolean = true
 </script>
 
 <Map visible={visible}/>
-<Dashboard/>
+{#if $dashboardVisible}
+    <Dashboard/>
+{/if}

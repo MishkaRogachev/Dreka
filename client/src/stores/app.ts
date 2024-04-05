@@ -12,6 +12,8 @@ export const theme = writable(getTheme())
 export const scales = [0.75, 1.00, 1.25, 1.5, 2.0]
 export const scale = writable(getScale())
 
+export const dashboardVisible = writable(true);
+
 function getTheme(): Theme {
     let themeValue = get(userPreferences).get("ui/theme");
     if (!themeValue) {

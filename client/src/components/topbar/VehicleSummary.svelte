@@ -24,17 +24,16 @@ function toArmText(armed: boolean, readyToArm: boolean) {
 
 </script>
 
-<div class="flex items-center gap-x-2">
-    <VehicleModeSelector vehicle={ $selectedVehicle }/>
-    <!-- TODO: state icon -->
-    <a class="w-36 text-sm">{ $i18n.t("State") + ": " + $i18n.t(vehicleState) }</a>
-    <div class="tooltip tooltip-left" data-tip={ $i18n.t("Open systems") }>
-        <button class={ "w-20 btn btn-xs " + toArmColorCode(is_online, armed, readyToArm)}
-        on:click={() => {
-            // @ts-ignore
-            document.getElementById("systems_modal")?.showModal();
-        }}>
-            { toArmText(armed, readyToArm) }
-        </button>
-    </div>
+
+<VehicleModeSelector vehicle={ $selectedVehicle }/>
+<!-- TODO: state icon -->
+<a class="w-36 text-sm">{ $i18n.t("State") + ": " + $i18n.t(vehicleState) }</a>
+<div class="tooltip tooltip-left" data-tip={ $i18n.t("Open systems") }>
+    <button class={ "w-20 btn btn-xs " + toArmColorCode(is_online, armed, readyToArm)}
+    on:click={() => {
+        // @ts-ignore
+        document.getElementById("systems_modal")?.showModal();
+    }}>
+        { toArmText(armed, readyToArm) }
+    </button>
 </div>
