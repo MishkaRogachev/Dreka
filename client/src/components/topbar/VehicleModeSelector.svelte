@@ -1,6 +1,4 @@
 <script lang="ts">
-import { clickOutside } from '$lib/common/click-outside';
-
 import { VehicleMode } from '$bindings/vehicles';
 
 import { i18n } from '$stores/i18n';
@@ -24,26 +22,28 @@ async function setVehicleMode(mode: VehicleMode) {
     });
 }
 
-async function cancelArmDismode() {
+async function cancelSetVehicleMode() {
     if (modeToken) {
         await commandExecutions.cancelCommand(modeToken);
     }
 }
 
-function closeDropdown() {
-    document.getElementById("vehicleModeSelectorDropdown")?.removeAttribute("open");
-}
-
 </script>
 
-<div class="tooltip tooltip-right" data-tip={ $i18n.t("Set vehicle mode") }>
-    <div id="vehicleModeSelectorDropdown" class="dropdown dropdown-end" use:clickOutside={closeDropdown}>
+<div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Set mode") }>
+    <div class="dropdown dropdown-end">
         <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-24">
             <a class="grow">{ currentMode }</a>
         </div>
         <ul tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
         {#each availableModes as mode}
-            <li class="btn-wide flex" on:click = {() => { setVehicleMode(mode); closeDropdown(); }}>
+            <li class="w-32 flex" on:click = {() => {
+                if (modeExecution?.command.SetMode?.mode === mode) {
+                    cancelSetVehicleMode();
+                } else {
+                    setVehicleMode(mode);
+                }
+            }}>
                 <div class="flex gap-x-2 items-center grow">
                     <a class={"grow " + (mode === currentMode ? "text-white" : "")}>
                         { mode }

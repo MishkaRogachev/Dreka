@@ -16,7 +16,7 @@ import showIcon from "$assets/svg/show_dashboard.svg?raw";
         <Menu/>
     </div>
 
-    <div class="navbar-end font-bold flex items-center gap-x-2">
+    <div class="navbar-end font-bold flex items-center gap-x-1">
         <VehicleSelector/>
         <VehicleSummary/>
         <div class="tooltip tooltip-left" data-tip={ $dashboardVisible ? $i18n.t("Hide dashboard") : $i18n.t("Show dashboard") }>

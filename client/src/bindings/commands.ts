@@ -4,7 +4,7 @@ import type { VehicleMode } from "$bindings/vehicles";
 export interface Command {
     ArmDisarm?: { arm: boolean };
     SetMode?: { mode: VehicleMode };
-    SetWaypoint?: { wp: number };
+    SetWaypoint?: { wpt: number };
     ReturnToLaunch?: {};
     NavTo?: { position: Geodetic };
     SetReturn?: { position: Geodetic };
