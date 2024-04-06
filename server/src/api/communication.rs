@@ -3,6 +3,45 @@ use actix_web::{get, post, put, delete, web, Responder, HttpResponse};
 use crate::models::{communication::{LinkId, LinkDescription}, events::ClientEvent};
 use super::context::ApiContext;
 
+#[post("/comm/links/save")]
+pub async fn post_link(context: web::Data<ApiContext>, link: web::Json<LinkDescription>) -> impl Responder {
+    let link = link.into_inner();
+    let result = context.registry.communication.save_link(&link).await;
+
+    match result {
+        Ok(link) => {
+            HttpResponse::Ok().json(link)
+        },
+        Err(err) => {
+            log::warn!("REST error: {}", &err); // TODO: add path here
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
+    }
+}
+
+#[delete("/comm/links/remove/{link_id}")]
+pub async fn delete_link(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
+    let link_id: LinkId = path.into_inner();
+    let result = context.registry.communication.delete_link(&link_id).await;
+
+    if let Err(err) = result {
+        log::warn!("REST error: {}", &err); // TODO: add path here
+        return HttpResponse::InternalServerError().json(err.to_string())
+    }
+    HttpResponse::Ok().json(link_id)
+}
+
+#[put("/comm/links/set_connected/{link_id}")]
+pub async fn set_link_connected(context: web::Data<ApiContext>, path: web::Path<String>, enabled: web::Json<bool>) -> impl Responder {
+    let link_id: LinkId = path.into_inner();
+    let connected = enabled.into_inner();
+
+    match context.client_bus.publish(ClientEvent::SetLinkEnabled { link_id: link_id.to_owned(), enabled: connected }) {
+        Ok(_) => HttpResponse::Ok(),
+        Err(_) => HttpResponse::InternalServerError()
+    }
+}
+
 #[get("/comm/links/description/{link_id}")]
 pub async fn get_description(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let link_id: LinkId = path.into_inner();
@@ -56,44 +95,5 @@ pub async fn get_statuses(context: web::Data<ApiContext>) -> impl Responder {
             log::warn!("REST error: {}", &err); // TODO: add path here
             HttpResponse::InternalServerError().json(err.to_string())
         }
-    }
-}
-
-#[post("/comm/links/save")]
-pub async fn post_link(context: web::Data<ApiContext>, link: web::Json<LinkDescription>) -> impl Responder {
-    let link = link.into_inner();
-    let result = context.registry.communication.save_link(&link).await;
-
-    match result {
-        Ok(link) => {
-            HttpResponse::Ok().json(link)
-        },
-        Err(err) => {
-            log::warn!("REST error: {}", &err); // TODO: add path here
-            HttpResponse::InternalServerError().json(err.to_string())
-        }
-    }
-}
-
-#[delete("/comm/links/remove/{link_id}")]
-pub async fn delete_link(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
-    let link_id: LinkId = path.into_inner();
-    let result = context.registry.communication.delete_link(&link_id).await;
-
-    if let Err(err) = result {
-        log::warn!("REST error: {}", &err); // TODO: add path here
-        return HttpResponse::InternalServerError().json(err.to_string())
-    }
-    HttpResponse::Ok().json(link_id)
-}
-
-#[put("/comm/links/set_connected/{link_id}")]
-pub async fn set_link_connected(context: web::Data<ApiContext>, path: web::Path<String>, enabled: web::Json<bool>) -> impl Responder {
-    let link_id: LinkId = path.into_inner();
-    let connected = enabled.into_inner();
-
-    match context.client_bus.publish(ClientEvent::SetLinkEnabled { link_id: link_id.to_owned(), enabled: connected }) {
-        Ok(_) => HttpResponse::Ok(),
-        Err(_) => HttpResponse::InternalServerError()
     }
 }

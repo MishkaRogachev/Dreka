@@ -57,7 +57,7 @@ pub async fn start() -> anyhow::Result<()> {
                 Err(err) => log::error!("Communication service start error: {}", err),
             }
         }
-        _ = api::routes::serve(registry, server_bus, client_bus, &DEFAULT_REST_ADDRESS) => {}
+        _ = api::all_routes::serve(registry, server_bus, client_bus, &DEFAULT_REST_ADDRESS) => {}
         _ = tokio::signal::ctrl_c() => {}
     }
     Ok(())

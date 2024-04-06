@@ -9,6 +9,7 @@ use super::{spatial::Geodetic, vehicles::{PayloadId, VehicleId, VehicleMode}};
 pub enum Command {
     ArmDisarm { arm: bool },
     SetMode { mode: VehicleMode },
+    SetWaypoint { wpt: u16 },
 
     ReturnToLaunch {},
     NavTo { position: Geodetic },

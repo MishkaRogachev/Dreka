@@ -17,14 +17,12 @@ function downloadMission() {
 }
 
 function uploadMission() {
-    let missionId = $selectedVehicleMission?.id;
     if (missionId) {
         missions.upload(missionId);
     }
 }
 
 function clearMission() {
-    let missionId = $selectedVehicleMission?.id;
     if (missionId) {
         missions.clear(missionId);
     }

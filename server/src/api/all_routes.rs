@@ -41,6 +41,12 @@ pub async fn serve(
             .service(super::commands::cancel_command)
             .service(super::commands::get_command_execution)
             .service(super::commands::get_command_executions)
+            .service(super::mission::download_mission)
+            .service(super::mission::upload_mission)
+            .service(super::mission::clear_mission)
+            .service(super::mission::cancel_mission_state)
+            .service(super::mission::get_mission)
+            .service(super::mission::get_missions)
             .app_data(Data::new(context.clone()))
     }).bind(address)?.run();
 

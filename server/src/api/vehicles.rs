@@ -3,6 +3,34 @@ use actix_web::{get, post, delete, web, Responder, HttpResponse};
 use crate::models::vehicles::{VehicleId, VehicleDescription};
 use super::context::ApiContext;
 
+#[post("/vehicles/save")]
+pub async fn post_vehicle(context: web::Data<ApiContext>, vehicle: web::Json<VehicleDescription>) -> impl Responder {
+    let vehicle = vehicle.into_inner();
+    let result = context.registry.vehicles.save_vehicle( &vehicle).await;
+
+    match result {
+        Ok(vehicle) => HttpResponse::Ok().json(vehicle),
+        Err(err) => {
+            log::warn!("REST error: {}", &err); // TODO: add path here
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
+    }
+}
+
+#[delete("/vehicles/remove/{vehicle_id}")]
+pub async fn delete_vehicle(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
+    let vehicle_id: VehicleId = path.into_inner();
+
+    // TODO: clear vehicle commands & missions for vehicle_id
+
+    let result = context.registry.vehicles.delete_vehicle(&vehicle_id).await;
+    if let Err(err) = result {
+        log::warn!("REST error: {}", &err); // TODO: add path here
+        return HttpResponse::InternalServerError().json(err.to_string())
+    }
+    HttpResponse::Ok().json(vehicle_id)
+}
+
 #[get("/vehicles/description/{vehicle_id}")]
 pub async fn get_description(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let vehicle_id: VehicleId = path.into_inner();
@@ -55,30 +83,4 @@ pub async fn get_statuses(context: web::Data<ApiContext>) -> impl Responder {
             HttpResponse::InternalServerError().json(err.to_string())
         }
     }
-}
-
-#[post("/vehicles/save")]
-pub async fn post_vehicle(context: web::Data<ApiContext>, vehicle: web::Json<VehicleDescription>) -> impl Responder {
-    let vehicle = vehicle.into_inner();
-    let result = context.registry.vehicles.save_vehicle( &vehicle).await;
-
-    match result {
-        Ok(vehicle) => HttpResponse::Ok().json(vehicle),
-        Err(err) => {
-            log::warn!("REST error: {}", &err); // TODO: add path here
-            HttpResponse::InternalServerError().json(err.to_string())
-        }
-    }
-}
-
-#[delete("/vehicles/remove/{vehicle_id}")]
-pub async fn delete_vehicle(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
-    let vehicle_id: VehicleId = path.into_inner();
-
-    let result = context.registry.vehicles.delete_vehicle(&vehicle_id).await;
-    if let Err(err) = result {
-        log::warn!("REST error: {}", &err); // TODO: add path here
-        return HttpResponse::InternalServerError().json(err.to_string())
-    }
-    HttpResponse::Ok().json(vehicle_id)
 }

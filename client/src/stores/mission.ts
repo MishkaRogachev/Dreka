@@ -20,34 +20,20 @@ export const missions = function () {
         }
     });
 
-    const handleMissionStatus = (missionId: string, status: MissionStatus | null) => {
-        if (status) {
-            store.update(missions => {
-                if (missions.has(missionId)) {
-                    missions.get(missionId)!.status = status!;
-                }
-                return missions;
-            });
-        }
-    }
-
     return {
         subscribe: store.subscribe,
         count: () => get(store).size,
         mission: (missionId: string) => get(store).get(missionId),
         missionIds: () => Array.from(get(store).keys()),
         missions: () => get(store).values(),
-        upload: async (missionId: string) => {
-            let status = await MissionService.uploadMission(missionId);
-            handleMissionStatus(missionId, status);
-        },
         download: async (missionId: string) => {
-            let status = await MissionService.downloadMission(missionId);
-            handleMissionStatus(missionId, status);
+            await MissionService.downloadMission(missionId);
+        },
+        upload: async (missionId: string) => {
+            await MissionService.uploadMission(missionId);
         },
         clear: async (missionId: string) => {
-            let status = await MissionService.downloadMission(missionId);
-            handleMissionStatus(missionId, status);
+            await MissionService.clearMission(missionId);
         },
         kill: () => {
             EventsService.unsubscribe(ClientSideEvents.WsConnectionOpened, wsConnected);

@@ -1,11 +1,10 @@
-
 use std::sync::Arc;
 use anyhow::Ok;
 use surrealdb::{engine::local::Db, Surreal};
 
 use crate::persistence::{repository, traits};
 use crate::models::events::ServerEvent;
-use crate::models::vehicles::{VehicleId, VehicleDescription, VehicleStatus, ProtocolId};
+use crate::models::vehicles::*;
 
 use super::bus;
 

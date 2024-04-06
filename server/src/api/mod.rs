@@ -1,7 +1,8 @@
-pub mod routes;
+pub mod all_routes;
 mod context;
 
 mod communication;
 mod vehicles;
-mod websocket;
 mod commands;
+mod mission;
+mod websocket;
