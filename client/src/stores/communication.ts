@@ -1,9 +1,10 @@
 import { writable, get } from 'svelte/store';
 
+import { type LinkDescription, type LinkStatus } from '$bindings/communication';
+
 import type { WsListener } from "$datasource/ws";
 import { ClientSideEvents, EventsService } from "$services/events";
 import { CommunicationService } from '$services/communication';
-import { type LinkDescription, type LinkStatus } from '$bindings/communication';
 
 export class Link {
     constructor(description: LinkDescription) {

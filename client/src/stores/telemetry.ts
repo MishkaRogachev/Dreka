@@ -1,8 +1,10 @@
 import { writable, get, derived } from "svelte/store";
 
+import { VehicleTelemetry } from "$bindings/telemetry";
+
 import type { WsListener } from "$datasource/ws";
 import { EventsService } from "$services/events";
-import { VehicleTelemetry } from "$bindings/telemetry";
+
 import { selectedVehicleID } from "$stores/vehicles";
 
 export const vehiclesTelemetry = function () {

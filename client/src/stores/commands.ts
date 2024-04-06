@@ -1,9 +1,10 @@
 import { writable, get } from 'svelte/store';
 
+import type { Command, CommandExecution, CommandExecutor } from '$bindings/commands';
+
 import type { WsListener } from "$datasource/ws";
 import { ClientSideEvents, EventsService } from "$services/events";
 import { CommandService } from '$services/commands';
-import type { Command, CommandExecution, CommandExecutor } from '$bindings/commands';
 
 export const commandExecutions = function () {
     let executionUpdated: WsListener;

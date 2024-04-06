@@ -1,10 +1,11 @@
 import { writable, derived, get } from 'svelte/store';
 
+import { type VehicleDescription, type VehicleStatus, VehicleType } from '$bindings/vehicles';
+import { EntityColor } from '$bindings/colors';
+
 import type { WsListener } from '$datasource/ws';
 import { ClientSideEvents, EventsService } from '$services/events';
 import { VehiclesService } from '$services/vehicles';
-import { type VehicleDescription, type VehicleStatus, VehicleType } from '$bindings/vehicles';
-import { EntityColor } from '$bindings/colors';
 
 const ONLINE_CHECK_INTERVAL = 250;
 const IS_ONLINE_TIMEOUT = 2000;

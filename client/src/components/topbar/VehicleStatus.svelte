@@ -5,9 +5,6 @@ import { i18n } from "$stores/i18n";
 import { selectedVehicle } from "$stores/vehicles";
 import { selectedVehicleTelemetry } from "$stores/telemetry";
 
-import VehicleModeSelector from "$components/topbar/VehicleModeSelector.svelte";
-import VehicleWaypointSelector from "$components/topbar/VehicleWaypointSelector.svelte";
-
 import playIcon from "$assets/svg/play.svg?raw";
 import pauseIcon from "$assets/svg/pause.svg?raw";
 import loadingIcon from "$assets/svg/loading.svg?raw";
@@ -57,15 +54,8 @@ function toArmText(armed: boolean, readyToArm: boolean) {
 
 </script>
 
-
-<VehicleModeSelector vehicle={ $selectedVehicle }/>
-<VehicleWaypointSelector vehicle={ $selectedVehicle }/>
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("State") + ": " + $i18n.t(vehicleState) }>
     { @html toStateIcon(vehicleState) }
-</div>
-<!-- TODO: GPS state, fix, and sattelite count indication -->
-<div class="tooltip tooltip-bottom" data-tip={ $i18n.t("GPS") }>
-    <button class="btn btn-sm btn-ghost btn-circle my-1" >{ @html gpsIcon }</button>
 </div>
 <!-- TODO: Radio RSSI & manual control indication -->
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Radio") }>
@@ -75,8 +65,12 @@ function toArmText(armed: boolean, readyToArm: boolean) {
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Battery") }>
     <button class="btn btn-sm btn-ghost btn-circle my-1" >{ @html batteryIcon }</button>
 </div>
+<!-- TODO: GPS state, fix, and sattelite count indication -->
+<div class="tooltip tooltip-bottom" data-tip={ $i18n.t("GPS") }>
+    <button class="btn btn-sm btn-ghost btn-circle my-1" >{ @html gpsIcon }</button>
+</div>
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Open systems") }>
-    <button class={ "w-20 btn btn-xs " + toArmColorCode(is_online, armed, readyToArm)}
+    <button class={ "w-22 btn btn-xs " + toArmColorCode(is_online, armed, readyToArm)}
     on:click={() => {
         // @ts-ignore
         document.getElementById("systems_modal")?.showModal();
