@@ -126,7 +126,7 @@ impl HeartbeatHandler {
             },
             None => {
                 if AUTO_ADD_VEHICLES {
-                    // Create new vehicle and add it to registry
+                    // Create new vehicle with idle mission
                     let vehicle = context.registry.vehicles.save_vehicle(&VehicleDescription {
                         id: String::new(),
                         protocol_id,
@@ -136,7 +136,9 @@ impl HeartbeatHandler {
                         features: Vec::new(),
                         available_modes: Vec::new()
                     }).await?;
+                    context.registry.missions.create_new_mission(&vehicle.id).await?;
                     context.mav_vehicles.insert(mav_id, vehicle.id.clone());
+                    log::info!("New MAVLink vehicle created: {:?}", &vehicle.id);
                     return Ok(Some(vehicle));
                 }
                 return Ok(None);

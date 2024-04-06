@@ -7,10 +7,11 @@ use crate::models::events::{ClientEvent, ServerEvent};
 use crate::{middleware::{registry, bus}, models::communication};
 use crate::services::communication::traits;
 
-use super::commands::handler::CommandHandler;
-use super::telemetry::handler::TelemetryHandler;
-use super::heartbeat::handler::HeartbeatHandler;
 use super::context::MavlinkContext;
+use super::heartbeat::handler::HeartbeatHandler;
+use super::telemetry::handler::TelemetryHandler;
+use super::commands::handler::CommandHandler;
+use super::missions::handler::MissionHandler;
 
 const MAVLINK_POLL_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(5);
 const RESET_STATS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(1000);
@@ -98,12 +99,14 @@ impl traits::IConnection for MavlinkConnection {
         let internal = self.internal.clone();
         let cloned_mav = mav.clone();
 
-        let mut client_events_rx = self.client_bus.subscribe();
+        let command_events_rx = self.client_bus.subscribe();
+        let mission_events_rx = self.client_bus.subscribe();
 
         tokio::task::spawn(async move {
             let mut heartbeat_handler = HeartbeatHandler::new(mav_context.clone());
             let mut telemetry_handler = TelemetryHandler::new(mav_context.clone());
-            let mut command_handler = CommandHandler::new(mav_context.clone());
+            let mut command_handler = CommandHandler::new(mav_context.clone(), command_events_rx);
+            let mut mission_handler = MissionHandler::new(mav_context.clone(), mission_events_rx);
 
             loop {
                 let now = time::Instant::now();
@@ -127,6 +130,7 @@ impl traits::IConnection for MavlinkConnection {
                         heartbeat_handler.handle_message(&header, &msg).await;
                         telemetry_handler.handle_message(&header, &msg).await;
                         command_handler.handle_message(&header, &msg).await;
+                        mission_handler.handle_message(&header, &msg).await;
                     },
                     Err(mavlink::error::MessageReadError::Io(err)) => {
                         match err.kind() {
@@ -150,10 +154,14 @@ impl traits::IConnection for MavlinkConnection {
                 }
 
                 // Send commands
-                for command in command_handler.prepare_messages(&mut client_events_rx).await {
+                let mut messages: Vec<mavlink::common::MavMessage> = Vec::new();
+
+                messages.append(&mut command_handler.prepare_messages().await);
+                messages.append(&mut mission_handler.prepare_messages().await);
+                for command in messages {
                     match cloned_mav.send_default(&command) {
                         Ok(_) => {},
-                        Err(error) => println!("Mavlink send error: {:?}", error),
+                        Err(error) => println!("Mavlink send message error: {:?}", error),
                     }
                 }
 

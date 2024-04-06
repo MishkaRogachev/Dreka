@@ -4,7 +4,7 @@ use super::communication::{LinkDescription, LinkId, LinkStatus};
 use super::vehicles::{VehicleDescription, VehicleId, VehicleStatus};
 use super::telemetry::VehicleTelemetry;
 use super::commands::{CommandId, CommandExecution, ExecuteCommandRequest};
-use super::mission::{Mission, MissionId, MissionRoute, MissionRouteItem, MissionStatus};
+use super::missions::{Mission, MissionId, MissionRoute, MissionRouteItem, MissionStatus};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[derive(Clone)]
@@ -20,6 +20,7 @@ pub enum ClientEvent {
     UploadMission { mission_id: MissionId },
     DownloadMission { mission_id: MissionId },
     ClearMission { mission_id: MissionId },
+    CancelMissionState { mission_id: MissionId },
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -45,8 +46,8 @@ pub enum ServerEvent {
     // Missions
     MissionUpdated { mission: Mission },
     MissionRemoved { mission_id: MissionId },
+    MissionStatusUpdated { status: MissionStatus },
     MissionRouteUpdated { route: MissionRoute },
     MissionRouteItemUpdated { mission_id: MissionId, index: u16, item: MissionRouteItem },
     MissionRouteItemRemoved { mission_id: MissionId, index: u16 },
-    MissionStatusUpdated { status: MissionStatus },
 }

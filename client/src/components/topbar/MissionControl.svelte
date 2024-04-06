@@ -1,12 +1,14 @@
 <script lang="ts">
 
 import { i18n } from "$stores/i18n";
+import { missions, selectedVehicleMission } from "$stores/mission";
+import { selectedVehicle } from "$stores/vehicles";
 
 import missionIcon from "$assets/svg/mission.svg?raw";
 import downloadIcon from "$assets/svg/download.svg?raw";
 import uploadIcon from "$assets/svg/upload.svg?raw";
 import removeIcon from "$assets/svg/remove.svg?raw";
-import { missions, selectedVehicleMission } from "$stores/mission";
+import plusIcon from "$assets/svg/plus.svg?raw";
 
 $: missionId = $selectedVehicleMission?.id;
 
@@ -28,6 +30,12 @@ function clearMission() {
     }
 }
 
+function createMission() {
+    if ($selectedVehicle) {
+        missions.createVehicleMission($selectedVehicle.description.id);
+    }
+}
+
 </script>
 
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Mission") }>
@@ -35,8 +43,8 @@ function clearMission() {
         <div tabindex="0" role="button" class="select select-ghost select-sm m-1 items-center">
             { @html missionIcon }
         </div>
-        {#if !!missionId}
         <ul tabindex="0" class="w-48 dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
+        {#if !!missionId}
             <li class="flex" on:click={downloadMission}>
                 <div class="flex gap-x-2 items-center grow">
                     { @html downloadIcon }
@@ -55,7 +63,14 @@ function clearMission() {
                     <a class="grow">{ $i18n.t("Clear mission") }</a>
                 </div>
             </li>
-        </ul>
+        {:else if !!$selectedVehicle}
+        <li class="flex" on:click={createMission}>
+            <div class="flex gap-x-2 items-center grow">
+                { @html plusIcon }
+                <a class="grow">{ $i18n.t("Create new mission") }</a>
+            </div>
+        </li>
         {/if}
+        </ul>
     </div>
 </div>

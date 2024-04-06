@@ -4,7 +4,8 @@ use surrealdb::{engine::local::Db, Surreal};
 use crate::persistence::{repository, traits};
 use crate::models::vehicles::VehicleId;
 use crate::models::events::ServerEvent;
-use crate::models::mission::*;
+use crate::models::spatial::Geodetic;
+use crate::models::missions::*;
 
 use super::bus;
 
@@ -26,31 +27,31 @@ impl Persistence {
         }
     }
 
-    pub async fn save_new_mission(&self, mission: &Mission) -> anyhow::Result<Mission> {
-        if !mission.vehicle_id.is_empty() {
-            let vehicle_mission_exists = self.vehicle_mission(&mission.vehicle_id).await?;
+    pub async fn create_new_mission(&self, vehicle_id: &VehicleId) -> anyhow::Result<Mission> {
+        if !vehicle_id.is_empty() {
+            let vehicle_mission_exists = self.vehicle_mission(&vehicle_id).await?;
             if vehicle_mission_exists.is_some() {
-                return Err(anyhow::anyhow!("Mission for vehicle_id {:?} already exists", mission.vehicle_id));
+                return Err(anyhow::anyhow!("Mission for vehicle_id {} already exists", vehicle_id));
             }
         }
 
         // Crete new vehicle-mission mapping
         let vehicle_mission = self.vehicle_missions.create(&VehicleMission{
             id: String::new(), // will be generated
-            vehicle_id: mission.vehicle_id.clone(),
+            vehicle_id: vehicle_id.clone(),
         }).await?;
 
         // Create new mission route
         let route = self.mission_routes.create(&MissionRoute{
             id: vehicle_mission.id.clone(),
-            items: mission.route.items.clone()
+            items: vec!({ MissionRouteItem::Home { position: Geodetic::default() }}),
         }).await?;
 
         // Create new mission status
-        let status = self.mission_statuses.create(&&MissionStatus{
+        let status = self.mission_statuses.create(&MissionStatus{
             id: vehicle_mission.id.clone(),
-            state: mission.status.state.clone(),
-            progress: mission.status.progress.clone(),
+            state: MissionUpdateState::NotActual {},
+            progress: MissionProgress::OnHold {},
         }
         ).await?;
 

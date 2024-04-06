@@ -2,6 +2,16 @@ import type { Mission, MissionStatus } from "$bindings/mission";
 import { send_request, default_headers } from "$datasource/rest";
 
 export class MissionService {
+    static async createMission(vehicleId: string): Promise<Mission | null> {
+        return await send_request("/missions/create", {
+            method: "POST",
+            body: JSON.stringify(vehicleId),
+            headers: default_headers
+        }) || null;
+    }
+
+    // TODO: mission route operations
+
     static async downloadMission(missionId: string): Promise<string | null> {
         return await send_request("/missions/download/" + missionId, { method: "PUT" }) || null;
     }
@@ -17,8 +27,6 @@ export class MissionService {
     static async cancelMissionState(missionId: string): Promise<string | null> {
         return await send_request("/missions/cancel/" + missionId, { method: "PUT" }) || null;
     }
-
-    // TODO: mission route operations
 
     static async getMission(id: string): Promise<Mission | null> {
         return await send_request("/missions/mission/" + id, { method: "GET" }) || null;

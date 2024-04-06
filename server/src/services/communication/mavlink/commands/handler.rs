@@ -4,20 +4,26 @@ use mavlink::{MavHeader, common::*};
 
 use crate::models::commands::*;
 use crate::models::events::ClientEvent;
-use super::{super::context::MavlinkContext, protocol::{self, EncodedCommand}};
+use super::{super::context::MavlinkContext, protocol};
 
 const MAX_COMMAND_SEND_ATTEMPTS: u8 = 5;
 const COMMAND_SEND_INTERVAL: time::Duration = time::Duration::from_millis(2000);
 
 pub struct CommandHandler {
     context: Arc<Mutex<MavlinkContext>>,
+    client_events_rx: Receiver<ClientEvent>,
     executions_last_sent: HashMap<CommandId, time::Instant>,
     waiting_ack_executions: HashMap<(u16, u8), CommandId>
 }
 
 impl CommandHandler {
-    pub fn new(context: Arc<Mutex<MavlinkContext>>) -> Self {
-        Self { context, executions_last_sent: HashMap::new(), waiting_ack_executions: HashMap::new() }
+    pub fn new(context: Arc<Mutex<MavlinkContext>>, client_events_rx: Receiver<ClientEvent>) -> Self {
+        Self {
+            context,
+            client_events_rx,
+            executions_last_sent: HashMap::new(),
+            waiting_ack_executions: HashMap::new()
+        }
     }
 
     async fn add_command_execution(&mut self, request: ExecuteCommandRequest, command_id: CommandId) {
@@ -146,7 +152,7 @@ impl CommandHandler {
 
         // Try to encode command
         if let CommandState::Sent { attempt } = state {
-            let encoded: Option<EncodedCommand>;
+            let encoded: Option<protocol::EncodedCommand>;
 
             if let Command::SetMode { mode } = &execution.command {
                 let context = self.context.lock().await;
@@ -248,8 +254,8 @@ impl CommandHandler {
         }
     }
 
-    pub async fn prepare_messages(&mut self, client_events_rx: &mut Receiver<ClientEvent>) -> Vec<MavMessage> {
-        match client_events_rx.try_recv() {
+    pub async fn prepare_messages(&mut self) -> Vec<MavMessage> {
+        match self.client_events_rx.try_recv() {
             Ok(event) => self.handle_client_event(event).await,
             Err(err) => {
                 if err != tokio::sync::broadcast::error::TryRecvError::Empty {

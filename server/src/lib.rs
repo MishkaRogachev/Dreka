@@ -19,7 +19,6 @@ pub async fn start() -> anyhow::Result<()> {
         .info(fern::colors::Color::Green);
 
     fern::Dispatch::new()
-        .level(log::LevelFilter::Info)
         .filter(|metadata| {
             metadata.target().starts_with("brygge")
         })

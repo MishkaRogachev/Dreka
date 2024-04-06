@@ -1,7 +1,21 @@
-use actix_web::{get, put, delete, web, Responder, HttpResponse};
+use actix_web::{get, post, put, delete, web, Responder, HttpResponse};
 
-use crate::models::{events::ClientEvent, mission::*};
+use crate::models::{events::ClientEvent, missions::*, vehicles::VehicleId};
 use super::context::ApiContext;
+
+#[post("/missions/create")]
+pub async fn create_mission(context: web::Data<ApiContext>, vehicle_id: web::Json<VehicleId>) -> impl Responder {
+    let vehicle_id = vehicle_id.into_inner();
+    let result = context.registry.missions.create_new_mission(&vehicle_id).await;
+
+    match result {
+        Ok(mission) => HttpResponse::Ok().json(mission),
+        Err(err) => {
+            log::warn!("REST error: {}", &err); // TODO: add path here
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
+    }
+}
 
 #[put("/missions/download/{mission_id}")]
 pub async fn download_mission(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
@@ -46,7 +60,7 @@ pub async fn clear_mission(context: web::Data<ApiContext>, path: web::Path<Strin
 pub async fn cancel_mission_state(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let mission_id: MissionId = path.into_inner();
 
-    match context.client_bus.publish(ClientEvent::DownloadMission { mission_id: mission_id.clone() } ) {
+    match context.client_bus.publish(ClientEvent::CancelMissionState { mission_id: mission_id.clone() } ) {
         Ok(_) => HttpResponse::Ok().json(mission_id),
         Err(err) => {
             log::warn!("REST: error {}", &err);

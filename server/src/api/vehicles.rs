@@ -6,7 +6,7 @@ use super::context::ApiContext;
 #[post("/vehicles/save")]
 pub async fn post_vehicle(context: web::Data<ApiContext>, vehicle: web::Json<VehicleDescription>) -> impl Responder {
     let vehicle = vehicle.into_inner();
-    let result = context.registry.vehicles.save_vehicle( &vehicle).await;
+    let result = context.registry.vehicles.save_vehicle(&vehicle).await;
 
     match result {
         Ok(vehicle) => HttpResponse::Ok().json(vehicle),

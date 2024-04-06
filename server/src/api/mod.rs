@@ -4,5 +4,5 @@ mod context;
 mod communication;
 mod vehicles;
 mod commands;
-mod mission;
+mod missions;
 mod websocket;
