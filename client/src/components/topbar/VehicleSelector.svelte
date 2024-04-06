@@ -11,7 +11,7 @@ import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
 
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Select vehicle") }>
     <div class="dropdown dropdown-end">
-        <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-40">
+        <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-64">
             <VehicleTypeIcon
                 vehicleType={$selectedVehicle?.description.vehicle_type || VehicleType.Unknown}
                 color={$selectedVehicle?.description.color || EntityColor.Slate}
@@ -20,7 +20,7 @@ import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
         </div>
         <ul tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
         {#each $vehicles.values() as vehicle}
-            <li class="w-40 flex" on:click = {() => { selectedVehicleID.set(vehicle.description.id || ""); }}>
+            <li class="w-64 flex" on:click = {() => { selectedVehicleID.set(vehicle.description.id || ""); }}>
                 <div class="flex gap-x-2 items-center grow">
                     <VehicleTypeIcon vehicleType={vehicle.description.vehicle_type} color={vehicle.description.color}/>
                     <a class={"grow " + (vehicle.description.id === $selectedVehicleID ? "text-white" : "")}>

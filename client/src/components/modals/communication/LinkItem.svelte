@@ -12,6 +12,8 @@ import { i18n } from "$stores/i18n";
 export let selectedLinkId = "";
 export let link: Link;
 
+const MAX_NAME_LENGTH = 21;
+
 let descriptionCopy: LinkDescription = cloneDescription();
 let changed = false;
 
@@ -54,8 +56,11 @@ function cloneDescription() {
         <div class="grid grid-cols-2 gap-2">
             <!-- Name -->
             <h1 class="font-medium my-2 w-full">{ $i18n.t("Name") }</h1>
-            <input type="text" placeholder={ $i18n.t("Enter name here") } class="input w-full"
-                bind:value={descriptionCopy.name}/>
+            <label class="input flex items-center gap-2">
+                <input type="text" class="grow bg-transparent" maxlength="{MAX_NAME_LENGTH}" placeholder={ $i18n.t("Enter name here") }
+                    bind:value={descriptionCopy.name}/>
+                <span class="badge badge-sm">{descriptionCopy.name.length + "/" + MAX_NAME_LENGTH }</span>
+            </label>
 
             <!-- Protocol -->
             {#if descriptionCopy.protocol.Mavlink}
