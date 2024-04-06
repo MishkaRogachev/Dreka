@@ -3,8 +3,8 @@ use tokio::time;
 
 use crate::models::communication::{LinkId, LinkDescription, LinkStatus, LinkProtocol, LinkType, MavlinkProtocolVersion};
 use crate::models::events::{ClientEvent, ServerEvent};
-use crate::registry::bus;
-use crate::registry::registry;
+use crate::middleware::bus;
+use crate::middleware::registry;
 use super::{traits, mavlink::connection::MavlinkConnection};
 
 type LinkConnection = Box<dyn traits::IConnection + Send + Sync>;

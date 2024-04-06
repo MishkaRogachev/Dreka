@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::models::events::ServerEvent;
 use crate::models::vehicles::{VehicleId, VehicleMode};
-use crate::registry::{bus, registry};
+use crate::middleware::{bus, registry};
 
 pub struct MavlinkContext {
     pub registry: registry::Registry, // TODO: move registry from context to handlers to reduce mutex locks

@@ -4,7 +4,7 @@ use tokio_util::sync::CancellationToken;
 use mavlink;
 
 use crate::models::events::{ClientEvent, ServerEvent};
-use crate::{registry::{registry, bus}, models::communication};
+use crate::{middleware::{registry, bus}, models::communication};
 use crate::services::communication::traits;
 
 use super::commands::handler::CommandHandler;
@@ -129,18 +129,21 @@ impl traits::IConnection for MavlinkConnection {
                         command_handler.handle_message(&header, &msg).await;
                     },
                     Err(mavlink::error::MessageReadError::Io(err)) => {
-                        if let std::io::ErrorKind::WouldBlock = err.kind() {
-                            //no messages currently available to receive -- wait a while
-                            tokio::time::sleep(MAVLINK_POLL_INTERVAL).await;
-                        } else {
-                            cloned_command_id.cancel();
-                            let mut lock = internal.lock().await;
-                            lock.bytes_received_sec = 0;
-                            lock.bytes_sent_sec = 0;
-                            lock.bytes_received_current = 0;
-                            lock.bytes_sent_current = 0;
-                            log::error!("MAVLink got internal error: {:?}", &err);
-                            break;
+                        match err.kind() {
+                            std::io::ErrorKind::WouldBlock => {
+                                //no messages currently available to receive -- wait a while
+                                tokio::time::sleep(MAVLINK_POLL_INTERVAL).await;
+                            },
+                            _ => {
+                                cloned_command_id.cancel();
+                                let mut lock = internal.lock().await;
+                                lock.bytes_received_sec = 0;
+                                lock.bytes_sent_sec = 0;
+                                lock.bytes_received_current = 0;
+                                lock.bytes_sent_current = 0;
+                                log::error!("MAVLink got internal error: {:?}", &err);
+                                break;
+                            }
                         }
                     },
                     _ => {}

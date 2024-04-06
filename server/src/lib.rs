@@ -1,6 +1,6 @@
 mod models;
 mod persistence;
-mod registry;
+mod middleware;
 mod services;
 mod api;
 
@@ -40,9 +40,9 @@ pub async fn start() -> anyhow::Result<()> {
     let db = surrealdb::Surreal::new::<surrealdb::engine::local::Mem>(()).await?;
     db.use_ns(DATABASE_NAME).use_db(DATABASE_NAMESPACE_NAME).await?;
 
-    let server_bus = registry::bus::EventBus::<ServerEvent>::new();
-    let client_bus = registry::bus::EventBus::<ClientEvent>::new();
-    let registry = registry::registry::Registry::new(db, server_bus.clone());
+    let server_bus = middleware::bus::EventBus::<ServerEvent>::new();
+    let client_bus = middleware::bus::EventBus::<ClientEvent>::new();
+    let registry = middleware::registry::Registry::new(db, server_bus.clone());
 
     let mut comm_service = services::communication::service::Service::new(
         registry.clone(),

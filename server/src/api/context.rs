@@ -1,5 +1,5 @@
 use crate::models::events::{ClientEvent, ServerEvent};
-use crate::registry::{bus, registry};
+use crate::middleware::{bus, registry};
 
 #[derive(Clone)]
 pub struct ApiContext {

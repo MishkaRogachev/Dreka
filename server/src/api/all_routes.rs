@@ -3,7 +3,7 @@ use actix_cors::Cors;
 use actix_web::{get, App, HttpServer, web::Data, Responder, HttpResponse};
 
 use crate::models::events::{ClientEvent, ServerEvent};
-use crate::registry::{bus, registry};
+use crate::middleware::{bus, registry};
 
 #[get("/")]
 async fn ping() -> impl Responder {

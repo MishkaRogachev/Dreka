@@ -4,4 +4,3 @@ mod communication;
 mod vehicles;
 mod commands;
 mod mission;
-// FIXME: rename crate to middleware
