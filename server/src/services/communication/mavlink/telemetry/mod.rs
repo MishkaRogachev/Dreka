@@ -1,2 +1,2 @@
 pub mod handler;
-mod protocol;
+pub mod protocol;

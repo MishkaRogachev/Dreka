@@ -21,10 +21,20 @@ pub async fn post_vehicle(context: web::Data<ApiContext>, vehicle: web::Json<Veh
 pub async fn delete_vehicle(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let vehicle_id: VehicleId = path.into_inner();
 
-    // TODO: clear vehicle commands & missions for vehicle_id
+    let mission_for_vehicle = context.registry.missions.mission_for_vehicle(&vehicle_id).await;
+    if let Err(err) = mission_for_vehicle {
+        log::warn!("REST error: {}", &err); // TODO: add path here
+        return HttpResponse::InternalServerError().json(err.to_string())
+    }
 
-    let result = context.registry.vehicles.delete_vehicle(&vehicle_id).await;
-    if let Err(err) = result {
+    if let Some(mission_for_vehicle) = mission_for_vehicle.unwrap() {
+        if let Err(err) = context.registry.missions.delete_mission(&mission_for_vehicle.id).await {
+            log::warn!("REST error: {}", &err); // TODO: add path here
+            return HttpResponse::InternalServerError().json(err.to_string())
+        }
+    }
+
+    if let Err(err) = context.registry.vehicles.delete_vehicle(&vehicle_id).await {
         log::warn!("REST error: {}", &err); // TODO: add path here
         return HttpResponse::InternalServerError().json(err.to_string())
     }

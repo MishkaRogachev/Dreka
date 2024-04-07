@@ -1,10 +1,10 @@
 use std::sync::Arc;
+use anyhow::Ok;
 use surrealdb::{engine::local::Db, Surreal};
 
 use crate::persistence::{repository, traits};
 use crate::models::vehicles::VehicleId;
 use crate::models::events::ServerEvent;
-use crate::models::spatial::Geodetic;
 use crate::models::missions::*;
 
 use super::bus;
@@ -29,7 +29,7 @@ impl Persistence {
 
     pub async fn create_new_mission(&self, vehicle_id: &VehicleId) -> anyhow::Result<Mission> {
         if !vehicle_id.is_empty() {
-            let vehicle_mission_exists = self.vehicle_mission(&vehicle_id).await?;
+            let vehicle_mission_exists = self.mission_for_vehicle(&vehicle_id).await?;
             if vehicle_mission_exists.is_some() {
                 return Err(anyhow::anyhow!("Mission for vehicle_id {} already exists", vehicle_id));
             }
@@ -44,7 +44,7 @@ impl Persistence {
         // Create new mission route
         let route = self.mission_routes.create(&MissionRoute{
             id: vehicle_mission.id.clone(),
-            items: vec!({ MissionRouteItem::Home { position: Geodetic::default() }}),
+            items: Vec::new(),
         }).await?;
 
         // Create new mission status
@@ -85,6 +85,35 @@ impl Persistence {
         Ok(route)
     }
 
+    pub async fn set_route_item(&self, mission_id: &MissionId, item: MissionRouteItem, index: u16) -> anyhow::Result<Vec<(u16, MissionRouteItem)>> {
+        let mut route = self.mission_routes.read(mission_id).await?;
+        let index = index as usize;
+
+        let mut new_items = Vec::new();
+        while route.items.len() < index as usize {
+            let gap = MissionRouteItem::Gap {};
+            route.items.push(gap.clone());
+            new_items.push((route.items.len() as u16, gap));
+        }
+
+        if index < route.items.len() {
+            route.items[index] = item.clone();
+        } else {
+            route.items.push(item.clone());
+        }
+
+        new_items.push((route.items.len() as u16, item));
+        for (index, item) in route.items.iter().enumerate() {
+            self.bus.publish(ServerEvent::MissionRouteItemUpdated {
+                mission_id: mission_id.clone(),
+                index: index as u16,
+                item: item.clone()
+            })?;
+        }
+
+        Ok(new_items)
+    }
+
     pub async fn update_status(&self, status: &MissionStatus) -> anyhow::Result<MissionStatus> {
         if status.id.is_empty() {
             return Err(anyhow::anyhow!("MissionStatus id is empty"));
@@ -123,7 +152,11 @@ impl Persistence {
         Ok(missions)
     }
 
-    pub async fn vehicle_mission(&self, vehicle_id: &VehicleId) -> anyhow::Result<Option<VehicleMission>> {
+    pub async fn vehicle_mission(&self, id: &MissionId) -> anyhow::Result<VehicleMission> {
+        self.vehicle_missions.read(id).await
+    }
+
+    pub async fn mission_for_vehicle(&self, vehicle_id: &VehicleId) -> anyhow::Result<Option<VehicleMission>> {
         let vehicle_missions = self.vehicle_missions.read_where(
             "vehicle_id", serde_json::json!(vehicle_id)).await?;
         match vehicle_missions.len() {
@@ -131,5 +164,13 @@ impl Persistence {
             1 => Ok(Some(vehicle_missions.first().cloned().unwrap())),
             _ => Err(anyhow::anyhow!("Multiple missions found for vehicle_id: {:?}", vehicle_id))
         }
+    }
+
+    pub async fn mission_route(&self, mission_id: &MissionId) -> anyhow::Result<MissionRoute> {
+        self.mission_routes.read(mission_id).await
+    }
+
+    pub async fn mission_status(&self, mission_id: &MissionId) -> anyhow::Result<MissionStatus> {
+        self.mission_statuses.read(mission_id).await
     }
 }

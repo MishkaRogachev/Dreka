@@ -9,7 +9,7 @@ pub type MissionId = String;
 #[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum MissionRouteItem {
-    Home { position: Geodetic },
+    Gap {},
     Waypoint { position: Geodetic, hold: u16, pass_radius: f32, accept_radius: f32, yaw: Option<u16> },
 
     Takeoff { position: Geodetic, pitch: f32, yaw: Option<u16> },

@@ -7,7 +7,7 @@ use crate::models::events::ClientEvent;
 use super::{super::context::MavlinkContext, protocol};
 
 const MAX_COMMAND_SEND_ATTEMPTS: u8 = 5;
-const COMMAND_SEND_INTERVAL: time::Duration = time::Duration::from_millis(2000);
+const COMMAND_RESEND_INTERVAL: time::Duration = time::Duration::from_millis(2000);
 
 pub struct CommandHandler {
     context: Arc<Mutex<MavlinkContext>>,
@@ -108,7 +108,7 @@ impl CommandHandler {
     async fn process_execution(&mut self, execution: CommandExecution) -> Option<MavMessage> {
         // Early return if interval not exceeded, if even it's not in CommandState::Sent state
         if let Some(interval) = self.executions_last_sent.get(&execution.id) {
-            if interval.elapsed() < COMMAND_SEND_INTERVAL {
+            if interval.elapsed() < COMMAND_RESEND_INTERVAL {
                 return None;
             }
         }

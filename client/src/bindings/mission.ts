@@ -1,7 +1,7 @@
 import { type Geodetic } from "$bindings/spatial";
 
 export interface MissionRouteItem {
-    Home?: { position: Geodetic };
+    Gap?: {},
     Waypoint?: { position: Geodetic, hold: number, pass_radius: number, accept_radius: number, yaw?: number };
     Takeoff?: { position: Geodetic, pitch: number, yaw?: number };
     LandStart?: {};
