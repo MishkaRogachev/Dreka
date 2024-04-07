@@ -33,6 +33,7 @@ pub enum MissionUpdateState {
     NotActual {},
     PrepareDownload {},
     Download { total: u16, progress: u16 },
+    PrepareUpload { total: u16 },
     Upload { total: u16, progress: u16 },
     Actual { total: u16 },
     Clearing {},

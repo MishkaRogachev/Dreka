@@ -20,6 +20,7 @@ export interface MissionUpdateState {
     NotActual?: {};
     PrepareDownload?: {};
     Download?: { total: number, progress: number };
+    PrepareUpload?: { total: number };
     Upload?: { total: number, progress: number };
     Actual?: { total: number };
     Clearing?: {};

@@ -3,7 +3,7 @@ use crate::models::{missions::*, spatial::*};
 use super::super::telemetry::protocol::*;
 
 pub fn mission_request_list(mav_id: &u8) -> MavMessage {
-    log::info!("SEND REQUEST ITEM to MAVLink {}", mav_id);
+    log::info!("Request mission items count from MAVLink {}", mav_id);
     return MavMessage::MISSION_REQUEST_LIST(MISSION_REQUEST_LIST_DATA {
         target_system: mav_id.clone(),
         target_component: MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
@@ -12,7 +12,7 @@ pub fn mission_request_list(mav_id: &u8) -> MavMessage {
 }
 
 pub fn request_mission_item(mav_id: &u8, seq: u16) -> MavMessage {
-    log::info!("SEND REQUEST ITEM {} to MAVLink {}", seq, mav_id);
+    log::info!("Request mission item {} from MAVLink {}", seq, mav_id);
     return MavMessage::MISSION_REQUEST_INT(MISSION_REQUEST_INT_DATA {
         seq,
         target_system: mav_id.clone(),
@@ -21,26 +21,174 @@ pub fn request_mission_item(mav_id: &u8, seq: u16) -> MavMessage {
     });
 }
 
-fn yaw_from_param(param: f32) -> Option<u16> {
-    if param.is_nan() {
-        return Option::None
-    } else {
-        return Option::Some(param as u16)
-    }
+pub fn send_mission_clear(mav_id: &u8) -> MavMessage {
+    log::info!("Clear all mission items on MAVLink {}", mav_id);
+    return MavMessage::MISSION_CLEAR_ALL(MISSION_CLEAR_ALL_DATA {
+        target_system: mav_id.clone(),
+        target_component: MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
+        //mission_type: MavMissionType::MAV_MISSION_TYPE_MISSION,
+    });
 }
 
-fn position_from_mavlink(item_data: &MISSION_ITEM_INT_DATA) -> Geodetic {
-    return Geodetic {
-        latitude: decode_lat_lon(item_data.x),
-        longitude: decode_lat_lon(item_data.y),
-        altitude: item_data.z,
-        frame: {
-            match item_data.frame {
-                MavFrame::MAV_FRAME_GLOBAL => GeodeticFrame::Wgs84AboveSeaLevel,
-                MavFrame::MAV_FRAME_GLOBAL_RELATIVE_ALT => GeodeticFrame::Wgs84RelativeHome,
-                MavFrame::MAV_FRAME_GLOBAL_TERRAIN_ALT => GeodeticFrame::Wgs84AboveTerrain,
-                _ => GeodeticFrame::None,
-            }
+pub fn send_mission_count(mav_id: &u8, count: u16) -> MavMessage {
+    log::info!("Send mission items count ({}) to MAVLink {}", count, mav_id);
+    return MavMessage::MISSION_COUNT(MISSION_COUNT_DATA {
+        count,
+        target_system: mav_id.clone(),
+        target_component: MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
+        // mission_type: MavMissionType::MAV_MISSION_TYPE_MISSION
+    });
+}
+
+pub fn send_mission_item(mav_id: &u8, item: &MissionRouteItem, seq: u16) -> Option<MavMessage> {
+    log::info!("Send mission item {} to MAVLink {}", seq, mav_id);
+
+    match item {
+        MissionRouteItem::Gap {} => {
+            return Option::None;
+        },
+        MissionRouteItem::Waypoint { position, hold, pass_radius, accept_radius, yaw } => {
+            let (frame, x, y, z) = position_to_fxyz(&position);
+            return Option::Some(MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
+                command: MavCmd::MAV_CMD_NAV_WAYPOINT,
+                frame,
+                x,
+                y,
+                z,
+                param1: *hold as f32,
+                param2: *pass_radius,
+                param3: *accept_radius,
+                param4: yaw_to_param(*yaw),
+                seq,
+                //mission_type: mavlink::common::MavMissionType::MAV_MISSION_TYPE_MISSION,
+                target_system: mav_id.clone(),
+                target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
+                current: 0,
+                autocontinue: 1
+            }));
+        },
+        MissionRouteItem::Takeoff { position, pitch, yaw } => {
+            let (frame, x, y, z) = position_to_fxyz(&position);
+            return Option::Some(MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
+                command: MavCmd::MAV_CMD_NAV_TAKEOFF,
+                frame,
+                x,
+                y,
+                z,
+                param1: *pitch,
+                param2: 0.0,
+                param3: 0.0,
+                param4: yaw_to_param(*yaw),
+                seq,
+                //mission_type: mavlink::common::MavMissionType::MAV_MISSION_TYPE_MISSION,
+                target_system: mav_id.clone(),
+                target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
+                current: 0,
+                autocontinue: 1
+            }));
+        },
+        MissionRouteItem::LandStart {} => {
+            return Option::Some(MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
+                command: MavCmd::MAV_CMD_DO_LAND_START,
+                frame: MavFrame::MAV_FRAME_GLOBAL,
+                x: 0,
+                y: 0,
+                z: 0.0,
+                param1: 0.0,
+                param2: 0.0,
+                param3: 0.0,
+                param4: 0.0,
+                seq,
+                //mission_type: mavlink::common::MavMissionType::MAV_MISSION_TYPE_MISSION,
+                target_system: mav_id.clone(),
+                target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
+                current: 0,
+                autocontinue: 1
+            }));
+        },
+        MissionRouteItem::Landing { position, abort_altitude, yaw } => {
+            let (frame, x, y, z) = position_to_fxyz(&position);
+            return Option::Some(MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
+                command: MavCmd::MAV_CMD_NAV_LAND,
+                frame,
+                x,
+                y,
+                z,
+                param1: {
+                     match *abort_altitude {
+                        Some(abort_altitude) => abort_altitude,
+                        None => 0.0,
+                    }
+                },
+                param2: 0.0,
+                param3: 0.0,
+                param4: yaw_to_param(*yaw),
+                seq,
+                //mission_type: mavlink::common::MavMissionType::MAV_MISSION_TYPE_MISSION,
+                target_system: mav_id.clone(),
+                target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
+                current: 0,
+                autocontinue: 1
+            }));
+        },
+        MissionRouteItem::LoiterTrn { position, heading_required, radius, turns, clockwise } => {
+            let (frame, x, y, z) = position_to_fxyz(&position);
+            return Option::Some(MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
+                command: MavCmd::MAV_CMD_NAV_LOITER_TURNS,
+                frame,
+                x,
+                y,
+                z,
+                param1: *turns as f32,
+                param2: *heading_required as i32 as f32,
+                param3: if *clockwise { *radius } else { -1.0 * *radius },
+                param4: 0.0,
+                seq,
+                //mission_type: mavlink::common::MavMissionType::MAV_MISSION_TYPE_MISSION,
+                target_system: mav_id.clone(),
+                target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
+                current: 0,
+                autocontinue: 1
+            }));
+        },
+        MissionRouteItem::LoiterAlt { position, heading_required, radius, clockwise } => {
+            let (frame, x, y, z) = position_to_fxyz(&position);
+            return Option::Some(MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
+                command: MavCmd::MAV_CMD_NAV_LOITER_TO_ALT,
+                frame,
+                x,
+                y,
+                z,
+                param1: *heading_required as i32 as f32,
+                param2: if *clockwise { *radius } else { -1.0 * *radius },
+                param3: 0.0,
+                param4: 0.0,
+                seq,
+                //mission_type: mavlink::common::MavMissionType::MAV_MISSION_TYPE_MISSION,
+                target_system: mav_id.clone(),
+                target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
+                current: 0,
+                autocontinue: 1
+            }));
+        },
+        MissionRouteItem::TriggerCam { distance, shutter, trigger }  => {
+            return Option::Some(MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
+                command: MavCmd::MAV_CMD_DO_SET_CAM_TRIGG_DIST,
+                frame: MavFrame::MAV_FRAME_GLOBAL,
+                x: 0,
+                y: 0,
+                z: 0.0,
+                param1: *distance as f32,
+                param2: *shutter as f32,
+                param3: *trigger as i32 as f32,
+                param4: 0.0,
+                seq,
+                //mission_type: mavlink::common::MavMissionType::MAV_MISSION_TYPE_MISSION,
+                target_system: mav_id.clone(),
+                target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
+                current: 0,
+                autocontinue: 1
+            }));
         }
     }
 }
@@ -101,5 +249,50 @@ pub fn mission_route_item_from_mavlink(item_data: &MISSION_ITEM_INT_DATA) -> Mis
             log::warn!("Unsupported mission item type: {:?}", &item_data.command);
             MissionRouteItem::Gap {}
         }
+    }
+}
+
+fn position_to_fxyz(position: &Geodetic) -> (MavFrame, i32, i32, f32) {
+    return (
+        match position.frame {
+            GeodeticFrame::None => MavFrame::MAV_FRAME_GLOBAL, // Default
+            GeodeticFrame::Wgs84RelativeHome => MavFrame::MAV_FRAME_GLOBAL_RELATIVE_ALT,
+            GeodeticFrame::Wgs84AboveSeaLevel => MavFrame::MAV_FRAME_GLOBAL,
+            GeodeticFrame::Wgs84AboveTerrain => MavFrame::MAV_FRAME_GLOBAL_TERRAIN_ALT,
+        },
+        encode_lat_lon(position.latitude),
+        encode_lat_lon(position.longitude),
+        position.altitude
+    );
+}
+
+fn position_from_mavlink(item_data: &mavlink::common::MISSION_ITEM_INT_DATA) -> Geodetic {
+    return Geodetic {
+        latitude: decode_lat_lon(item_data.x),
+        longitude: decode_lat_lon(item_data.y),
+        altitude: item_data.z,
+        frame: {
+            match item_data.frame {
+                MavFrame::MAV_FRAME_GLOBAL => GeodeticFrame::Wgs84AboveSeaLevel,
+                MavFrame::MAV_FRAME_GLOBAL_RELATIVE_ALT => GeodeticFrame::Wgs84RelativeHome,
+                MavFrame::MAV_FRAME_GLOBAL_TERRAIN_ALT => GeodeticFrame::Wgs84AboveTerrain,
+                _ => GeodeticFrame::None,
+            }
+        }
+    }
+}
+
+fn yaw_to_param(yaw: Option<u16>) -> f32 {
+    match yaw {
+        Some(yaw) => return yaw as f32,
+        None => return std::f32::NAN,
+    }
+}
+
+fn yaw_from_param(param: f32) -> Option<u16> {
+    if param.is_nan() {
+        return Option::None
+    } else {
+        return Option::Some(param as u16)
     }
 }

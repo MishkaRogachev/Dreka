@@ -43,31 +43,92 @@ impl MissionHandler {
         }
     }
 
+    async fn activate_status(&mut self, mission_id: &MissionId) -> Option<MissionStatus> {
+        let context = self.context.lock().await;
+        let status = context.registry.missions.mission_status(mission_id).await;
+        if let Err(err) = status {
+            log::error!("Error getting mission status: {}", err);
+            return None;
+        }
+        let status = status.unwrap();
+        match status.state {
+            MissionUpdateState::NotActual {} |
+            MissionUpdateState::Actual { .. } => Some(status),
+            _ => {
+                log::info!("Another mission operation is in progress, skipping download");
+                return None;
+            }
+        }
+    }
+
     async fn download_mission(&mut self, mission_id: MissionId) {
         let mav_id = match self.mav_id_for_mission_id(&mission_id).await {
             Some(mav_id) => mav_id,
             None => return
         };
-        let context = self.context.lock().await;
 
-        let status = context.registry.missions.mission_status(&mission_id).await;
-        if let Err(err) = status {
-            log::error!("Error getting mission status: {}", err);
-            return;
-        }
-        let mut status = status.unwrap();
-        match status.state {
-            MissionUpdateState::NotActual {} |
-            MissionUpdateState::Actual { .. } => {}
-            _ => {
-                log::info!("Mission update operation is in progress, skipping download");
-                return;
-            }
-        }
+        let mut status = match self.activate_status(&mission_id).await {
+            Some(status) => status,
+            None => return
+        };
 
-        log::info!("Starting mission download for MAVLink {}", mav_id);
+        log::info!("Download mission for MAVLink {}", mav_id);
         status.state = MissionUpdateState::PrepareDownload {};
         self.mav_active_statuses.insert(mav_id, status.clone());
+
+        let context = self.context.lock().await;
+        if let Err(err) = context.registry.missions.update_status(&status).await {
+            log::error!("Error updating mission status: {}", err);
+        }
+    }
+
+    async fn upload_mission(&mut self, mission_id: MissionId) {
+        let mav_id = match self.mav_id_for_mission_id(&mission_id).await {
+            Some(mav_id) => mav_id,
+            None => return
+        };
+
+        let mut status = match self.activate_status(&mission_id).await {
+            Some(status) => status,
+            None => return
+        };
+
+        let context = self.context.lock().await;
+        let route = context.registry.missions.mission_route(&mission_id).await;
+        if let Err(err) = route {
+            log::error!("Error getting mission route: {}", err);
+            return;
+        }
+        let total = route.unwrap().items.len() as u16;
+        if total == 0 {
+            log::info!("Empty mission, skipping upload");
+            return;
+        }
+
+        log::info!("Upload mission ({} items) for MAVLink {}", total, mav_id);
+        status.state = MissionUpdateState::PrepareUpload { total };
+        self.mav_active_statuses.insert(mav_id, status.clone());
+
+        if let Err(err) = context.registry.missions.update_status(&status).await {
+            log::error!("Error updating mission status: {}", err);
+        }
+    }
+
+    async fn clear_mission(&mut self, mission_id: MissionId) {
+        let mav_id = match self.mav_id_for_mission_id(&mission_id).await {
+            Some(mav_id) => mav_id,
+            None => return
+        };
+
+        let mut status = match self.activate_status(&mission_id).await {
+            Some(status) => status,
+            None => return
+        };
+
+        status.state = MissionUpdateState::Clearing {};
+        self.mav_active_statuses.insert(mav_id, status.clone());
+
+        let context = self.context.lock().await;
         if let Err(err) = context.registry.missions.update_status(&status).await {
             log::error!("Error updating mission status: {}", err);
         }
@@ -97,10 +158,10 @@ impl MissionHandler {
                 self.download_mission(mission_id).await;
             }
             ClientEvent::UploadMission { mission_id } => {
-                log::info!("TODO: Upload mission: {:?}", &mission_id);
+                self.upload_mission(mission_id).await;
             }
             ClientEvent::ClearMission { mission_id } => {
-                log::info!("TODO: Clear mission: {:?}", &mission_id);
+                self.clear_mission(mission_id).await;
             }
             ClientEvent::CancelMissionState { mission_id } => {
                 self.cancel_mission_state(mission_id).await;
@@ -117,8 +178,27 @@ impl MissionHandler {
             MissionUpdateState::Download { total: _, progress } => {
                 return Some(protocol::request_mission_item(mav_id, progress));
             },
-            MissionUpdateState::Upload { total, progress } => todo!(),
-            MissionUpdateState::Clearing {} => todo!(),
+            MissionUpdateState::PrepareUpload { total } => {
+                return Some(protocol::send_mission_count(mav_id, total));
+            },
+            MissionUpdateState::Upload { total: _, progress } => {
+                let context = self.context.lock().await;
+                let route = context.registry.missions.mission_route(&status.id).await;
+                if let Err(err) = route {
+                    log::error!("Error getting mission route: {}", err);
+                    return None;
+                }
+                let route = route.unwrap();
+                let item = route.items.get((progress - 1) as usize);
+                if item.is_none() {
+                    log::error!("No mission item at index {}", progress);
+                    return None;
+                }
+                return protocol::send_mission_item(mav_id, item.unwrap(), progress);
+            },
+            MissionUpdateState::Clearing {} => {
+                return Some(protocol::send_mission_clear(mav_id));
+            },
             _ => None
         }
     }
@@ -188,6 +268,7 @@ impl MissionHandler {
 
             if progress >= total {
                 log::info!("Mission download completed for MAVLink {}", mav_id);
+                // TODO: send ACK
                 status.state = MissionUpdateState::Actual { total };
             } else {
                 status.state = MissionUpdateState::Download { total, progress: progress + 1 };
@@ -196,6 +277,72 @@ impl MissionHandler {
             if let Err(err) = context.registry.missions.update_status(&status).await {
                 log::error!("Error updating mission status: {}", err);
             }
+        }
+    }
+
+    async fn process_item_request(&mut self, mav_id: u8, data: &MISSION_REQUEST_DATA) {
+        let status = match self.mav_active_statuses.get_mut(&mav_id) {
+            Some(mav_id) => mav_id,
+            None => return
+        };
+
+        let total = match status.state {
+            MissionUpdateState::PrepareUpload { total } => {
+                total
+            },
+            MissionUpdateState::Upload { total, progress } => {
+                if progress != data.seq {
+                    log::info!("Unexpected mission item sequence: {} (expected: {})", data.seq, progress);
+                }
+                total
+            },
+            _ => {
+                log::info!("Unexpected mission item {} requested from MAVLink {}", data.seq, mav_id);
+                return;
+            }
+        };
+
+        log::info!("Mission item {} requested from MAVLink {}", data.seq, mav_id);
+
+        let context = self.context.lock().await;
+        status.state = MissionUpdateState::Upload { total: total, progress: data.seq };
+        if let Err(err) = context.registry.missions.update_status(&status).await {
+            log::error!("Error updating mission status: {}", err);
+        }
+    }
+
+    async fn process_ack(&mut self, mav_id: u8, data: &MISSION_ACK_DATA) {
+        let status = match self.mav_active_statuses.get_mut(&mav_id) {
+            Some(mav_id) => mav_id,
+            None => return
+        };
+
+        match data.mavtype {
+            MavMissionResult::MAV_MISSION_ACCEPTED => {
+                log::info!("Mission operation accepted by MAVLink {}", mav_id);
+                match status.state {
+                    MissionUpdateState::Upload { total, progress: _ } => {
+                        status.state = MissionUpdateState::Actual { total };
+                    },
+                    MissionUpdateState::Clearing {} => {
+                        status.state = MissionUpdateState::Actual { total: 0 };
+                    },
+                    _ => {}
+                }
+            },
+            MavMissionResult::MAV_MISSION_OPERATION_CANCELLED => {
+                log::info!("Mission operation canceled for MAVLink {}", mav_id);
+                status.state = MissionUpdateState::NotActual {};
+            },
+            _ => {
+                log::warn!("Mission operation error for MAVLink {}", mav_id);
+                status.state = MissionUpdateState::NotActual {};
+            },
+        }
+
+        let context = self.context.lock().await;
+        if let Err(err) = context.registry.missions.update_status(&status).await {
+            log::error!("Error updating mission status: {}", err);
         }
     }
 
@@ -245,6 +392,12 @@ impl MissionHandler {
             },
             MavMessage::MISSION_ITEM_INT(data) => {
                 self.process_item_int(header.system_id, data).await;
+            },
+            MavMessage::MISSION_REQUEST(data) => {
+                self.process_item_request(header.system_id, data).await;
+            }
+            MavMessage::MISSION_ACK(ack_data) => {
+                return self.process_ack(header.system_id, ack_data).await;
             },
             _ => {}
         }

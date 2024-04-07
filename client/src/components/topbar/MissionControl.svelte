@@ -66,23 +66,29 @@ function updateFromMissionState(mission: Mission | undefined) {
         progressValue = 1;
         progressMax = 1;
         progressClass = "progress-warning";
-    } else if (mission.status.state.Upload) {
-        missionStateText = $i18n.t("Uploading") + ": " + mission.status.state.Upload.progress +
-            "/" + mission.status.state.Upload.total + " " + $i18n.t("items");
-        progressValue = mission.status.state.Upload.progress;
-        progressMax = mission.status.state.Upload.total;
-        progressClass = "progress-accent";
+    } else if (mission.status.state.PrepareDownload) {
+        missionStateText = $i18n.t("Preparing download..");
+        progressValue = 1;
+        progressMax = 100;
+        progressClass = "progress-primary";
     } else if (mission.status.state.Download) {
         missionStateText = $i18n.t("Downloading") + ": " + mission.status.state.Download.progress +
             "/" + mission.status.state.Download.total + " " + $i18n.t("items");
         progressValue = mission.status.state.Download.progress;
         progressMax = mission.status.state.Download.total;
         progressClass = "progress-primary";
-    } else if (mission.status.state.PrepareDownload) {
-        missionStateText = $i18n.t("Preparing download..");
+    } else if (mission.status.state.PrepareUpload) {
+        missionStateText = $i18n.t("Preparing upload..");
         progressValue = 1;
-        progressMax = 100;
-        progressClass = "progress-primary";
+        progressMax = mission.status.state.PrepareUpload.total;
+        progressClass = "progress-accent";
+    } else if (mission.status.state.Upload) {
+        missionStateText = $i18n.t("Uploading") + ": " + mission.status.state.Upload.progress +
+            "/" + mission.status.state.Upload.total + " " + $i18n.t("items");
+        progressValue = mission.status.state.Upload.progress;
+        progressMax = mission.status.state.Upload.total;
+        progressClass = "progress-accent";
+
     } else if (mission.status.state.Clearing) {
         missionStateText = $i18n.t("Clearing mission");
         progressValue = 1;
@@ -130,8 +136,9 @@ function updateFromMissionState(mission: Mission | undefined) {
             </li>
             {/if}
             {#if $selectedVehicleMission &&
-                ($selectedVehicleMission.status.state.Upload || $selectedVehicleMission.status.state.Download ||
-                $selectedVehicleMission.status.state.PrepareDownload || $selectedVehicleMission.status.state.Clearing)}
+                ($selectedVehicleMission.status.state.PrepareUpload || $selectedVehicleMission.status.state.Upload ||
+                $selectedVehicleMission.status.state.Download || $selectedVehicleMission.status.state.PrepareDownload ||
+                $selectedVehicleMission.status.state.Clearing)}
             <li class="flex" on:click={cancelState}>
                 <div class="flex gap-x-2 items-center grow">
                     { @html cancelIcon }
