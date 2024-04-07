@@ -17,6 +17,21 @@ pub async fn create_mission(context: web::Data<ApiContext>, vehicle_id: web::Jso
     }
 }
 
+#[post("/missions/{mission_id}/set_route_item/{index}")]
+pub async fn set_route_item(context: web::Data<ApiContext>, path: web::Path<(MissionId, u16)>, item: web::Json<MissionRouteItem>) -> impl Responder {
+    let (mission_id, index) = path.into_inner();
+    let item = item.into_inner();
+    let result = context.registry.missions.set_route_item(&mission_id, item, index).await;
+
+    match result {
+        Ok(mission) => HttpResponse::Ok().json(mission),
+        Err(err) => {
+            log::warn!("REST error: {}", &err); // TODO: add path here
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
+    }
+}
+
 #[put("/missions/download/{mission_id}")]
 pub async fn download_mission(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let mission_id: MissionId = path.into_inner();

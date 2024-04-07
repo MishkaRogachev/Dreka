@@ -5,7 +5,7 @@ import type { Cartesian, Geodetic } from '$bindings/spatial';
 
 import { i18n } from '$stores/i18n';
 import { selectedVehicleID } from '$stores/vehicles';
-import { selectedVehicleMission } from '$stores/mission';
+import { missions, selectedVehicleMission } from '$stores/mission';
 
 import type { MapInteraction, MapViewport } from '$lib/interfaces/map';
 
@@ -43,6 +43,18 @@ function closeMenu() {
     isMenuOpen = false;
 }
 
+function addWaypoint() {
+    if (!$selectedVehicleMission || !clickGeodetic) {
+        return;
+    }
+    missions.setRouteItem(
+        $selectedVehicleMission.id,
+        { Waypoint: { position: clickGeodetic, hold: 0, pass_radius: 0, accept_radius: 0, yaw: undefined } },
+        $selectedVehicleMission.route.items.length
+    );
+    closeMenu();
+}
+
 onMount(async () => {
     interaction.subscribeClick(clickListener);
     viewport.subscribe(viewportListener);
@@ -70,7 +82,7 @@ onDestroy(() => {
             </div>
         </li>
     {#if $selectedVehicleMission}
-        <li class="flex" on:click={closeMenu}>
+        <li class="flex" on:click={addWaypoint}>
             <div class="flex gap-x-2 items-center grow">
                 { @html wptIcon }
                 <a class="grow">{ $i18n.t("Add new waypoint") }</a>

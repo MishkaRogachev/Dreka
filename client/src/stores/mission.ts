@@ -1,6 +1,6 @@
 import { writable, derived, get } from 'svelte/store';
 
-import type { Mission, MissionStatus } from '$bindings/mission';
+import type { Mission, MissionRouteItem, MissionStatus } from '$bindings/mission';
 
 import type { WsListener } from '$datasource/ws';
 import { ClientSideEvents, EventsService } from '$services/events';
@@ -78,6 +78,23 @@ export const missions = function () {
             if (mission) {
                 let missions = get(store);
                 missions.set(mission.id, mission);
+                store.update(_ => { return missions; });
+            }
+        },
+        setRouteItem: async (missionId: string, item: MissionRouteItem, index: number) => {
+            let result = await MissionService.setRouteItem(missionId, item, index);
+            let missions = get(store);
+            let mission = missions.get(missionId);
+            if (result && mission) {
+                for (const [index, item] of result) {
+                    if (index < mission.route.items.length) {
+                        mission.route.items[index] = item;
+                    } else {
+                        mission.route.items.push(item);
+                    }
+                }
+                console.log(mission.route.items);
+                missions.set(missionId, mission);
                 store.update(_ => { return missions; });
             }
         },
