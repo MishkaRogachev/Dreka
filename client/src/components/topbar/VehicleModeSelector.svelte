@@ -7,10 +7,10 @@ import type { Vehicle } from '$stores/vehicles';
 
 import CommandBadge from '$components/common/CommandBadge.svelte';
 
-export let vehicle: Vehicle | undefined;
+export let vehicle: Vehicle;
 
-$: currentMode = vehicle?.status?.mode || VehicleMode.None;
-$: availableModes = vehicle?.description.available_modes || [];
+$: currentMode = vehicle.status?.mode || VehicleMode.None;
+$: availableModes = vehicle.description.available_modes;
 $: modeExecution = modeToken ? $commandExecutions.get(modeToken) : undefined
 
 let modeToken: string | null = null
@@ -18,7 +18,7 @@ let modeToken: string | null = null
 async function setVehicleMode(mode: VehicleMode) {
     modeToken = await commandExecutions.executeCommand(
         { SetMode: { mode: mode } },
-        { Vehicle: { vehicle_id: vehicle?.description.id || "" }
+        { Vehicle: { vehicle_id: vehicle.description.id }
     });
 }
 

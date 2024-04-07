@@ -43,6 +43,14 @@ export class WsWatchdog {
         }
     }
 
+    isStarted() {
+        return this.interval !== null;
+    }
+
+    isConnected() {
+        return this.ws !== null;
+    }
+
     connect() {
         console.log("Connecting to WebSocket");
         this.ws = new WebSocket(this.url);

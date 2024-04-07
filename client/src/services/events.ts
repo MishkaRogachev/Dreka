@@ -60,6 +60,10 @@ export class EventsService {
         const eventListeners = this.context.eventListeners.get(eventType) || [];
         eventListeners.push(listener);
         this.context.eventListeners.set(eventType, eventListeners);
+
+        if (eventType === ClientSideEvents.WsConnectionOpened && this.context.watchdog.isConnected()) {
+            listener(null);
+        }
     }
 
     static unsubscribe(eventType: string, listener: WsListener) {

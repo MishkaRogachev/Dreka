@@ -5,7 +5,7 @@ import type { Vehicle } from '$stores/vehicles';
 
 import CommandBadge from '$components/common/CommandBadge.svelte';
 
-export let vehicle: Vehicle | undefined;
+export let vehicle: Vehicle;
 
 $: currentWaypont = 0 // TODO: currentWaypoint
 $: availableWayponts = ["HOME"] // TODO: currentWaypoint
@@ -16,7 +16,7 @@ let wptToken: string | null = null
 async function setWaypoint(wpt: number) {
     wptToken = await commandExecutions.executeCommand(
         { SetWaypoint: { wpt: wpt } },
-        { Vehicle: { vehicle_id: vehicle?.description.id || "" }
+        { Vehicle: { vehicle_id: vehicle.description.id }
     });
 }
 

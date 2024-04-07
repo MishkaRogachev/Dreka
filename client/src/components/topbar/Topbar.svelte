@@ -19,9 +19,11 @@ import showIcon from "$assets/svg/show_dashboard.svg?raw";
     <div class="navbar-start">
         <Menu/>
         <VehicleSelector/>
-        <VehicleModeSelector vehicle={ $selectedVehicle }/>
-        <VehicleWaypointSelector vehicle={ $selectedVehicle }/>
-        <MissionControl/>
+        {#if !!$selectedVehicle}
+            <VehicleModeSelector vehicle={ $selectedVehicle }/>
+            <VehicleWaypointSelector vehicle={ $selectedVehicle }/>
+            <MissionControl vehicle={ $selectedVehicle }/>
+        {/if}
     </div>
 
     <div class="navbar-end">

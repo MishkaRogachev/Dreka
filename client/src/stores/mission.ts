@@ -55,7 +55,6 @@ export const missions = function () {
 
         wsConnected = async (_data: any) => {
             let missions = await MissionService.getMissions();
-            console.log('missions', missions);
             if (missions) {
                 let missionsMap = new Map(missions!.map(mission => [mission.id, mission]));
                 update(_ => { return missionsMap; });
@@ -90,6 +89,9 @@ export const missions = function () {
         },
         clear: async (missionId: string) => {
             await MissionService.clearMission(missionId);
+        },
+        cancelState: async (missionId: string) => {
+            await MissionService.cancelMissionState(missionId);
         },
         kill: () => {
             EventsService.unsubscribe("MissionUpdated", missionUpdated);

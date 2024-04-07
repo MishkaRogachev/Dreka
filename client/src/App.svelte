@@ -1,4 +1,8 @@
 <script lang="ts">
+import { onMount } from 'svelte';
+
+import { EventsService } from "$services/events";
+
 import Topbar from '$components/topbar/Topbar.svelte';
 
 import FlightPage from '$components/flight/FlightPage.svelte';
@@ -9,6 +13,10 @@ import VehiclesListModal from '$components/modals/vehicles/VehiclesListModal.sve
 import AboutModal from '$components/modals/about/AboutModal.svelte';
 
 import { Page, currentPage } from '$stores/app';
+
+onMount(() => {
+    EventsService.init();
+});
 
 </script>
 
