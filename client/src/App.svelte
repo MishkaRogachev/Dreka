@@ -23,7 +23,7 @@ onMount(() => {
 <Topbar/>
 
 <!-- pages, never suspend -->
-<div id="app" class="flex items-center justify-center h-screen">
+<div id="app" class="flex items-center justify-center grow">
     <FlightPage visible={$currentPage === Page.Flight} />
     <SystemsModal />
 </div>

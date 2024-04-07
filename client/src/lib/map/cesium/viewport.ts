@@ -6,7 +6,16 @@ import * as Cesium from 'cesium';
 export class MapViewportCesium implements MapViewport {
     constructor(cesium: Cesium.Viewer) {
         this.cesium = cesium;
+        this.listeners = [];
+
+        // Do it every time postRender, cause camera.changed is too slow
+        this.cesium.camera.changed.addEventListener(() => {
+            this.listeners.forEach(listener => listener());
+        });
     }
+
+    subscribe(listener: Function) { this.listeners.push(listener) }
+    unsubscribe(listener: Function) { this.listeners = this.listeners.filter(item => item !== listener) }
 
     flyTo(latitude: number, longitude: number, altitude: number, heading: number, pitch: number, duration: number): void {
         this.cesium.camera.flyTo({
@@ -136,4 +145,5 @@ export class MapViewportCesium implements MapViewport {
     }
 
     private cesium: Cesium.Viewer
+    private listeners: Array<Function>
 }

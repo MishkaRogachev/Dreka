@@ -36,6 +36,9 @@ export interface MapViewport {
 
     save: () => MapViewportSettings
     restore: (settings: MapViewportSettings) => void
+
+    subscribe: (listener: Function) => void
+    unsubscribe: (listener: Function) => void
 }
 
 export interface MapRuler {

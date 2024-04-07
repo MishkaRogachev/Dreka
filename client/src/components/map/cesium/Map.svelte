@@ -1,8 +1,6 @@
 <script lang="ts">
 import { onMount, onDestroy } from 'svelte';
-
-import MapControl from '../common/MapControl.svelte';
-import MapVehicles from '$components/map/cesium/MapVehicles.svelte';
+import * as Cesium from 'cesium';
 
 import { MapViewportCesium } from '$lib/map/cesium/viewport';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
@@ -12,7 +10,9 @@ import { MapLayersCesium } from '$lib/map/cesium/layers';
 
 import { userPreferences } from '$stores/preferences';
 
-import * as Cesium from 'cesium';
+import MapControl from '../common/MapControl.svelte';
+import MapVehicles from '$components/map/cesium/MapVehicles.svelte';
+import MapMenu from '$components/map/common/MapMenu.svelte';
 
 export let visible: boolean = true
 
@@ -74,9 +74,13 @@ onDestroy(async () => { clearInterval(interval); ready = false; });
 
 <span class="loading loading-ring loading-lg" style={visible && !ready ? "" : "display: none"}></span>
 
-<div id="cesiumContainer" style={ready && visible ? "" : "display: none"}>
+<div id="cesiumContainer" class="absolute" style={ready && visible ? "" : "display: none"}>
+{#if ready && visible}
+    <MapMenu interaction={interaction} viewport={viewport}/>
+{/if}
+</div>
 {#if ready && visible}
     <MapControl viewport={viewport} interaction={interaction} ruler={ruler} graticule={graticule} layers={layers}/>
     <MapVehicles cesium={cesium} interaction={interaction}/>
 {/if}
-</div>
+
