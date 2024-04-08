@@ -1,4 +1,6 @@
-import * as Cesium from 'cesium'
+import * as Cesium from 'cesium';
+
+import { type Geodetic, GeodeticFrame } from '$bindings/spatial';
 
 export function intermediate(first: Cesium.Cartesian3, second: Cesium.Cartesian3): Cesium.Cartesian3 {
     const scratch = new Cesium.Cartesian3();
@@ -39,4 +41,24 @@ export function castRay(position: Cesium.Cartesian3, hpr: Cesium.HeadingPitchRol
     const direction = directionByVector(position, hpr, Cesium.Cartesian3.UNIT_X);
 
     return new Cesium.Ray(position, direction);
+}
+
+export function cartesianFromGeodetic(geodetic: Geodetic, homeAltitude: 0): Cesium.Cartesian3 {
+    if (!geodetic || (isNaN(geodetic.latitude) && isNaN(geodetic.longitude)))
+        return Cesium.Cartesian3.ZERO;
+
+    let altitude;
+    switch (geodetic.frame) {
+    case GeodeticFrame.Wgs84RelativeHome:
+        altitude = geodetic.altitude + homeAltitude;
+        break;
+    case GeodeticFrame.Wgs84AboveSeaLevel:
+        altitude = geodetic.altitude;
+        break;
+    case GeodeticFrame.None: // no breack
+    default:
+        altitude = 0;
+        break;
+    }
+    return Cesium.Cartesian3.fromDegrees(geodetic.longitude, geodetic.latitude, altitude);
 }

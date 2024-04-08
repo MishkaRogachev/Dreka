@@ -11,8 +11,10 @@ import { MapLayersCesium } from '$lib/map/cesium/layers';
 import { userPreferences } from '$stores/preferences';
 
 import MapControl from '../common/MapControl.svelte';
-import MapVehicles from '$components/map/cesium/MapVehicles.svelte';
 import MapMenu from '$components/map/common/MapMenu.svelte';
+
+import MapVehicles from '$components/map/cesium/MapVehicles.svelte';
+import MapMissionRoutes from '$components/map/cesium/MapMissionRoutes.svelte';
 
 export let visible: boolean = true
 
@@ -82,5 +84,6 @@ onDestroy(async () => { clearInterval(interval); ready = false; });
 {#if ready && visible}
     <MapControl viewport={viewport} interaction={interaction} ruler={ruler} graticule={graticule} layers={layers}/>
     <MapVehicles cesium={cesium} interaction={interaction}/>
+    <MapMissionRoutes cesium={cesium} interaction={interaction}/>
 {/if}
 

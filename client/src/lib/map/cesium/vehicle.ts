@@ -3,7 +3,8 @@ import type { Flight } from '$bindings/telemetry';
 import { toColorCode } from '$bindings/colors';
 
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
-import { ModelEntity, PylonEntity, PathEntity } from "./base-entities"
+import { ModelEntity, PylonEntity, PathEntity } from "$lib/map/cesium/base-entities"
+import { cartesianFromGeodetic } from '$lib/map/cesium/utils';
 
 import * as Cesium from 'cesium';
 
@@ -12,6 +13,7 @@ import fixedWing from "$assets/3d/art_v1.glb"
 
 export class MapVehicleCesium {
     constructor(cesium: Cesium.Viewer, interaction: MapInteractionCesium) {
+        // TODO: add interaction
 
         this.model = new ModelEntity(cesium);
         this.pylon = new PylonEntity(cesium, 4.0);
@@ -39,16 +41,19 @@ export class MapVehicleCesium {
     }
 
     updateFromFlight(flight: Flight) {
-        const cartesian = flight.position.longitude === 0 && flight.position.latitude === 0
-            ? Cesium.Cartesian3.ZERO
-            : Cesium.Cartesian3.fromDegrees(flight.position.longitude, flight.position.latitude, flight.position.altitude);
+        const cartesian = cartesianFromGeodetic(flight.position, 0); // TODO: home altitude
+        const isCartesianValid = cartesian !== Cesium.Cartesian3.ZERO;
+
+        this.model.setCartesian(cartesian);
+        this.model.setVisible(isCartesianValid); // TODO: hide set visible to setCartesian
+        this.model.setHpr(flight.yaw, flight.pitch, flight.roll);
+
+        this.pylon.setCartesian(cartesian);
+        this.pylon.setVisible(isCartesianValid);
 
         if (cartesian !== Cesium.Cartesian3.ZERO && !this.cartesian().equals(cartesian)) {
-            this.model.setCartesian(cartesian);
-            this.pylon.setCartesian(cartesian);
             this.path.addCartesian(cartesian);
         }
-        this.model.setHpr(flight.yaw, flight.pitch, flight.roll);
     }
 
     setSelected(selected: boolean) {

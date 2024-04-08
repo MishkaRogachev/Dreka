@@ -2,6 +2,8 @@
 import { onMount, onDestroy } from 'svelte';
 import { get } from 'svelte/store';
 
+import * as Cesium from 'cesium';
+
 import type { MapInteractionCesium } from "$lib/map/cesium/interaction";
 import { MapVehicleCesium } from "$lib/map/cesium/vehicle";
 
@@ -9,10 +11,8 @@ import type { VehicleTelemetry } from "$bindings/telemetry";
 import { Vehicle, vehicles, selectedVehicleID } from "$stores/vehicles";
 import { vehiclesTelemetry } from "$stores/telemetry";
 
-import * as Cesium from 'cesium';
-
-export let interaction: MapInteractionCesium;
 export let cesium: Cesium.Viewer;
+export let interaction: MapInteractionCesium;
 
 let mapVehicles = new Map<string, MapVehicleCesium>
 
@@ -31,7 +31,7 @@ onMount(async () => {
             mapVehicles.get(vehicleID)!.updateFromDescription(vehicle.description);
         });
 
-        // Delete vehicles removed on server
+        // Delete vehicles removed in store
         for (const id of mapVehicles.keys()) {
             if (!usedIds.includes(id)) {
                 mapVehicles.get(id)?.done();

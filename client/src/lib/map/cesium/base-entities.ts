@@ -201,7 +201,7 @@ export class PylonEntity extends BasePointEntity {
         super(cesium);
 
         this._terrainCartesian = Cesium.Cartesian3.ZERO;
-        this._terrainListeners = [];
+        this._terrainListeners = []; // TODO: useless?
 
         this._entity.polyline = new Cesium.PolylineGraphics({
             positions: new Cesium.CallbackProperty(() => {
