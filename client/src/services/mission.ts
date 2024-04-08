@@ -30,7 +30,7 @@ export class MissionService {
         return await send_request("/missions/upload/" + missionId, { method: "PUT" }) || null;
     }
 
-    static async clearMission(missionId: string): Promise<string | null> {
+    static async clearMission(missionId: string): Promise<Mission | null> {
         return await send_request("/missions/clear/" + missionId, { method: "DELETE" }) || null;
     }
 

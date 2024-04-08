@@ -47,11 +47,13 @@ function addWaypoint() {
     if (!$selectedVehicleMission || !clickGeodetic) {
         return;
     }
-    missions.setRouteItem(
-        $selectedVehicleMission.id,
-        { Waypoint: { position: clickGeodetic, hold: 0, pass_radius: 0, accept_radius: 0, yaw: undefined } },
-        $selectedVehicleMission.route.items.length
-    );
+
+    const index = $selectedVehicleMission.route.items.length;
+    const newWaypoint = index === 0 ?
+        { Takeoff: { position: clickGeodetic, pitch: 15, yaw: undefined } } :
+        { Waypoint: { position: clickGeodetic, hold: 0, pass_radius: 0, accept_radius: 0, yaw: undefined } };
+
+    missions.setRouteItem($selectedVehicleMission.id, newWaypoint, index);
     closeMenu();
 }
 

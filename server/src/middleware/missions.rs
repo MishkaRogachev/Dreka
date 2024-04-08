@@ -75,6 +75,21 @@ impl Persistence {
         Ok(())
     }
 
+    pub async fn update_mission(&self, mission: &Mission) -> anyhow::Result<Mission> {
+        let route = self.mission_routes.update(&mission.route).await?;
+        let status = self.mission_statuses.update(&mission.status).await?;
+
+        let updated_mission = Mission {
+            id: mission.id.clone(),
+            vehicle_id: mission.vehicle_id.clone(),
+            route,
+            status
+        };
+
+        self.bus.publish(ServerEvent::MissionUpserted { mission: updated_mission.clone() })?;
+        Ok(updated_mission)
+    }
+
     pub async fn update_route(&self, route: &MissionRoute) -> anyhow::Result<MissionRoute> {
         if route.id.is_empty() {
             return Err(anyhow::anyhow!("MissionRoute id is empty"));

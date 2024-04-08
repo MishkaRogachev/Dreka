@@ -62,8 +62,24 @@ pub async fn upload_mission(context: web::Data<ApiContext>, path: web::Path<Stri
 pub async fn clear_mission(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let mission_id: MissionId = path.into_inner();
 
-    match context.client_bus.publish(ClientEvent::ClearMission { mission_id: mission_id.clone() } ) {
-        Ok(_) => HttpResponse::Ok().json(mission_id),
+    let mission = context.registry.missions.mission(&mission_id).await;
+    if let Err(err) = mission {
+        log::warn!("REST: error {}", &err);
+        return HttpResponse::InternalServerError().json(err.to_string());
+    }
+    let mut mission = mission.unwrap();
+
+    mission.route.items.clear();
+
+    let mission = context.registry.missions.update_mission(&mission).await;
+    if let Err(err) = mission {
+        log::warn!("REST: error {}", &err);
+        return HttpResponse::InternalServerError().json(err.to_string());
+    }
+    let mission = mission.unwrap();
+
+    match context.client_bus.publish(ClientEvent::ClearMission { mission_id } ) {
+        Ok(_) => HttpResponse::Ok().json(mission),
         Err(err) => {
             log::warn!("REST: error {}", &err);
             HttpResponse::InternalServerError().json(err.to_string())

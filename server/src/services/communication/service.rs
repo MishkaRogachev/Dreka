@@ -101,6 +101,7 @@ impl Service {
             for (link_id, connection) in self.link_connections.iter_mut() {
                 let status = collect_connection_status(link_id, connection).await;
                 if !status.is_connected {
+                    // TODO: Add reconnect interval
                     if let Err(err) = connection.connect().await {
                         log::warn!("Connect link error: {}", err);
                     }

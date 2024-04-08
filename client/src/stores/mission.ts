@@ -1,6 +1,6 @@
 import { writable, derived, get } from 'svelte/store';
 
-import type { Mission, MissionRouteItem, MissionStatus } from '$bindings/mission';
+import type { Mission, MissionRoute, MissionRouteItem, MissionStatus } from '$bindings/mission';
 
 import type { WsListener } from '$datasource/ws';
 import { ClientSideEvents, EventsService } from '$services/events';
@@ -11,6 +11,10 @@ export const missions = function () {
     let missionUpserted: WsListener;
     let missionRemoved: WsListener;
     let missionStatusUpdated: WsListener;
+    let missionRouteUpdated: WsListener;
+    let missionRouteItemUpserted: WsListener;
+    let missionRouteItemRemoved: WsListener;
+
     let wsConnected: WsListener;
 
     const store = writable(new Map<string, Mission>(), (_, update) => {
@@ -52,7 +56,57 @@ export const missions = function () {
                 return missions;
             });
         }
+        missionRouteUpdated = (data: any) => {
+            let route = data["route"] as MissionRoute;
+            if (!route) {
+                return;
+            }
 
+            update(missions => {
+                let mission = missions.get(route.id);
+                if (mission) {
+                    mission.route = route;
+                }
+                return missions;
+            });
+        }
+        missionRouteItemUpserted = (data: any) => {
+            let mission_id = data["mission_id"] as string;
+            let index = data["index"] as number;
+            let item = data["item"] as MissionRouteItem;
+
+            if (!mission_id || index === undefined || !item) {
+                return;
+            }
+
+            update(missions => {
+                let mission = missions.get(mission_id);
+                if (mission) {
+                    if (index < mission.route.items.length) {
+                        mission.route.items[index] = item;
+                    } else {
+                        mission.route.items.push(item);
+                    }
+                }
+                return missions;
+            });
+        }
+        missionRouteItemRemoved = (data: any) => {
+            let mission_id = data["mission_id"] as string;
+            let index = data["index"] as number;
+
+            if (!mission_id || index === undefined) {
+                return;
+            }
+
+            update(missions => {
+                let mission = missions.get(mission_id);
+                if (mission) {
+                    mission.route.items.splice(index, 1);
+                }
+                return missions;
+            });
+        }
         wsConnected = async (_data: any) => {
             let missions = await MissionService.getMissions();
             if (missions) {
@@ -64,6 +118,9 @@ export const missions = function () {
         EventsService.subscribe("MissionUpserted", missionUpserted);
         EventsService.subscribe("MissionRemoved", missionRemoved);
         EventsService.subscribe("MissionStatusUpdated", missionStatusUpdated);
+        EventsService.subscribe("MissionRouteUpdated", missionRouteUpdated);
+        EventsService.subscribe("MissionRouteItemUpserted", missionRouteItemUpserted);
+        EventsService.subscribe("MissionRouteItemRemoved", missionRouteItemRemoved);
         EventsService.subscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
     });
 
@@ -105,7 +162,13 @@ export const missions = function () {
             await MissionService.uploadMission(missionId);
         },
         clear: async (missionId: string) => {
-            await MissionService.clearMission(missionId);
+            let mission = await MissionService.clearMission(missionId);
+            if (mission) {
+                let missions = get(store);
+                missions.set(mission.id, mission);
+                store.update(_ => { return missions; });
+                console.log(mission.route.items);
+            }
         },
         cancelState: async (missionId: string) => {
             await MissionService.cancelMissionState(missionId);
@@ -114,6 +177,9 @@ export const missions = function () {
             EventsService.unsubscribe("MissionUpserted", missionUpserted);
             EventsService.unsubscribe("MissionRemoved", missionRemoved);
             EventsService.unsubscribe("MissionStatusUpdated", missionStatusUpdated);
+            EventsService.unsubscribe("MissionRouteUpdated", missionRouteUpdated);
+            EventsService.unsubscribe("MissionRouteItemUpserted", missionRouteItemUpserted);
+            EventsService.unsubscribe("MissionRouteItemRemoved", missionRouteItemRemoved);
             EventsService.unsubscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
         }
     }
