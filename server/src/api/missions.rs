@@ -17,11 +17,11 @@ pub async fn create_mission(context: web::Data<ApiContext>, vehicle_id: web::Jso
     }
 }
 
-#[post("/missions/{mission_id}/set_route_item/{index}")]
-pub async fn set_route_item(context: web::Data<ApiContext>, path: web::Path<(MissionId, u16)>, item: web::Json<MissionRouteItem>) -> impl Responder {
+#[post("/missions/{mission_id}/upsert_route_item/{index}")]
+pub async fn upsert_route_item(context: web::Data<ApiContext>, path: web::Path<(MissionId, u16)>, item: web::Json<MissionRouteItem>) -> impl Responder {
     let (mission_id, index) = path.into_inner();
     let item = item.into_inner();
-    let result = context.registry.missions.set_route_item(&mission_id, item, index).await;
+    let result = context.registry.missions.upsert_route_item(&mission_id, item, index).await;
 
     match result {
         Ok(mission) => HttpResponse::Ok().json(mission),

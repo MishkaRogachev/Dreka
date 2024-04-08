@@ -27,12 +27,12 @@ pub enum ClientEvent {
 #[derive(Clone)]
 pub enum ServerEvent {
     // Communication
-    LinkUpdated { link: LinkDescription },
+    LinkUpserted { link: LinkDescription },
     LinkRemoved { link_id: LinkId },
     LinkStatusUpdated { status: LinkStatus },
 
     // Vehicles
-    VehicleUpdated { vehicle: VehicleDescription },
+    VehicleUpserted { vehicle: VehicleDescription },
     VehicleRemoved { vehicle_id: VehicleId },
     VehicleStatusUpdated { status: VehicleStatus },
 
@@ -40,14 +40,14 @@ pub enum ServerEvent {
     TelemetryUpdated { telemetry: VehicleTelemetry },
 
     // Commands
-    CommandExecutionUpdated { execution: CommandExecution },
+    CommandExecutionUpserted { execution: CommandExecution },
     CommandExecutionRemoved { command_id: CommandId },
 
     // Missions
-    MissionUpdated { mission: Mission },
+    MissionUpserted { mission: Mission },
     MissionRemoved { mission_id: MissionId },
     MissionStatusUpdated { status: MissionStatus },
     MissionRouteUpdated { route: MissionRoute },
-    MissionRouteItemUpdated { mission_id: MissionId, index: u16, item: MissionRouteItem },
+    MissionRouteItemUpserted { mission_id: MissionId, index: u16, item: MissionRouteItem },
     MissionRouteItemRemoved { mission_id: MissionId, index: u16 },
 }

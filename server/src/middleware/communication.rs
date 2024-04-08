@@ -32,7 +32,7 @@ impl Persistence {
             self.link_descriptions.update(link).await?
         };
 
-        self.bus.publish(ServerEvent::LinkUpdated{ link: link.clone() })?;
+        self.bus.publish(ServerEvent::LinkUpserted{ link: link.clone() })?;
         Ok(link)
     }
 

@@ -13,7 +13,7 @@ export class MissionService {
     static async setRouteItem(mission_id: string, item: MissionRouteItem, index: number):
         Promise<Array<[number, MissionRouteItem]> | null>
     {
-        return await send_request("/missions/" + mission_id + "/set_route_item/" + index, {
+        return await send_request("/missions/" + mission_id + "/upsert_route_item/" + index, {
             method: "POST",
             body: JSON.stringify(item),
             headers: default_headers

@@ -15,13 +15,13 @@ export class Link {
 }
 
 export const links = function () {
-    let linkUpdated: WsListener;
+    let linkUpserted: WsListener;
     let linkRemoved: WsListener;
     let statusUpdated: WsListener;
     let wsConnected: WsListener;
 
     const store = writable(new Map<string, Link>(), (_, update) => {
-        linkUpdated = (data: any) => {
+        linkUpserted = (data: any) => {
             let link = data["link"] as LinkDescription;
             if (!link) {
                 return;
@@ -79,7 +79,7 @@ export const links = function () {
             }
         }
 
-        EventsService.subscribe("LinkUpdated", linkUpdated);
+        EventsService.subscribe("LinkUpserted", linkUpserted);
         EventsService.subscribe("LinkRemoved", linkRemoved);
         EventsService.subscribe("LinkStatusUpdated", statusUpdated);
         EventsService.subscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
@@ -122,7 +122,7 @@ export const links = function () {
             await CommunicationService.setLinkEnabled(linkId, connected);
         },
         kill: () => {
-            EventsService.unsubscribe("LinkUpdated", linkUpdated);
+            EventsService.unsubscribe("LinkUpserted", linkUpserted);
             EventsService.unsubscribe("LinkRemoved", linkRemoved);
             EventsService.unsubscribe("LinkStatusUpdated", statusUpdated);
             EventsService.unsubscribe(ClientSideEvents.WsConnectionOpened, wsConnected);

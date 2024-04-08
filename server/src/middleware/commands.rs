@@ -23,7 +23,7 @@ impl Persistence {
     }
 
     pub fn update_execution(&self, execution: CommandExecution) -> anyhow::Result<()> {
-        self.bus.publish(ServerEvent::CommandExecutionUpdated { execution })
+        self.bus.publish(ServerEvent::CommandExecutionUpserted { execution })
     }
 
     pub async fn save_execution(&self, execution: &CommandExecution) -> anyhow::Result<CommandExecution> {

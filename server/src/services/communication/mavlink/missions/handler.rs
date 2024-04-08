@@ -258,7 +258,7 @@ impl MissionHandler {
             let context = self.context.lock().await;
 
             // Add route item, zero-based index
-            if let Err(err) = context.registry.missions.set_route_item(
+            if let Err(err) = context.registry.missions.upsert_route_item(
                 &status.id,
                 protocol::mission_route_item_from_mavlink(data),
                 progress - 1

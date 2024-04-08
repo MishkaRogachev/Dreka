@@ -62,7 +62,7 @@ impl Persistence {
             status
         };
 
-        self.bus.publish(ServerEvent::MissionUpdated { mission: saved_mission.clone() })?;
+        self.bus.publish(ServerEvent::MissionUpserted { mission: saved_mission.clone() })?;
         Ok(saved_mission)
     }
 
@@ -85,32 +85,32 @@ impl Persistence {
         Ok(route)
     }
 
-    pub async fn set_route_item(&self, mission_id: &MissionId, item: MissionRouteItem, index: u16) -> anyhow::Result<Vec<(u16, MissionRouteItem)>> {
+    pub async fn upsert_route_item(&self, mission_id: &MissionId, item: MissionRouteItem, index: u16) -> anyhow::Result<Vec<(u16, MissionRouteItem)>> {
         let mut route = self.mission_routes.read(mission_id).await?;
         let index = index as usize;
 
         let mut new_items = Vec::new();
-        while route.items.len() < index as usize {
-            let gap = MissionRouteItem::Gap {};
-            route.items.push(gap.clone());
-            new_items.push((route.items.len() as u16, gap));
-        }
 
         if index < route.items.len() {
             route.items[index] = item.clone();
         } else {
+            while index > route.items.len() {
+                let gap = MissionRouteItem::Gap {};
+                new_items.push((route.items.len() as u16, gap.clone()));
+                route.items.push(gap);
+            }
             route.items.push(item.clone());
         }
 
-        new_items.push((route.items.len() as u16, item));
-        for (index, item) in route.items.iter().enumerate() {
-            self.bus.publish(ServerEvent::MissionRouteItemUpdated {
+        new_items.push((index as u16, item));
+        for (index, item) in new_items.iter() {
+            self.bus.publish(ServerEvent::MissionRouteItemUpserted {
                 mission_id: mission_id.clone(),
-                index: index as u16,
+                index: index.clone(),
                 item: item.clone()
             })?;
         }
-
+        self.mission_routes.update(&route).await?;
         Ok(new_items)
     }
 

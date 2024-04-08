@@ -8,13 +8,13 @@ import { MissionService } from '$services/mission';
 import { selectedVehicleID } from '$stores/vehicles';
 
 export const missions = function () {
-    let missionUpdated: WsListener;
+    let missionUpserted: WsListener;
     let missionRemoved: WsListener;
     let missionStatusUpdated: WsListener;
     let wsConnected: WsListener;
 
     const store = writable(new Map<string, Mission>(), (_, update) => {
-        missionUpdated = (data: any) => {
+        missionUpserted = (data: any) => {
             let mission = data["mission"] as Mission;
             if (!mission) {
                 return;
@@ -61,7 +61,7 @@ export const missions = function () {
             }
         }
 
-        EventsService.subscribe("MissionUpdated", missionUpdated);
+        EventsService.subscribe("MissionUpserted", missionUpserted);
         EventsService.subscribe("MissionRemoved", missionRemoved);
         EventsService.subscribe("MissionStatusUpdated", missionStatusUpdated);
         EventsService.subscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
@@ -111,7 +111,7 @@ export const missions = function () {
             await MissionService.cancelMissionState(missionId);
         },
         kill: () => {
-            EventsService.unsubscribe("MissionUpdated", missionUpdated);
+            EventsService.unsubscribe("MissionUpserted", missionUpserted);
             EventsService.unsubscribe("MissionRemoved", missionRemoved);
             EventsService.unsubscribe("MissionStatusUpdated", missionStatusUpdated);
             EventsService.unsubscribe(ClientSideEvents.WsConnectionOpened, wsConnected);

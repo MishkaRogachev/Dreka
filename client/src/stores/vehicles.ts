@@ -27,14 +27,14 @@ export class Vehicle {
 }
 
 export const vehicles = function () {
-    let vehicleUpdated: WsListener;
+    let vehicleUpserted: WsListener;
     let vehicleRemoved: WsListener;
     let statusUpdated: WsListener;
     let wsConnected: WsListener;
     let onlineInterval: NodeJS.Timeout;
 
     const store = writable(new Map<string, Vehicle>(), (_, update) => {
-        vehicleUpdated = (data: any) => {
+        vehicleUpserted = (data: any) => {
             let vehicle = data["vehicle"] as VehicleDescription;
             if (!vehicle) {
                 return;
@@ -112,7 +112,7 @@ export const vehicles = function () {
 
         }, ONLINE_CHECK_INTERVAL);
 
-        EventsService.subscribe("VehicleUpdated", vehicleUpdated);
+        EventsService.subscribe("VehicleUpserted", vehicleUpserted);
         EventsService.subscribe("VehicleRemoved", vehicleRemoved);
         EventsService.subscribe("VehicleStatusUpdated", statusUpdated);
         EventsService.subscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
@@ -152,7 +152,7 @@ export const vehicles = function () {
             }
         },
         kill: () => {
-            EventsService.unsubscribe("VehicleUpdated", vehicleUpdated);
+            EventsService.unsubscribe("VehicleUpserted", vehicleUpserted);
             EventsService.unsubscribe("VehicleRemoved", vehicleRemoved);
             EventsService.unsubscribe("VehicleStatusUpdated", statusUpdated);
             EventsService.unsubscribe(ClientSideEvents.WsConnectionOpened, wsConnected);

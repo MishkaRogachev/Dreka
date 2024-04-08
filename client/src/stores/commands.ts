@@ -7,12 +7,12 @@ import { ClientSideEvents, EventsService } from "$services/events";
 import { CommandService } from '$services/commands';
 
 export const commandExecutions = function () {
-    let executionUpdated: WsListener;
+    let executionUpserted: WsListener;
     let executionRemoved: WsListener;
     let wsConnected: WsListener;
 
     const store = writable(new Map<string, CommandExecution>(), (_, update) => {
-        executionUpdated = (data: any) => {
+        executionUpserted = (data: any) => {
             let execution = data["execution"] as CommandExecution;
             if (!execution) {
                 return;
@@ -46,7 +46,7 @@ export const commandExecutions = function () {
             }
         }
 
-        EventsService.subscribe("CommandExecutionUpdated", executionUpdated);
+        EventsService.subscribe("CommandExecutionUpserted", executionUpserted);
         EventsService.subscribe("CommandExecutionRemoved", executionRemoved);
         EventsService.subscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
     });
@@ -63,7 +63,7 @@ export const commandExecutions = function () {
             return await CommandService.cancelCommand(id);
         },
         kill: () => {
-            EventsService.unsubscribe("CommandExecutionUpdated", executionUpdated);
+            EventsService.unsubscribe("CommandExecutionUpserted", executionUpserted);
             EventsService.unsubscribe("CommandExecutionRemoved", executionRemoved);
             EventsService.unsubscribe(ClientSideEvents.WsConnectionOpened, wsConnected);
         }

@@ -5,16 +5,16 @@ import type { CommandExecution } from "$bindings/commands";
 import type { Mission, MissionStatus } from "$bindings/mission";
 
 export interface ServerEvent {
-    LinkUpdated?: { link: LinkDescription };
+    LinkUpserted?: { link: LinkDescription };
     LinkRemoved?: { link_id: string };
     LinkStatusUpdated?: { status: LinkStatus };
-    VehicleUpdated?: { vehicle: VehicleDescription };
+    VehicleUpserted?: { vehicle: VehicleDescription };
     VehicleRemoved?: { vehicle_id: string };
     VehicleStatusUpdated?: { status: VehicleStatus };
     TelemetryUpdated?: { telemetry: VehicleTelemetry };
-    CommandExecutionUpdated?: { execution: CommandExecution };
+    CommandExecutionUpserted?: { execution: CommandExecution };
     CommandExecutionRemoved?: { id: string };
-    MissionUpdated?: { mission: Mission };
+    MissionUpserted?: { mission: Mission };
     MissionRemoved?: { mission_id: string };
     MissionStatusUpdated?: { status: MissionStatus };
 }

@@ -38,7 +38,7 @@ impl Persistence {
             self.vehicle_descriptions.update(vehicle).await?
         };
 
-        self.bus.publish(ServerEvent::VehicleUpdated { vehicle: vehicle.clone() })?;
+        self.bus.publish(ServerEvent::VehicleUpserted { vehicle: vehicle.clone() })?;
         Ok(vehicle)
     }
 
