@@ -1,13 +1,15 @@
 <script lang="ts">
 import { clickOutside } from '$lib/common/click-outside';
 
-import BaseModal from "$components/common/BaseModal.svelte";
-import LinkItem from "./LinkItem.svelte";
-
 import { type LinkDescription, MavlinkProtocolVersion } from "$bindings/communication";
 
 import { links } from "$stores/communication";
 import { i18n } from "$stores/i18n";
+
+import BaseModal from "$components/common/BaseModal.svelte";
+import LinkItem from "./LinkItem.svelte";
+
+import addIcon from "$assets/svg/add.svg?raw";
 
 export let selectedLinkId = ""
 
@@ -74,7 +76,7 @@ function closeDropdown() {
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
         <!-- ADD NEW -->
         <details id="newLinkEditDropdown" class="dropdown absolute left-2 top-2" use:clickOutside={closeDropdown}>
-            <summary class="btn m-1">{ $i18n.t("Add Link") }</summary>
+            <summary class="btn m-1">{@html addIcon} { $i18n.t("Add Link") }</summary>
             <ul class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
                 {#each linksForCreation as link}
                     <li on:click={async () => {

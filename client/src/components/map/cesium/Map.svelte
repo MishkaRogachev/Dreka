@@ -79,11 +79,11 @@ onDestroy(async () => { clearInterval(interval); ready = false; });
 <div id="cesiumContainer" class="absolute" style={ready && visible ? "" : "display: none"}>
 {#if ready && visible}
     <MapMenu interaction={interaction} viewport={viewport}/>
+    <MapVehicles cesium={cesium} interaction={interaction}/>
+    <MapMissionRoutes cesium={cesium} viewport={viewport} interaction={interaction}/>
 {/if}
 </div>
 {#if ready && visible}
     <MapControl viewport={viewport} interaction={interaction} ruler={ruler} graticule={graticule} layers={layers}/>
-    <MapVehicles cesium={cesium} interaction={interaction}/>
-    <MapMissionRoutes cesium={cesium} interaction={interaction}/>
 {/if}
 

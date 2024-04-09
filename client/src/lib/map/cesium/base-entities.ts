@@ -61,6 +61,7 @@ export class BasePointEntity extends BaseEntity implements Interactable {
     }
     removeLabel() { this._entity.label = undefined; }
 
+    // TODO: enum for subscribitions
     subscribeDragging(listener: Function) { this._draggingListeners.push(listener); }
     subscribeDragged(listener: Function) { this._draggedListeners.push(listener); }
     subscribeClick(listener: Function) { this._clickListeners.push(listener); }

@@ -7,10 +7,11 @@ import { type MissionRouteItem, MissionRouteItemType } from '$bindings/mission';
 import { i18n } from '$stores/i18n';
 import { selectedVehicleID } from '$stores/vehicles';
 import { missions, selectedVehicleMission } from '$stores/mission';
+import { activeMapPopup } from '$stores/app';
 
 import type { MapInteraction, MapViewport } from '$lib/interfaces/map';
 
-import PointedMenu from '$components/common/PointedMenu.svelte';
+import PointedPopup from '$components/common/PointedPopup.svelte';
 
 import targetIcon from "$assets/svg/target.svg?raw";
 import wptIcon from "$assets/svg/wpt.svg?raw";
@@ -22,33 +23,32 @@ const TAKEOFF_ALTITUDE = 50;
 const TAKEOFF_PITCH = 10;
 const MIN_SAFE_ALTITUDE = 50;
 
-let isMenuOpen = false;
 let menuPosition = { x: 0, y: 0 };
 let clickGeodetic: Geodetic | null = null;
 
 let clickListener = (geodetic: Geodetic, position: Cartesian) => {
-    if (!selectedVehicleID || isMenuOpen) {
-        isMenuOpen = false;
+    if (!selectedVehicleID || $activeMapPopup === "map-global") {
+        $activeMapPopup = "";
         return false;
     }
 
     if (position && geodetic) {
         menuPosition = position;
         clickGeodetic = geodetic;
-        isMenuOpen = true;
+        $activeMapPopup = "map-global"
         return true;
     }
     return false;
 }
 
 let viewportListener = () => {
-    if (isMenuOpen && clickGeodetic) {
+    if ($activeMapPopup === "map-global" && clickGeodetic) {
         menuPosition = viewport.geodeticToScreenXY(clickGeodetic);
     }
 }
 
 function closeMenu() {
-    isMenuOpen = false;
+    $activeMapPopup = "";
 }
 
 function addWaypoint() {
@@ -115,8 +115,8 @@ onDestroy(() => {
 
 </script>
 
-<PointedMenu bind:isMenuOpen={isMenuOpen} bind:menuPosition={menuPosition}>
-    <ul class="py-0">
+<PointedPopup isPopupOpen={$activeMapPopup === "map-global"} bind:popupPosition={menuPosition}>
+    <ul class="menu">
         <li class="flex" on:click={closeMenu}>
             <div class="flex gap-x-2 items-center grow">
                 { @html targetIcon }
@@ -133,4 +133,4 @@ onDestroy(() => {
         </li>
     {/if}
     </ul>
-</PointedMenu>
+</PointedPopup>

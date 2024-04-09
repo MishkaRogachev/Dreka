@@ -10,7 +10,7 @@ import downloadIcon from "$assets/svg/download.svg?raw";
 import uploadIcon from "$assets/svg/upload.svg?raw";
 import removeIcon from "$assets/svg/remove.svg?raw";
 import cancelIcon from "$assets/svg/cancel.svg?raw";
-import plusIcon from "$assets/svg/plus.svg?raw";
+import addIcon from "$assets/svg/add.svg?raw";
 
 export let vehicle: Vehicle;
 
@@ -149,7 +149,7 @@ function updateFromMissionState(mission: Mission | undefined) {
             {#if !$selectedVehicleMission}
             <li class="flex" on:click={createMission}>
                 <div class="flex gap-x-2 items-center grow">
-                    { @html plusIcon }
+                    { @html addIcon }
                     <a class="grow">{ $i18n.t("Create new mission") }</a>
                 </div>
             </li>

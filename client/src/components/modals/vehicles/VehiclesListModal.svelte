@@ -1,13 +1,15 @@
 <script lang="ts">
 import { clickOutside } from '$lib/common/click-outside';
 
-import BaseModal from "$components/common/BaseModal.svelte";
-import VehicleItem from "./VehicleItem.svelte";
-
 import { EntityColor } from '$bindings/colors';
 import { VehicleType } from "$bindings/vehicles";
 import { vehicles, onlineVehicles, getNextAvailableMavlinkId } from "$stores/vehicles";
 import { i18n } from "$stores/i18n";
+
+import BaseModal from "$components/common/BaseModal.svelte";
+import VehicleItem from "./VehicleItem.svelte";
+
+import addIcon from "$assets/svg/add.svg?raw";
 
 export let editingVehicleID = ""
 
@@ -29,7 +31,7 @@ function closeDropdown() {
     <form method="dialog">
         <!-- ADD NEW VEHICLE-->
         <details id="newVehicleDropdown" class="dropdown absolute left-2 top-2" use:clickOutside={closeDropdown}>
-            <summary class="btn m-1">{ $i18n.t("Add Vehicle") }</summary>
+            <summary class="btn m-1">{@html addIcon} { $i18n.t("Add Vehicle") }</summary>
             <ul class="dropdown-content z-[3] menu p-2 shadow bg-base-300 rounded-box w-48">
                 <!-- MAVLINK VEHCILE -->
                 <li on:click={async () => {

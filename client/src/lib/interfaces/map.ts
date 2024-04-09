@@ -1,4 +1,5 @@
 
+import type { MissionRouteItem } from "$bindings/mission";
 import type { Geodetic, Cartesian } from "$bindings/spatial";
 
 export type ClickListener = (geodetic: Geodetic, position: Cartesian) => boolean;
@@ -72,4 +73,14 @@ export interface MapLayers {
     lowerImageryLayer: (layer: ImageryLayer) => Promise<void>
     removeImageryLayer: (layer: ImageryLayer) => Promise<void>
     resetImageryLayers: () => Promise<void>
+}
+
+export enum MapMissionRouteEvent {
+    Changed,
+    Activated,
+    Drag,
+    Removed
+}
+export interface MapMissionRoute {
+    subscribe: (event: MapMissionRouteEvent, listener: (item: MissionRouteItem, index: number) => void) => void
 }
