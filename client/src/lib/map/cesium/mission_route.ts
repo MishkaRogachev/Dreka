@@ -2,7 +2,7 @@ import { type MissionRoute, type MissionRouteItem, MissionRouteItemType } from '
 
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
 import { BillboardEntity, PylonEntity, CircleEntity } from "$lib/map/cesium/base-entities"
-import { cartesianFromGeodetic } from '$lib/map/cesium/utils';
+import { cartesianFromGeodetic, geodeticFromCartesian } from '$lib/map/cesium/utils';
 
 import * as Cesium from 'cesium';
 
@@ -11,34 +11,50 @@ import takeoffIcon from "$assets/svg/takeoff.svg";
 import landingIcon from "$assets/svg/landing.svg";
 
 class MapMissionRouteItemCesium {
-    constructor(cesium: Cesium.Viewer, interaction: MapInteractionCesium) {
-        this.cesium = cesium
-        this.interaction = interaction
+    constructor(route: MapMissionRouteCesium, cesium: Cesium.Viewer, interaction: MapInteractionCesium) {
+        this.route = route;
+        this.interaction = interaction;
 
-        this.billboard = new BillboardEntity(cesium)
+        this.billboard = new BillboardEntity(cesium);
+        
+        this.billboard.setDraggable(true);
+        this.billboard.subscribeDragging((cartesian: Cesium.Cartesian3) => { this.onPointDragging(cartesian) });
+        this.billboard.subscribeDragged((cartesian: Cesium.Cartesian3) => { this.onPointDragged(cartesian) });
+        //this.billboard.subscribeClick(() => { UiDispatcher.instance().openRouteItemMenu(this) })
+        this.interaction.addInteractable(this.billboard);
+
+        this.pylon = new PylonEntity(cesium, 4.0);
+
+        this.circle = new CircleEntity(cesium, 4.0);
         // TODO: add interaction
-        // this.billboard.setDraggable(true)
-        // this.billboard.subscribeDragging((cartesian: Cesium.Cartesian3) => { this.onPointDragging(cartesian) })
-        // this.billboard.subscribeDragged((cartesian: Cesium.Cartesian3) => { this.onPointDragged(cartesian) })
-        // this.billboard.subscribeClick(() => { UiDispatcher.instance().openRouteItemMenu(this) })
-        // this.interaction.addInteractable(this.billboard)
-
-        this.pylon = new PylonEntity(cesium, 4.0)
-
-        this.circle = new CircleEntity(cesium, 4.0)
         // this.circle.setDraggable(true)
         // this.circle.subscribeDragged((radius: number) => { this.onRadiusUpdated(radius) })
         // this.interaction.addInteractable(this.circle)
     }
 
     done() {
-        //this.interaction.removeInteractable(this.billboard)
-        this.billboard.done()
-        this.pylon.done()
-        this.circle.done()
+        this.interaction.removeInteractable(this.billboard);
+        //this.interaction.removeInteractable(this.circle)
+        this.billboard.done();
+        this.pylon.done();
+        this.circle.done();
+    }
+
+    onPointDragging(cartesian: Cesium.Cartesian3) {
+        this.pylon.setCartesian(this.billboard.cartesian());
+        this.circle.setCartesian(this.billboard.cartesian());
+    }
+
+    onPointDragged(cartesian: Cesium.Cartesian3) {
+        const geodetic = geodeticFromCartesian(cartesian);
+        if (this.item && geodetic) {
+            this.item.position = geodetic;
+            this.route.onChanged(this.item, this.route.indexOfRouteItem(this));
+        }
     }
 
     update(item: MissionRouteItem) {
+        this.item = item;
         // TODO: home altitude
         const cartesian = item.position ? cartesianFromGeodetic(item.position, 0) : Cesium.Cartesian3.ZERO;
         const loiterRadius = item.radius || 0;
@@ -74,12 +90,14 @@ class MapMissionRouteItemCesium {
         return !this.billboard.cartesian().equals(Cesium.Cartesian3.ZERO)
     }
 
-    private cesium: Cesium.Viewer;
     private interaction: MapInteractionCesium;
 
     private billboard: BillboardEntity;
     private pylon: PylonEntity;
     private circle: CircleEntity;
+
+    private route: MapMissionRouteCesium;
+    private item: MissionRouteItem | undefined;
 }
 
 export class MapMissionRouteCesium {
@@ -94,6 +112,16 @@ export class MapMissionRouteCesium {
     done() {
         this.items.forEach(item => item.done());
         this.items = [];
+    }
+
+    subscribeChanged(cb: Function) {
+        this.changedSubscriber = cb;
+    }
+
+    onChanged(item: MissionRouteItem, index: number) {
+        if (this.changedSubscriber) {
+            this.changedSubscriber(item, index);
+        }
     }
 
     update(route: MissionRoute) {
@@ -112,7 +140,7 @@ export class MapMissionRouteCesium {
     }
 
     addRouteItem() {
-        this.items.push(new MapMissionRouteItemCesium(this.cesium, this.interaction));
+        this.items.push(new MapMissionRouteItemCesium(this, this.cesium, this.interaction));
         if (this.items.length > 1) {
             this.addLine(this.items[this.items.length - 2], this.items[this.items.length - 1]);
         }
@@ -172,9 +200,15 @@ export class MapMissionRouteCesium {
         this.tracks.splice(index, 1);
     }
 
+    indexOfRouteItem(item: MapMissionRouteItemCesium): number {
+        return this.items.indexOf(item);
+    }
+
     private items: Array<MapMissionRouteItemCesium>
     private tracks: Array<Cesium.Entity>
 
     private cesium: Cesium.Viewer
     private interaction: MapInteractionCesium
+
+    private changedSubscriber: Function | undefined;
 }

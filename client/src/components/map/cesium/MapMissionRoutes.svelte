@@ -1,10 +1,9 @@
 <script lang="ts">
 import { onMount, onDestroy } from 'svelte';
-import { get } from 'svelte/store';
 
 import * as Cesium from 'cesium';
 
-import type { Mission } from '$bindings/mission';
+import type { Mission, MissionRouteItem } from '$bindings/mission';
 
 import { MapMissionRouteCesium } from '$lib/map/cesium/mission_route';
 import type { MapInteractionCesium } from '$lib/map/cesium/interaction';
@@ -17,14 +16,17 @@ export let interaction: MapInteractionCesium;
 let mapRouteItems = new Map<string, MapMissionRouteCesium>
 
 onMount(async () => {
-    missions.subscribe((missions: Map<string, Mission>) => {
+    missions.subscribe((allMissions: Map<string, Mission>) => {
         let usedIds = new Array<string>();
 
         // Add and update existing missions on map
-        missions.forEach((mission: Mission, missionID: string) => {
+        allMissions.forEach((mission: Mission, missionID: string) => {
             usedIds.push(missionID);
             if (!mapRouteItems.has(missionID)) {
                 let mapMission = new MapMissionRouteCesium(cesium, interaction)
+                mapMission.subscribeChanged((item: MissionRouteItem, index: number) => {
+                    missions.setRouteItem(missionID, item, index);
+                });
                 // mapMission.setSelected(missionID === get(selectedMissionID));
                 mapRouteItems.set(missionID, mapMission);
             }

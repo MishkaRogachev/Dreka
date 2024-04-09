@@ -32,10 +32,13 @@ let clickListener = (geodetic: Geodetic, position: Cartesian) => {
         return false;
     }
 
-    menuPosition = position;
-    clickGeodetic = geodetic;
-    isMenuOpen = true;
-    return true;
+    if (position && geodetic) {
+        menuPosition = position;
+        clickGeodetic = geodetic;
+        isMenuOpen = true;
+        return true;
+    }
+    return false;
 }
 
 let viewportListener = () => {

@@ -176,6 +176,8 @@ export class BillboardEntity extends BasePointEntity {
         const ray = scene.camera.getPickRay(screenXY);
         const plane = Cesium.Plane.fromPointNormal(this._cartesian, normal);
         const cartesian = Cesium.IntersectionTests.rayPlane(ray!, plane);
+        if (!cartesian)
+            return false;
         let newGeodetic = scene.globe.ellipsoid.cartesianToCartographic(cartesian);
 
         if (modifier == KeyModifier.Shift) {

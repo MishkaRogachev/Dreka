@@ -44,7 +44,7 @@ export function castRay(position: Cesium.Cartesian3, hpr: Cesium.HeadingPitchRol
 }
 
 // TODO: home and terrain altitudes fix
-export function cartesianFromGeodetic(geodetic: Geodetic, homeAltitude: 0): Cesium.Cartesian3 {
+export function cartesianFromGeodetic(geodetic: Geodetic, homeAltitude: number = 0): Cesium.Cartesian3 {
     if (!geodetic || (isNaN(geodetic.latitude) && isNaN(geodetic.longitude)))
         return Cesium.Cartesian3.ZERO;
 
@@ -65,4 +65,22 @@ export function cartesianFromGeodetic(geodetic: Geodetic, homeAltitude: 0): Cesi
         break;
     }
     return Cesium.Cartesian3.fromDegrees(geodetic.longitude, geodetic.latitude, altitude);
+}
+
+export function geodeticFromCartesian(cartesian: Cesium.Cartesian3, homeAltitude: number = 0): Geodetic | undefined {
+    const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+    if (!cartographic) {
+        return undefined;
+    }
+
+    let altitude = cartographic.height;
+    if (homeAltitude)
+        altitude -= homeAltitude;
+
+    return {
+        latitude: Cesium.Math.toDegrees(cartographic.latitude),
+        longitude: Cesium.Math.toDegrees(cartographic.longitude),
+        altitude: altitude,
+        frame: GeodeticFrame.Wgs84RelativeHome
+    };
 }
