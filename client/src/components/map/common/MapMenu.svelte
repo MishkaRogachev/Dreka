@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount, onDestroy } from 'svelte';
 
-import type { Cartesian, Geodetic } from '$bindings/spatial';
+import { GeodeticFrame, type Cartesian, type Geodetic } from '$bindings/spatial';
 
 import { i18n } from '$stores/i18n';
 import { selectedVehicleID } from '$stores/vehicles';
@@ -50,8 +50,28 @@ function addWaypoint() {
 
     const index = $selectedVehicleMission.route.items.length;
     const newWaypoint = index === 0 ?
-        { Takeoff: { position: clickGeodetic, pitch: 15, yaw: undefined } } :
-        { Waypoint: { position: clickGeodetic, hold: 0, pass_radius: 0, accept_radius: 0, yaw: undefined } };
+        { Takeoff: {
+            position: {
+                latitude: clickGeodetic.latitude,
+                longitude: clickGeodetic.longitude,
+                altitude: clickGeodetic.altitude + 50, // TODO: Default takeoff altitude to settings
+                frame: GeodeticFrame.Wgs84AboveTerrain
+            } as Geodetic,
+            pitch: 15,
+            yaw: undefined
+        } } :
+        { Waypoint: {
+            position: {
+                latitude: clickGeodetic.latitude,
+                longitude: clickGeodetic.longitude,
+                altitude: clickGeodetic.altitude + 50, // TODO: previous waypoint altitude
+                frame: GeodeticFrame.Wgs84AboveTerrain // TODO: previous waypoint frame
+            },
+            hold: 0,
+            pass_radius: 0,
+            accept_radius: 0,
+            yaw: undefined
+        } };
 
     missions.setRouteItem($selectedVehicleMission.id, newWaypoint, index);
     closeMenu();
@@ -87,7 +107,8 @@ onDestroy(() => {
         <li class="flex" on:click={addWaypoint}>
             <div class="flex gap-x-2 items-center grow">
                 { @html wptIcon }
-                <a class="grow">{ $i18n.t("Add new waypoint") }</a>
+                <a class="grow">{ $selectedVehicleMission.route.items.length > 0 ?
+                    $i18n.t("Add waypoint") : $i18n.t("Add takeoff") }</a>
             </div>
         </li>
     {/if}

@@ -43,6 +43,7 @@ export function castRay(position: Cesium.Cartesian3, hpr: Cesium.HeadingPitchRol
     return new Cesium.Ray(position, direction);
 }
 
+// TODO: home and terrain altitudes fix
 export function cartesianFromGeodetic(geodetic: Geodetic, homeAltitude: 0): Cesium.Cartesian3 {
     if (!geodetic || (isNaN(geodetic.latitude) && isNaN(geodetic.longitude)))
         return Cesium.Cartesian3.ZERO;
@@ -53,6 +54,9 @@ export function cartesianFromGeodetic(geodetic: Geodetic, homeAltitude: 0): Cesi
         altitude = geodetic.altitude + homeAltitude;
         break;
     case GeodeticFrame.Wgs84AboveSeaLevel:
+        altitude = geodetic.altitude;
+        break;
+    case GeodeticFrame.Wgs84AboveTerrain:
         altitude = geodetic.altitude;
         break;
     case GeodeticFrame.None: // no breack

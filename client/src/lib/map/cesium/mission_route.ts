@@ -65,18 +65,22 @@ class MapMissionRouteItemCesium {
             icon = landingIcon;
         }
 
-        const isCartesianValid = cartesian !== Cesium.Cartesian3.ZERO;
-
         this.billboard.setCartesian(cartesian);
         this.billboard.setIcon(icon);
-        this.billboard.setVisible(isCartesianValid);
 
         this.pylon.setCartesian(cartesian);
-        this.pylon.setVisible(isCartesianValid);
 
         this.circle.setCartesian(cartesian);
         this.circle.setRadius(loiterRadius);
-        this.circle.setVisible(isCartesianValid && loiterRadius > 0);
+        this.circle.setVisible(loiterRadius > 0);
+    }
+
+    cartesian(): Cesium.Cartesian3 {
+        return this.billboard.cartesian()
+    }
+
+    isPositionValid(): boolean {
+        return !this.billboard.cartesian().equals(Cesium.Cartesian3.ZERO)
     }
 
     private cesium: Cesium.Viewer;
@@ -93,6 +97,7 @@ export class MapMissionRouteCesium {
         this.interaction = interaction;
 
         this.items = [];
+        this.tracks = [];
     }
 
     done() {
@@ -103,11 +108,11 @@ export class MapMissionRouteCesium {
     update(route: MissionRoute) {
         // Remove extra items
         while (this.items.length > route.items.length) {
-            this.items.pop()?.done();
+            this.deleteRouteItem(this.items.length - 1);
         }
         // Add missing items
         while (this.items.length < route.items.length) {
-            this.items.push(new MapMissionRouteItemCesium(this.cesium, this.interaction));
+            this.addRouteItem()
         }
 
         route.items.forEach((item, i) => {
@@ -115,7 +120,70 @@ export class MapMissionRouteCesium {
         });
     }
 
+    addRouteItem() {
+        this.items.push(new MapMissionRouteItemCesium(this.cesium, this.interaction));
+        if (this.items.length > 1) {
+            this.addLine(this.items[this.items.length - 2], this.items[this.items.length - 1]);
+        }
+    }
+
+    deleteRouteItem(index: number) {
+        const hasRightBuddy = index + 1 < this.items.length;
+        const hasLeftBuddy = index > 0;
+
+        this.items.splice(index, 1)[0].done()
+
+        if (hasRightBuddy) {
+            this.removeLine(index);
+        }
+        if (hasLeftBuddy) {
+            this.removeLine(index - 1);
+        }
+
+        if (hasRightBuddy && hasLeftBuddy) {
+            this.addLine(this.items[index - 1], this.items[index], index - 1);
+        }
+    }
+
+    addLine(first: MapMissionRouteItemCesium, second: MapMissionRouteItemCesium, index = -1) {
+        const line = this.cesium.entities.add({
+            polyline: {
+                positions: new Cesium.CallbackProperty(() => {
+                    if (first.isPositionValid() && second.isPositionValid())
+                        return [first.cartesian(), second.cartesian()]
+                    return []
+                }, false),
+                arcType: Cesium.ArcType.GEODESIC,
+                //@ts-ignore
+                material: new Cesium.ColorMaterialProperty(
+                    new Cesium.CallbackProperty(() => {
+                        return Cesium.Color.WHITE;
+                        // const error = first.isLowerTerrrain() || second.isLowerTerrrain()
+                        // const warn = first.isLowerWarningAlt() || second.isLowerWarningAlt()
+
+                        // return error ? Cesium.Color.RED : warn ? Cesium.Color.ORANGE :
+                        //     first.actual && second.actual ? Cesium.Color.WHITE : Cesium.Color.YELLOW
+                    }, false),
+                ),
+                width: 2.0
+            }
+        })
+
+        if (index === -1) {
+            this.tracks.push(line);
+        } else {
+            this.tracks.splice(index, 0, line);
+        }
+    }
+
+    removeLine(index: number) {
+        this.cesium.entities.remove(this.tracks[index]);
+        this.tracks.splice(index, 1);
+    }
+
     private items: Array<MapMissionRouteItemCesium>
+    private tracks: Array<Cesium.Entity>
+
     private cesium: Cesium.Viewer
     private interaction: MapInteractionCesium
 }
