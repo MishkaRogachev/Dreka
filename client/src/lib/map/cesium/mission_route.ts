@@ -1,4 +1,4 @@
-import { type Mission, type MissionRoute, type MissionRouteItem } from '$bindings/mission';
+import { type MissionRoute, type MissionRouteItem, MissionRouteItemType } from '$bindings/mission';
 
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
 import { BillboardEntity, PylonEntity, CircleEntity } from "$lib/map/cesium/base-entities"
@@ -6,9 +6,9 @@ import { cartesianFromGeodetic } from '$lib/map/cesium/utils';
 
 import * as Cesium from 'cesium';
 
-import wptIcon from "$assets/svg/wpt.svg"
-import takeoffIcon from "$assets/svg/takeoff.svg"
-import landingIcon from "$assets/svg/landing.svg"
+import wptIcon from "$assets/svg/wpt.svg";
+import takeoffIcon from "$assets/svg/takeoff.svg";
+import landingIcon from "$assets/svg/landing.svg";
 
 class MapMissionRouteItemCesium {
     constructor(cesium: Cesium.Viewer, interaction: MapInteractionCesium) {
@@ -39,30 +39,21 @@ class MapMissionRouteItemCesium {
     }
 
     update(item: MissionRouteItem) {
-        // TODO: to waypoint params
-        let cartesian = Cesium.Cartesian3.ZERO;
-        let loiterRadius = 0;
-        let icon = wptIcon;
+        // TODO: home altitude
+        const cartesian = item.position ? cartesianFromGeodetic(item.position, 0) : Cesium.Cartesian3.ZERO;
+        const loiterRadius = item.radius || 0;
 
-        // FIXME: flat serialization
-        if (item.Takeoff) {
-            cartesian = cartesianFromGeodetic(item.Takeoff.position, 0); // TODO: home altitude
+        let icon: string;
+        switch (item.type) {
+        case MissionRouteItemType.Takeoff:
             icon = takeoffIcon;
-        }
-        else if (item.Waypoint) {
-            cartesian = cartesianFromGeodetic(item.Waypoint.position, 0); // TODO: home altitude
-        }
-        else if (item.LoiterTrn) {
-            cartesian = cartesianFromGeodetic(item.LoiterTrn.position, 0); // TODO: home altitude
-            loiterRadius = item.LoiterTrn.radius;
-        }
-        else if (item.LoiterAlt) {
-            cartesian = cartesianFromGeodetic(item.LoiterAlt.position, 0); // TODO: home altitude
-            loiterRadius = item.LoiterAlt.radius;
-        }
-        else if (item.Landing) {
-            cartesian = cartesianFromGeodetic(item.Landing.position, 0); // TODO: home altitude
+            break;
+        case "Landing":
             icon = landingIcon;
+            break;
+        default:
+            icon = wptIcon;
+            break;
         }
 
         this.billboard.setCartesian(cartesian);

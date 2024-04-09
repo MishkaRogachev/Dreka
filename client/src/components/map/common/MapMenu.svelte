@@ -2,6 +2,7 @@
 import { onMount, onDestroy } from 'svelte';
 
 import { GeodeticFrame, type Cartesian, type Geodetic } from '$bindings/spatial';
+import { type MissionRouteItem, MissionRouteItemType } from '$bindings/mission';
 
 import { i18n } from '$stores/i18n';
 import { selectedVehicleID } from '$stores/vehicles';
@@ -16,6 +17,10 @@ import wptIcon from "$assets/svg/wpt.svg?raw";
 
 export let viewport: MapViewport;
 export let interaction: MapInteraction;
+
+const TAKEOFF_ALTITUDE = 50;
+const TAKEOFF_PITCH = 10;
+const MIN_SAFE_ALTITUDE = 50;
 
 let isMenuOpen = false;
 let menuPosition = { x: 0, y: 0 };
@@ -48,31 +53,43 @@ function addWaypoint() {
         return;
     }
 
+    let newWaypoint: MissionRouteItem;
     const index = $selectedVehicleMission.route.items.length;
-    const newWaypoint = index === 0 ?
-        { Takeoff: {
+    if (index > 0) {
+        let altitude = clickGeodetic.altitude + MIN_SAFE_ALTITUDE;
+        let frame = GeodeticFrame.Wgs84AboveSeaLevel;
+        for (const item of [...$selectedVehicleMission.route.items].reverse()) {
+            if (item.position) {
+                // TODO: correct frame handling
+                altitude = Math.max(item.position.altitude, altitude);
+                frame = item.position.frame;
+                break;
+            }
+        }
+        newWaypoint = {
+            type: MissionRouteItemType.Waypoint,
             position: {
                 latitude: clickGeodetic.latitude,
                 longitude: clickGeodetic.longitude,
-                altitude: clickGeodetic.altitude + 50, // TODO: Default takeoff altitude to settings
-                frame: GeodeticFrame.Wgs84AboveTerrain
-            } as Geodetic,
-            pitch: 15,
-            yaw: undefined
-        } } :
-        { Waypoint: {
-            position: {
-                latitude: clickGeodetic.latitude,
-                longitude: clickGeodetic.longitude,
-                altitude: clickGeodetic.altitude + 50, // TODO: previous waypoint altitude
-                frame: GeodeticFrame.Wgs84AboveTerrain // TODO: previous waypoint frame
+                altitude: altitude,
+                frame: frame
             },
             hold: 0,
             pass_radius: 0,
-            accept_radius: 0,
-            yaw: undefined
-        } };
-
+            accept_radius: 0
+        };
+    } else {
+        newWaypoint = {
+            type: MissionRouteItemType.Takeoff,
+            position: {
+                latitude: clickGeodetic.latitude,
+                longitude: clickGeodetic.longitude,
+                altitude: clickGeodetic.altitude + TAKEOFF_ALTITUDE,
+                frame: GeodeticFrame.Wgs84RelativeHome
+            },
+            pitch: TAKEOFF_PITCH,
+        };
+    }
     missions.setRouteItem($selectedVehicleMission.id, newWaypoint, index);
     closeMenu();
 }

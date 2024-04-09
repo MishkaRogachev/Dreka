@@ -1,14 +1,32 @@
 import { type Geodetic } from "$bindings/spatial";
 
+export enum MissionRouteItemType {
+    Gap = "Gap",
+    Waypoint = "Waypoint",
+    Takeoff = "Takeoff",
+    LandStart = "LandStart",
+    Landing = "Landing",
+    LoiterTrn = "LoiterTrn",
+    LoiterAlt = "LoiterAlt",
+    TriggerCam = "TriggerCam",
+}
+
 export interface MissionRouteItem {
-    Gap?: {},
-    Waypoint?: { position: Geodetic, hold: number, pass_radius: number, accept_radius: number, yaw?: number };
-    Takeoff?: { position: Geodetic, pitch: number, yaw?: number };
-    LandStart?: {};
-    Landing?: { position: Geodetic, abort_altitude?: number, yaw?: number };
-    LoiterTrn?: { position: Geodetic, heading_required: boolean, radius: number, turns: number, clockwise: boolean };
-    LoiterAlt?: { position: Geodetic, heading_required: boolean, radius: number, clockwise: boolean };
-    TriggerCam?: { distance: number, shutter: number, trigger: boolean };
+    type: MissionRouteItemType;
+    position?: Geodetic;
+    hold?: number;
+    pass_radius?: number;
+    accept_radius?: number;
+    yaw?: number | null;
+    pitch?: number;
+    abort_altitude?: number | null;
+    heading_required?: boolean;
+    radius?: number;
+    turns?: number;
+    clockwise?: boolean;
+    distance?: number;
+    shutter?: number;
+    trigger?: boolean;
 }
 
 export interface MissionRoute {

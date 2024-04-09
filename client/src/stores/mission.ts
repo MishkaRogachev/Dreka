@@ -150,7 +150,6 @@ export const missions = function () {
                         mission.route.items.push(item);
                     }
                 }
-                console.log(mission.route.items);
                 missions.set(missionId, mission);
                 store.update(_ => { return missions; });
             }
@@ -167,7 +166,6 @@ export const missions = function () {
                 let missions = get(store);
                 missions.set(mission.id, mission);
                 store.update(_ => { return missions; });
-                console.log(mission.route.items);
             }
         },
         cancelState: async (missionId: string) => {

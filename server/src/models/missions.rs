@@ -1,13 +1,12 @@
 
 use serde::{Deserialize, Serialize};
-use serde_with::serde_as;
 
 use super::{spatial::Geodetic, vehicles::VehicleId};
 
 pub type MissionId = String;
 
-#[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[serde(tag = "type")]
 pub enum MissionRouteItem {
     Gap {},
     Waypoint { position: Geodetic, hold: u16, pass_radius: f32, accept_radius: f32, yaw: Option<u16> },
