@@ -1,4 +1,4 @@
-import type { Mission, MissionRouteItem } from "$bindings/mission";
+import type { Mission, MissionRoute, MissionRouteItem } from "$bindings/mission";
 import { send_request, default_headers } from "$datasource/rest";
 
 export class MissionService {
@@ -11,8 +11,7 @@ export class MissionService {
     }
 
     static async setRouteItem(mission_id: string, item: MissionRouteItem, index: number):
-        Promise<Array<[number, MissionRouteItem]> | null>
-    {
+        Promise<Array<[number, MissionRouteItem]> | null> {
         return await send_request("/missions/" + mission_id + "/upsert_route_item/" + index, {
             method: "POST",
             body: JSON.stringify(item),
@@ -20,7 +19,12 @@ export class MissionService {
         }) || null;
     }
 
-    // TODO: remove route item
+    static async removeRouteItem(mission_id: string, index: number): Promise<number | null> {
+        return await send_request("/missions/" + mission_id + "/remove_route_item/" + index, {
+            method: "DELETE",
+            headers: default_headers
+        }) || null;
+    }
 
     static async downloadMission(missionId: string): Promise<string | null> {
         return await send_request("/missions/download/" + missionId, { method: "PUT" }) || null;

@@ -154,6 +154,9 @@ export const missions = function () {
                 store.update(_ => { return missions; });
             }
         },
+        removeRouteItem: async (missionId: string, index: number) => {
+            await MissionService.removeRouteItem(missionId, index);
+        },
         download: async (missionId: string) => {
             await MissionService.downloadMission(missionId);
         },

@@ -43,6 +43,7 @@ pub async fn serve(
             .service(super::commands::get_command_executions)
             .service(super::missions::create_mission)
             .service(super::missions::upsert_route_item)
+            .service(super::missions::remove_route_item)
             .service(super::missions::download_mission)
             .service(super::missions::upload_mission)
             .service(super::missions::clear_mission)

@@ -32,6 +32,20 @@ pub async fn upsert_route_item(context: web::Data<ApiContext>, path: web::Path<(
     }
 }
 
+#[delete("/missions/{mission_id}/remove_route_item/{index}")]
+pub async fn remove_route_item(context: web::Data<ApiContext>, path: web::Path<(MissionId, u16)>) -> impl Responder {
+    let (mission_id, index) = path.into_inner();
+    let result = context.registry.missions.remove_route_item(&mission_id, index).await;
+
+    match result {
+        Ok(mission) => HttpResponse::Ok().json(mission),
+        Err(err) => {
+            log::warn!("REST error: {}", &err); // TODO: add path here
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
+    }
+}
+
 #[put("/missions/download/{mission_id}")]
 pub async fn download_mission(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let mission_id: MissionId = path.into_inner();

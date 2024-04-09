@@ -129,6 +129,15 @@ impl Persistence {
         Ok(new_items)
     }
 
+    pub async fn remove_route_item(&self, mission_id: &MissionId, index: u16) -> anyhow::Result<u16> {
+        let mut route = self.mission_routes.read(mission_id).await?;
+
+        route.items.remove(index as usize);
+        self.mission_routes.update(&route).await?;
+        self.bus.publish(ServerEvent::MissionRouteItemRemoved { mission_id: mission_id.clone(), index })?;
+        Ok(index)
+    }
+
     pub async fn update_status(&self, status: &MissionStatus) -> anyhow::Result<MissionStatus> {
         if status.id.is_empty() {
             return Err(anyhow::anyhow!("MissionStatus id is empty"));

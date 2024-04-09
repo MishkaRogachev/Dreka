@@ -36,7 +36,8 @@ function switchEdit() {
 }
 
 function removeItem() {
-    //  TODO: missions.removeRouteItem(missionId, index);
+    missions.removeRouteItem(missionId, index);
+    closeMenu();
 }
 
 function recalcPopupPosition() {
