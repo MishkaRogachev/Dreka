@@ -1,12 +1,13 @@
 use surrealdb::{engine::local::Db, Surreal};
 
+use crate::persistence::traits::*;
+
 const ID: &str = "id";
 const STRING: &str = "String";
 const TB: &str = "tb";
 const UID: &str = "uid";
 const DATA: &str = "data";
 const VALUE: &str = "value";
-const FIELD: &str = "field";
 
 const CREATE_THING_QUERY: &str = "CREATE type::thing($tb, $uid) CONTENT $data";
 const CREATE_TABLE_QUERY: &str = "CREATE type::table($tb) CONTENT $data";
@@ -78,7 +79,7 @@ impl Repository {
 }
 
 #[async_trait::async_trait]
-impl<T> super::traits::IRepository<T> for Repository
+impl<T> IRepository<T> for Repository
 where T: serde::ser::Serialize + ?Sized + for<'de> serde::Deserialize<'de> + std::marker::Sync + Clone {
     async fn create(&self, entity: &T) -> anyhow::Result<T> {
         let mut data = serde_json::to_value(entity)?;
@@ -115,14 +116,15 @@ where T: serde::ser::Serialize + ?Sized + for<'de> serde::Deserialize<'de> + std
         self.parse_many_json(response)
     }
 
-    async fn read_where(&self, field: &str, value: serde_json::Value) -> anyhow::Result<Vec<T>> {
-        let query = format!("SELECT * FROM type::table($tb) WHERE {} = $value", field);
+    async fn read_where(&self, condition: Condition) -> anyhow::Result<Vec<T>> {
+        let query = format!("{} WHERE {}", SELECT_ALL_QUERY, format!("{} = $value", condition.field));
         let response = self.db.query(query)
             .bind((TB, &self.table))
-            .bind((FIELD, field))
-            .bind((VALUE, value)).await?;
+            .bind((VALUE, condition.value)).await?;
         self.parse_many_json(response)
     }
+
+    //async fn read_value_where(&self, field: &str, value: serde_json::Value)
 
     async fn read_all_ids(&self) -> anyhow::Result<Vec<String>> {
         let mut response = self.db.query(SELECT_ALL_IDS_QUERY)

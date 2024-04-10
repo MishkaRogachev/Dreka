@@ -21,12 +21,6 @@ pub enum MissionRouteItem {
     TriggerCam { distance: f32, shutter: i16, trigger: bool }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
-pub struct MissionRoute {
-    pub id: MissionId,
-    pub items: Vec<MissionRouteItem>,
-}
-
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub enum MissionUpdateState {
     NotActual {},
@@ -45,6 +39,12 @@ pub enum MissionProgress {
     Finished { passed: Vec<u16> },
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+pub struct MissionRoute {
+    pub id: MissionId,
+    pub items: Vec<MissionRouteItem>,
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct MissionStatus {
     pub id: MissionId,
@@ -52,6 +52,7 @@ pub struct MissionStatus {
     pub progress: MissionProgress,
 }
 
+// TODO: get rid of this struct
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct VehicleMission {
     pub id: MissionId,

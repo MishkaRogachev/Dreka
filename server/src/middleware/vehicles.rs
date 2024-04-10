@@ -62,7 +62,7 @@ impl Persistence {
 
     pub async fn vehicle_by_protocol_id(&self, protocol_id: &ProtocolId) -> anyhow::Result<Option<VehicleDescription>> {
         let vehicles = self.vehicle_descriptions.read_where(
-            "protocol_id", serde_json::json!(protocol_id)).await?;
+            traits::Condition{ field: "protocol_id".into(), value: serde_json::json!(protocol_id) }).await?;
         match vehicles.len() {
             0 => Ok(None),
             1 => Ok(Some(vehicles.first().cloned().unwrap())),

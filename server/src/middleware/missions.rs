@@ -182,7 +182,7 @@ impl Persistence {
 
     pub async fn mission_for_vehicle(&self, vehicle_id: &VehicleId) -> anyhow::Result<Option<VehicleMission>> {
         let vehicle_missions = self.vehicle_missions.read_where(
-            "vehicle_id", serde_json::json!(vehicle_id)).await?;
+            traits::Condition{ field: "vehicle_id".into(), value: serde_json::json!(vehicle_id) }).await?;
         match vehicle_missions.len() {
             0 => Ok(None),
             1 => Ok(Some(vehicle_missions.first().cloned().unwrap())),

@@ -5,6 +5,7 @@ mod tests {
 
     use crate::models::vehicles::*;
     use crate::models::colors::EntityColor;
+    use crate::persistence::traits::Condition;
     use crate::persistence::{traits, repository};
 
     async fn setup() -> Box<dyn traits::IRepository<VehicleDescription>> {
@@ -103,8 +104,8 @@ mod tests {
         let vehicle_ids_back = repo.read_all_ids().await.expect("Error reading vehicle ids");
         assert!(vehicle_ids_back.iter().all(|vehicle_id| vehicle_ids.contains(&vehicle_id)));
 
-        let vehicles_by_protocol_id = repo.read_where("protocol_id",
-            serde_json::json!(updated_vehices[0].protocol_id))
+        let vehicles_by_protocol_id = repo.read_where(
+            Condition { field: "protocol_id".into(), value: serde_json::json!(updated_vehices[0].protocol_id) })
             .await.expect("Error reading vehicles by protocol id");
         assert_eq!(vehicles_by_protocol_id.len(), 1);
         assert_eq!(vehicles_by_protocol_id[0], updated_vehices[0]);
