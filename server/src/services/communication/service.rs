@@ -3,8 +3,7 @@ use tokio::time;
 
 use crate::models::communication::{LinkId, LinkDescription, LinkStatus, LinkProtocol, LinkType, MavlinkProtocolVersion};
 use crate::models::events::{ClientEvent, ServerEvent};
-use crate::middleware::bus;
-use crate::middleware::registry;
+use crate::{bus::bus, dal::dal};
 use super::{traits, mavlink::connection::MavlinkConnection};
 
 type LinkConnection = Box<dyn traits::IConnection + Send + Sync>;
@@ -13,7 +12,7 @@ type LinkConnections = HashMap<LinkId, LinkConnection>;
 const CHECK_CONNECTIONS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(250);
 
 pub struct Service {
-    registry: registry::Registry,
+    dal: dal::Dal,
     server_bus: bus::EventBus::<ServerEvent>,
     client_bus: bus::EventBus::<ClientEvent>,
     link_connections: LinkConnections
@@ -47,16 +46,10 @@ fn dafault_links() -> Vec<LinkDescription> {
 }
 
 impl Service {
-    pub fn new(
-        registry: registry::Registry,
-        server_bus: bus::EventBus::<ServerEvent>,
-        client_bus: bus::EventBus::<ClientEvent>
+    pub fn new(dal: dal::Dal, server_bus: bus::EventBus::<ServerEvent>, client_bus: bus::EventBus::<ClientEvent>
     ) -> Self {
         Self {
-            registry,
-            server_bus,
-            client_bus,
-            link_connections: LinkConnections::new()
+            dal, server_bus, client_bus, link_connections: LinkConnections::new()
         }
     }
 
@@ -107,7 +100,7 @@ impl Service {
                     }
                 }
 
-                if let Err(err) = self.registry.communication.update_status(&status).await {
+                if let Err(err) = self.dal.update_link_status(status).await {
                     log::error!("Update status error: {}", err);
                 }
             }
@@ -115,11 +108,11 @@ impl Service {
     }
 
     async fn load_links(&self) -> anyhow::Result<Vec<LinkDescription>> {
-        let mut links = self.registry.communication.all_links().await?;
+        let mut links = self.dal.all_links().await?;
 
         if links.is_empty() {
             for link in dafault_links().iter() {
-                let link = self.registry.communication.save_link(link).await?;
+                let link = self.dal.save_link(link.clone()).await?;
                 links.push(link);
             }
         }
@@ -132,14 +125,14 @@ impl Service {
             return Ok(());
         }
 
-        let link = self.registry.communication.link(link_id).await?;
+        let link = self.dal.link(link_id).await?;
         let mut connection = self.create_connection(&link)?;
         if let Err(err) = connection.connect().await {
             log::warn!("Error enabling link: {}", err);
         }
 
         let status = collect_connection_status(&link_id, &connection).await;
-        self.registry.communication.update_status(&status).await?;
+        self.dal.update_link_status(status).await?;
         self.link_connections.insert(link_id.to_string(), connection);
         Ok(())
     }
@@ -148,7 +141,7 @@ impl Service {
         match &link.protocol {
             LinkProtocol::Mavlink { link_type, protocol_version } => {
                 Ok(Box::new(MavlinkConnection::new(
-                    self.registry.clone(),
+                    self.dal.clone(),
                     self.server_bus.clone(),
                     self.client_bus.clone(),
                     link_type,
@@ -183,7 +176,7 @@ impl Service {
     }
 
     async fn reset_link_status(&self, link_id: &LinkId) -> anyhow::Result<()> {
-        self.registry.communication.update_status(&LinkStatus::default_for_id(link_id)).await?;
+        self.dal.update_link_status(LinkStatus::default_for_id(link_id)).await?;
         Ok(())
     }
 }

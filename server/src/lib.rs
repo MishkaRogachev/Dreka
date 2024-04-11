@@ -1,6 +1,7 @@
+mod db;
 mod models;
-mod persistence;
-mod middleware;
+mod bus;
+mod dal;
 mod services;
 mod api;
 
@@ -38,13 +39,14 @@ pub async fn start() -> anyhow::Result<()> {
 
     let db = surrealdb::Surreal::new::<surrealdb::engine::local::Mem>(()).await?;
     db.use_ns(DATABASE_NAME).use_db(DATABASE_NAMESPACE_NAME).await?;
+    let dao = db::surreal_dao::Dao::new(db);
 
-    let server_bus = middleware::bus::EventBus::<ServerEvent>::new();
-    let client_bus = middleware::bus::EventBus::<ClientEvent>::new();
-    let registry = middleware::registry::Registry::new(db, server_bus.clone());
+    let server_bus = bus::bus::EventBus::<ServerEvent>::new();
+    let client_bus = bus::bus::EventBus::<ClientEvent>::new();
+    let repository = dal::dal::Dal::new(dao, server_bus.clone());
 
     let mut comm_service = services::communication::service::Service::new(
-        registry.clone(),
+        repository.clone(),
         server_bus.clone(),
         client_bus.clone()
     );
@@ -56,7 +58,7 @@ pub async fn start() -> anyhow::Result<()> {
                 Err(err) => log::error!("Communication service start error: {}", err),
             }
         }
-        _ = api::all_routes::serve(registry, server_bus, client_bus, &DEFAULT_REST_ADDRESS) => {}
+        _ = api::all_routes::serve(repository, server_bus, client_bus, &DEFAULT_REST_ADDRESS) => {}
         _ = tokio::signal::ctrl_c() => {}
     }
     Ok(())

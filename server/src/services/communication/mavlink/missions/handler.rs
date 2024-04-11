@@ -28,13 +28,13 @@ impl MissionHandler {
 
     async fn mav_id_for_mission_id(&self, mission_id: &MissionId) -> Option<u8> {
         let context = self.context.lock().await;
-        let vehicle_mission = context.registry.missions.vehicle_mission(&mission_id).await;
-        if let Err(err) = vehicle_mission {
-            log::error!("Error obtaining vehicle mission: {}", err);
+        let assignment = context.dal.mission_assignment(&mission_id).await;
+        if let Err(err) = assignment {
+            log::error!("Error obtaining mission assignment: {}", err);
             return None;
         }
 
-        match context.mav_id_from_vehicle_id(&vehicle_mission.unwrap().vehicle_id) {
+        match context.mav_id_from_vehicle_id(&assignment.unwrap().vehicle_id) {
             Some(mav_id) => Some(mav_id),
             None => {
                 log::error!("No MAVLink vehicle for mission: {:?}", &mission_id);
@@ -45,7 +45,7 @@ impl MissionHandler {
 
     async fn activate_status(&mut self, mission_id: &MissionId) -> Option<MissionStatus> {
         let context = self.context.lock().await;
-        let status = context.registry.missions.mission_status(mission_id).await;
+        let status = context.dal.mission_status(mission_id).await;
         if let Err(err) = status {
             log::error!("Error getting mission status: {}", err);
             return None;
@@ -77,7 +77,7 @@ impl MissionHandler {
         self.mav_active_statuses.insert(mav_id, status.clone());
 
         let context = self.context.lock().await;
-        if let Err(err) = context.registry.missions.update_status(&status).await {
+        if let Err(err) = context.dal.update_mission_status(status).await {
             log::error!("Error updating mission status: {}", err);
         }
     }
@@ -94,7 +94,7 @@ impl MissionHandler {
         };
 
         let context = self.context.lock().await;
-        let route = context.registry.missions.mission_route(&mission_id).await;
+        let route = context.dal.mission_route(&mission_id).await;
         if let Err(err) = route {
             log::error!("Error getting mission route: {}", err);
             return;
@@ -109,7 +109,7 @@ impl MissionHandler {
         status.state = MissionUpdateState::PrepareUpload { total };
         self.mav_active_statuses.insert(mav_id, status.clone());
 
-        if let Err(err) = context.registry.missions.update_status(&status).await {
+        if let Err(err) = context.dal.update_mission_status(status).await {
             log::error!("Error updating mission status: {}", err);
         }
     }
@@ -129,7 +129,7 @@ impl MissionHandler {
         self.mav_active_statuses.insert(mav_id, status.clone());
 
         let context = self.context.lock().await;
-        if let Err(err) = context.registry.missions.update_status(&status).await {
+        if let Err(err) = context.dal.update_mission_status(status).await {
             log::error!("Error updating mission status: {}", err);
         }
     }
@@ -137,14 +137,14 @@ impl MissionHandler {
     async fn cancel_mission_state(&mut self, mission_id: MissionId) {
         let context = self.context.lock().await;
 
-        let status = context.registry.missions.mission_status(&mission_id).await;
+        let status = context.dal.mission_status(&mission_id).await;
         if let Err(err) = status {
             log::error!("Error getting mission status: {}", err);
             return;
         }
         let mut status = status.unwrap();
         status.state = MissionUpdateState::NotActual {};
-        if let Err(err) = context.registry.missions.update_status(&status).await {
+        if let Err(err) = context.dal.update_mission_status(status).await {
             log::error!("Error updating mission status: {}", err);
         }
 
@@ -183,7 +183,7 @@ impl MissionHandler {
             },
             MissionUpdateState::Upload { total: _, progress } => {
                 let context = self.context.lock().await;
-                let route = context.registry.missions.mission_route(&status.id).await;
+                let route = context.dal.mission_route(&status.id).await;
                 if let Err(err) = route {
                     log::error!("Error getting mission route: {}", err);
                     return None;
@@ -222,11 +222,11 @@ impl MissionHandler {
             };
 
             // Crop mission items
-            match context.registry.missions.mission_route(&status.id).await {
+            match context.dal.mission_route(&status.id).await {
                 Ok(mut route) => {
                     if route.items.len() > data.count as usize {
                         route.items.truncate(data.count as usize);
-                        if let Err(err) = context.registry.missions.update_route(&route).await {
+                        if let Err(err) = context.dal.update_route(route).await {
                             log::error!("Error updating mission route: {}", err);
                         }
                     }
@@ -236,7 +236,7 @@ impl MissionHandler {
                 }
             }
 
-            if let Err(err) = context.registry.missions.update_status(&status).await {
+            if let Err(err) = context.dal.update_mission_status(status.clone()).await {
                 log::error!("Error updating mission status: {}", err);
             }
         }
@@ -258,7 +258,7 @@ impl MissionHandler {
             let context = self.context.lock().await;
 
             // Add route item, zero-based index
-            if let Err(err) = context.registry.missions.upsert_route_item(
+            if let Err(err) = context.dal.upsert_route_item(
                 &status.id,
                 protocol::mission_route_item_from_mavlink(data),
                 progress - 1
@@ -274,7 +274,7 @@ impl MissionHandler {
                 status.state = MissionUpdateState::Download { total, progress: progress + 1 };
             }
 
-            if let Err(err) = context.registry.missions.update_status(&status).await {
+            if let Err(err) = context.dal.update_mission_status(status.clone()).await {
                 log::error!("Error updating mission status: {}", err);
             }
         }
@@ -306,7 +306,7 @@ impl MissionHandler {
 
         let context = self.context.lock().await;
         status.state = MissionUpdateState::Upload { total: total, progress: data.seq };
-        if let Err(err) = context.registry.missions.update_status(&status).await {
+        if let Err(err) = context.dal.update_mission_status(status.clone()).await {
             log::error!("Error updating mission status: {}", err);
         }
     }
@@ -341,7 +341,7 @@ impl MissionHandler {
         }
 
         let context = self.context.lock().await;
-        if let Err(err) = context.registry.missions.update_status(&status).await {
+        if let Err(err) = context.dal.update_mission_status(status.clone()).await {
             log::error!("Error updating mission status: {}", err);
         }
     }

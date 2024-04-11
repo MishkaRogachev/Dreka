@@ -89,24 +89,24 @@ impl HeartbeatHandler {
                         mode = VehicleMode::None;
                     }
 
-                    if save_vehicle {
-                        if let Err(err) = context.registry.vehicles.save_vehicle(&vehicle).await {
-                            log::error!("Save vehicle description error: {:?}", &err);
-                        }
-                    }
-
                     // TODO: MAV_MODE_FLAG_MANUAL_INPUT_ENABLED, MAV_MODE_FLAG_STABILIZE_ENABLED, MAV_MODE_FLAG_GUIDED_ENABLED, MAV_MODE_FLAG_AUTO_ENABLED
 
                     let status = VehicleStatus {
-                        id: vehicle.id,
+                        id: vehicle.id.clone(),
                         last_heartbeat: chrono::prelude::Utc::now().timestamp_millis(),
                         state: VehicleState::from_mavlink(heartbeat_data.system_status),
                         armed: heartbeat_data.base_mode.intersects(MavModeFlag::MAV_MODE_FLAG_SAFETY_ARMED),
                         mode
                     };
 
+                    if save_vehicle {
+                        if let Err(err) = context.dal.save_vehicle(vehicle).await {
+                            log::error!("Save vehicle description error: {:?}", &err);
+                        }
+                    }
+
                     // Update vehicle status in registry
-                    if let Err(err) = context.registry.vehicles.update_status(&status).await {
+                    if let Err(err) = context.dal.update_vehicle_status(status).await {
                         log::error!("Save vehicle status error: {:?}", &err);
                     }
                 },
@@ -118,7 +118,7 @@ impl HeartbeatHandler {
     async fn obtain_vehicle(&mut self, mav_id: u8) -> anyhow::Result<Option<VehicleDescription>> {
         let mut context = self.context.lock().await;
         let protocol_id = ProtocolId::MavlinkId { mav_id };
-        let vehicle = context.registry.vehicles.vehicle_by_protocol_id(&protocol_id).await?;
+        let vehicle = context.dal.vehicle_by_protocol_id(&protocol_id).await?;
         match vehicle {
             Some(vehicle) => {
                 context.mav_vehicles.insert(mav_id, vehicle.id.clone());
@@ -127,7 +127,7 @@ impl HeartbeatHandler {
             None => {
                 if AUTO_ADD_VEHICLES {
                     // Create new vehicle with idle mission
-                    let vehicle = context.registry.vehicles.save_vehicle(&VehicleDescription {
+                    let vehicle = context.dal.save_vehicle(VehicleDescription {
                         id: String::new(),
                         protocol_id,
                         name: format!("New Vehicle (MAV {})", mav_id).into(),
@@ -136,7 +136,7 @@ impl HeartbeatHandler {
                         features: Vec::new(),
                         available_modes: Vec::new()
                     }).await?;
-                    context.registry.missions.create_new_mission(&vehicle.id).await?;
+                    context.dal.create_new_mission(&vehicle.id).await?;
                     context.mav_vehicles.insert(mav_id, vehicle.id.clone());
                     log::info!("New MAVLink vehicle created: {:?}", &vehicle.id);
                     return Ok(Some(vehicle));

@@ -1,19 +1,19 @@
 use crate::models::events::{ClientEvent, ServerEvent};
-use crate::middleware::{bus, registry};
+use crate::{bus::bus, dal::dal};
 
 #[derive(Clone)]
 pub struct ApiContext {
-    pub registry: registry::Registry,
+    pub dal: dal::Dal,
     pub server_bus: bus::EventBus::<ServerEvent>,
     pub client_bus: bus::EventBus::<ClientEvent>,
 }
 
 impl ApiContext {
     pub fn new(
-        registry: registry::Registry,
+        dal: dal::Dal,
         server_bus: bus::EventBus::<ServerEvent>,
         client_bus: bus::EventBus::<ClientEvent>,
     ) -> Self {
-        Self { registry, server_bus, client_bus }
+        Self { dal, server_bus, client_bus }
     }
 }

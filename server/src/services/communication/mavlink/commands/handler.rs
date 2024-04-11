@@ -36,7 +36,7 @@ impl CommandHandler {
             executor: request.executor.clone(),
         };
 
-        if let Err(err) = context.registry.commands.save_execution(&execution).await {
+        if let Err(err) = context.dal.save_command_execution(execution).await {
             log::error!("Error saving command execution: {}", err);
         }
     }
@@ -46,7 +46,7 @@ impl CommandHandler {
 
         // Mark as finished
         execution.state = state;
-        if let Err(err) = context.registry.commands.update_execution(execution.clone()) {
+        if let Err(err) = context.dal.update_command_execution(execution.clone()) {
             log::error!("Error updating command execution: {}", err);
         }
 
@@ -61,7 +61,7 @@ impl CommandHandler {
         }
 
         self.executions_last_sent.remove(&execution.id);
-        if let Err(err) = context.registry.commands.remove_execution(&execution.id).await {
+        if let Err(err) = context.dal.remove_command_execution(&execution.id).await {
             log::error!("Error removing command execution: {}", err);
         }
     }
@@ -69,7 +69,7 @@ impl CommandHandler {
     async fn cancel_command_execution(&mut self, command_id: CommandId) {
         let execution; {
             let context = self.context.lock().await;
-            match context.registry.commands.get_execution(&command_id).await {
+            match context.dal.get_command_execution(&command_id).await {
                 Ok(exec) => execution = exec,
                 Err(err) => {
                     log::error!("Error getting command execution: {}", err);
@@ -88,7 +88,7 @@ impl CommandHandler {
         execution.state = state;
 
         let context = self.context.lock().await;
-        if let Err(err) = context.registry.commands.save_execution(&execution).await {
+        if let Err(err) = context.dal.save_command_execution(execution).await {
             log::error!("Error saving command execution: {}", err);
         }
     }
@@ -194,7 +194,7 @@ impl CommandHandler {
 
         let executions: Vec<CommandExecution>; {
             let context = self.context.lock().await;
-            match context.registry.commands.get_all_executions().await {
+            match context.dal.get_all_command_executions().await {
                 Ok(execs) => executions = execs,
                 Err(err) => {
                     log::error!("Error getting executions: {}", err);
@@ -219,7 +219,7 @@ impl CommandHandler {
 
         let execution: CommandExecution; {
             let context = self.context.lock().await;
-            match context.registry.commands.get_execution(&id.clone().unwrap()).await {
+            match context.dal.get_command_execution(&id.clone().unwrap()).await {
                 Ok(exec) => execution = exec,
                 Err(err) => {
                     log::error!("Can't command execution for ack: {}", err);

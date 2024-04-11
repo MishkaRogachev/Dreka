@@ -45,18 +45,17 @@ pub struct MissionRoute {
     pub items: Vec<MissionRouteItem>,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+pub struct MissionAssignment {
+    pub id: MissionId,
+    pub vehicle_id: VehicleId,
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct MissionStatus {
     pub id: MissionId,
     pub state: MissionUpdateState,
     pub progress: MissionProgress,
-}
-
-// TODO: get rid of this struct
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
-pub struct VehicleMission {
-    pub id: MissionId,
-    pub vehicle_id: VehicleId,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]

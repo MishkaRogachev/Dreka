@@ -2,26 +2,18 @@ use std::collections::HashMap;
 
 use crate::models::events::ServerEvent;
 use crate::models::vehicles::{VehicleId, VehicleMode};
-use crate::middleware::{bus, registry};
+use crate::{bus::bus, dal::dal};
 
 pub struct MavlinkContext {
-    pub registry: registry::Registry, // TODO: move registry from context to handlers to reduce mutex locks
+    pub dal: dal::Dal, // TODO: move dal from context to handlers to reduce mutex locks
     pub server_bus: bus::EventBus::<ServerEvent>,
     pub mav_vehicles: HashMap<u8, VehicleId>,
     pub mav_modes: HashMap<u8, HashMap<u32, VehicleMode>>,
 }
 
 impl MavlinkContext {
-    pub fn new(
-        registry: registry::Registry,
-        server_bus: bus::EventBus<ServerEvent>
-    ) -> Self {
-        Self {
-            registry,
-            server_bus,
-            mav_vehicles: HashMap::new(),
-            mav_modes: HashMap::new()
-        }
+    pub fn new(dal: dal::Dal, server_bus: bus::EventBus<ServerEvent>) -> Self {
+        Self { dal, server_bus, mav_vehicles: HashMap::new(), mav_modes: HashMap::new() }
     }
 
     pub fn vehicle_id_from_mav_id(&self, mav_id: &u8) -> Option<VehicleId>{

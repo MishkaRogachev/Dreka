@@ -3,8 +3,9 @@ use tokio::{time, sync::Mutex};
 use tokio_util::sync::CancellationToken;
 use mavlink;
 
-use crate::models::events::{ClientEvent, ServerEvent};
-use crate::{middleware::{registry, bus}, models::communication};
+use crate::models::{events::{ClientEvent, ServerEvent}, communication};
+use crate::{bus::bus, dal::dal};
+
 use crate::services::communication::traits;
 
 use super::context::MavlinkContext;
@@ -18,7 +19,7 @@ const RESET_STATS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_
 const ONLINE_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(2000);
 
 pub struct MavlinkConnection {
-    registry: registry::Registry,
+    dal: dal::Dal,
     server_bus: bus::EventBus::<ServerEvent>,
     client_bus: bus::EventBus::<ClientEvent>,
     mav_address: String,
@@ -37,14 +38,14 @@ struct MavlinkConnectionInternal {
 
 impl MavlinkConnection {
     pub fn new(
-        registry: registry::Registry,
+        dal: dal::Dal,
         server_bus: bus::EventBus::<ServerEvent>,
         client_bus: bus::EventBus::<ClientEvent>,
         link_type: &communication::LinkType,
         protocol: &communication::MavlinkProtocolVersion
     ) -> Self {
         Self {
-            registry,
+            dal,
             server_bus,
             client_bus,
             mav_address: link_type.to_mavlink(),
@@ -93,7 +94,7 @@ impl traits::IConnection for MavlinkConnection {
 
         let mut last_stats_reset = time::Instant::now();
         let mav_context = Arc::new(Mutex::new(MavlinkContext::new(
-            self.registry.clone(),
+            self.dal.clone(),
             self.server_bus.clone(),
         )));
         let internal = self.internal.clone();

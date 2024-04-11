@@ -6,7 +6,7 @@ use super::context::ApiContext;
 #[post("/comm/links/save")]
 pub async fn post_link(context: web::Data<ApiContext>, link: web::Json<LinkDescription>) -> impl Responder {
     let link = link.into_inner();
-    let result = context.registry.communication.save_link(&link).await;
+    let result = context.dal.save_link(link).await;
 
     match result {
         Ok(link) => {
@@ -22,7 +22,7 @@ pub async fn post_link(context: web::Data<ApiContext>, link: web::Json<LinkDescr
 #[delete("/comm/links/remove/{link_id}")]
 pub async fn delete_link(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let link_id: LinkId = path.into_inner();
-    let result = context.registry.communication.delete_link(&link_id).await;
+    let result = context.dal.delete_link(&link_id).await;
 
     if let Err(err) = result {
         log::warn!("REST error: {}", &err); // TODO: add path here
@@ -45,7 +45,7 @@ pub async fn set_link_connected(context: web::Data<ApiContext>, path: web::Path<
 #[get("/comm/links/description/{link_id}")]
 pub async fn get_description(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let link_id: LinkId = path.into_inner();
-    let result = context.registry.communication.link(&link_id).await;
+    let result = context.dal.link(&link_id).await;
 
     match result {
         Ok(link) => return HttpResponse::Ok().json(link),
@@ -58,7 +58,7 @@ pub async fn get_description(context: web::Data<ApiContext>, path: web::Path<Str
 
 #[get("/comm/links/descriptions")]
 pub async fn get_descriptions(context: web::Data<ApiContext>) -> impl Responder {
-    let result = context.registry.communication.all_links().await;
+    let result = context.dal.all_links().await;
 
     match result {
         Ok(links) => return HttpResponse::Ok().json(links),
@@ -72,7 +72,7 @@ pub async fn get_descriptions(context: web::Data<ApiContext>) -> impl Responder 
 #[get("/comm/links/status/{link_id}")]
 pub async fn get_status(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let link_id: LinkId = path.into_inner();
-    let result = context.registry.communication.status(&link_id).await;
+    let result = context.dal.link_status(&link_id).await;
 
     match result {
         Ok(status) => {
@@ -87,7 +87,7 @@ pub async fn get_status(context: web::Data<ApiContext>, path: web::Path<String>)
 
 #[get("/comm/links/statuses")]
 pub async fn get_statuses(context: web::Data<ApiContext>) -> impl Responder {
-    let result = context.registry.communication.all_statuses().await;
+    let result = context.dal.all_links_statuses().await;
 
     match result {
         Ok(statuses) => return HttpResponse::Ok().json(statuses),

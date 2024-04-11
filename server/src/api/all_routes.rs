@@ -3,7 +3,7 @@ use actix_cors::Cors;
 use actix_web::{get, App, HttpServer, web::Data, Responder, HttpResponse};
 
 use crate::models::events::{ClientEvent, ServerEvent};
-use crate::middleware::{bus, registry};
+use crate::{bus::bus, dal::dal};
 
 #[get("/")]
 async fn ping() -> impl Responder {
@@ -11,12 +11,12 @@ async fn ping() -> impl Responder {
 }
 
 pub async fn serve(
-        registry: registry::Registry,
+        dal: dal::Dal,
         server_bus: bus::EventBus::<ServerEvent>,
         client_bus: bus::EventBus::<ClientEvent>,
         address: &SocketAddr
     ) -> anyhow::Result<()> {
-    let context = super::context::ApiContext::new(registry, server_bus, client_bus);
+    let context = super::context::ApiContext::new(dal, server_bus, client_bus);
 
     let result = HttpServer::new(move || {
         let cors = Cors::permissive();
