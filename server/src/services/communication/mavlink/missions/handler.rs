@@ -9,6 +9,7 @@ use super::{super::context::MavlinkContext, protocol};
 
 const MISSION_RESEND_INTERVAL: time::Duration = time::Duration::from_millis(2000);
 
+// TODO: universal Handler, get rid of mavlink context 
 pub struct MissionHandler {
     context: Arc<Mutex<MavlinkContext>>,
     client_events_rx: Receiver<ClientEvent>,
@@ -142,6 +143,8 @@ impl MissionHandler {
             log::error!("Error getting mission status: {}", err);
             return;
         }
+
+        log::info!("Cancel mission operation");
         let mut status = status.unwrap();
         status.state = MissionUpdateState::NotActual {};
         if let Err(err) = context.dal.update_mission_status(status).await {
@@ -179,17 +182,24 @@ impl MissionHandler {
                 return Some(protocol::request_mission_item(mav_id, progress));
             },
             MissionUpdateState::PrepareUpload { total } => {
-                return Some(protocol::send_mission_count(mav_id, total));
+                // NOTE: +1 for HOME item
+                return Some(protocol::send_mission_count(mav_id, total + 1));
             },
             MissionUpdateState::Upload { total: _, progress } => {
                 let context = self.context.lock().await;
+
+                if progress == 0 {
+                    log::warn!("Requested home item through upload sequence, skipping");
+                    return None;
+                }
+
                 let route = context.dal.mission_route(&status.id).await;
                 if let Err(err) = route {
                     log::error!("Error getting mission route: {}", err);
                     return None;
                 }
                 let route = route.unwrap();
-                let item = route.items.get((progress - 1) as usize);
+                let item = route.items.get((progress - 1) as usize); // NOTE: -1 for HOME item
                 if item.is_none() {
                     log::error!("No mission item at index {}", progress);
                     return None;
@@ -250,10 +260,16 @@ impl MissionHandler {
 
         if let MissionUpdateState::Download { total, progress } = status.state {
             if data.seq != progress {
-                log::info!("Unexpected mission item sequence: {} (expected: {})", data.seq, progress);
+                log::warn!("Unexpected mission item {} from MAVLink {}", data.seq, mav_id);
                 return;
             }
             log::info!("Got item {} from MAVLink {}", data.seq, mav_id);
+
+            if data.seq == 0 {
+                log::warn!("Requested home item through download sequence, skipping");
+                // TODO: send home item
+                return;
+            }
 
             let context = self.context.lock().await;
 
@@ -261,7 +277,7 @@ impl MissionHandler {
             if let Err(err) = context.dal.upsert_route_item(
                 &status.id,
                 protocol::mission_route_item_from_mavlink(data),
-                progress - 1
+                progress - 1 // NOTE: -1 for HOME item
             ).await {
                 log::error!("Error setting mission route item: {}", err);
             }
@@ -287,15 +303,8 @@ impl MissionHandler {
         };
 
         let total = match status.state {
-            MissionUpdateState::PrepareUpload { total } => {
-                total
-            },
-            MissionUpdateState::Upload { total, progress } => {
-                if progress != data.seq {
-                    log::info!("Unexpected mission item sequence: {} (expected: {})", data.seq, progress);
-                }
-                total
-            },
+            MissionUpdateState::PrepareUpload { total } => total,
+            MissionUpdateState::Upload { total, progress: _ } => total,
             _ => {
                 log::info!("Unexpected mission item {} requested from MAVLink {}", data.seq, mav_id);
                 return;
@@ -305,7 +314,7 @@ impl MissionHandler {
         log::info!("Mission item {} requested from MAVLink {}", data.seq, mav_id);
 
         let context = self.context.lock().await;
-        status.state = MissionUpdateState::Upload { total: total, progress: data.seq };
+        status.state = MissionUpdateState::Upload { total, progress: data.seq };
         if let Err(err) = context.dal.update_mission_status(status.clone()).await {
             log::error!("Error updating mission status: {}", err);
         }

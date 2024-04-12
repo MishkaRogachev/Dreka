@@ -16,6 +16,7 @@ impl Dal {
 
             let new_vehicle = self.dao.create(TB_VEHICLE_DESCRIPTIONS, vehicle).await?;
             self.dao.create(TB_VEHICLE_STATUSES, VehicleStatus::default_for_id(&new_vehicle.id)).await?;
+            self.create_new_mission(&new_vehicle.id).await?;
             new_vehicle
         } else {
             self.dao.update(TB_VEHICLE_DESCRIPTIONS, vehicle).await?
@@ -26,6 +27,11 @@ impl Dal {
     }
 
     pub async fn delete_vehicle(&self, vehicle_id: &VehicleId) -> anyhow::Result<()> {
+        let mission_for_vehicle = self.mission_assignment_by_vehicle_id(&vehicle_id).await?;
+        if let Some(mission_for_vehicle) = mission_for_vehicle {
+            self.delete_mission(&mission_for_vehicle.id).await?
+        }
+
         self.dao.delete(TB_VEHICLE_STATUSES, vehicle_id).await?;
         self.dao.delete(TB_VEHICLE_DESCRIPTIONS, vehicle_id).await?;
 

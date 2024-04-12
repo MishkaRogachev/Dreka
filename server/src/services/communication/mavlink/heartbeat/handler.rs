@@ -136,7 +136,6 @@ impl HeartbeatHandler {
                         features: Vec::new(),
                         available_modes: Vec::new()
                     }).await?;
-                    context.dal.create_new_mission(&vehicle.id).await?;
                     context.mav_vehicles.insert(mav_id, vehicle.id.clone());
                     log::info!("New MAVLink vehicle created: {:?}", &vehicle.id);
                     return Ok(Some(vehicle));
