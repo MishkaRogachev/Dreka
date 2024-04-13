@@ -26,11 +26,11 @@ impl Dal {
         Ok(())
     }
 
-    pub async fn get_command_execution(&self, id: &CommandId) -> anyhow::Result<CommandExecution> {
+    pub async fn command_execution(&self, id: &CommandId) -> anyhow::Result<CommandExecution> {
         self.dao.select_one(TB_COMMANDS_EXECUTIONS, id).await
     }
 
-    pub async fn get_all_command_executions(&self) -> anyhow::Result<Vec<CommandExecution>> {
+    pub async fn all_command_executions(&self) -> anyhow::Result<Vec<CommandExecution>> {
         self.dao.select_all(TB_COMMANDS_EXECUTIONS).await
     }
 }

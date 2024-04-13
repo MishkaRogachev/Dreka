@@ -1,5 +1,5 @@
 import { type VehicleDescription } from '$bindings/vehicles';
-import type { Flight } from '$bindings/telemetry';
+import type { Flight, Navigation } from '$bindings/telemetry';
 import { toColorCode } from '$bindings/colors';
 
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
@@ -41,15 +41,13 @@ export class MapVehicleCesium {
     }
 
     updateFromFlight(flight: Flight) {
-        const cartesian = cartesianFromGeodetic(flight.position, 0); // TODO: home altitude
-        const isCartesianValid = cartesian !== Cesium.Cartesian3.ZERO;
-
-        this.model.setCartesian(cartesian);
-        this.model.setVisible(isCartesianValid); // TODO: hide set visible to setCartesian
         this.model.setHpr(flight.yaw, flight.pitch, flight.roll);
+    }
 
+    updateFromNavigation(navigation: Navigation) {
+        const cartesian = cartesianFromGeodetic(navigation.position, 0); // TODO: home altitude
+        this.model.setCartesian(cartesian);
         this.pylon.setCartesian(cartesian);
-        this.pylon.setVisible(isCartesianValid);
 
         if (cartesian !== Cesium.Cartesian3.ZERO && !this.cartesian().equals(cartesian)) {
             this.path.addCartesian(cartesian);

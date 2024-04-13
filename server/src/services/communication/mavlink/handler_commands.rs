@@ -1,34 +1,14 @@
-use std::{collections::HashMap, sync::Arc};
-use tokio::{time, sync::Mutex, sync::broadcast::Receiver};
-use mavlink::{MavHeader, common::*};
+use tokio::time;
+use mavlink::common::*;
 
 use crate::models::commands::*;
-use crate::models::events::ClientEvent;
-use super::{super::context::MavlinkContext, protocol};
+use super::{handler, protocol::commands as protocol};
 
 const MAX_COMMAND_SEND_ATTEMPTS: u8 = 5;
 const COMMAND_RESEND_INTERVAL: time::Duration = time::Duration::from_millis(2000);
 
-pub struct CommandHandler {
-    context: Arc<Mutex<MavlinkContext>>,
-    client_events_rx: Receiver<ClientEvent>,
-    executions_last_sent: HashMap<CommandId, time::Instant>,
-    waiting_ack_executions: HashMap<(u16, u8), CommandId>
-}
-
-impl CommandHandler {
-    pub fn new(context: Arc<Mutex<MavlinkContext>>, client_events_rx: Receiver<ClientEvent>) -> Self {
-        Self {
-            context,
-            client_events_rx,
-            executions_last_sent: HashMap::new(),
-            waiting_ack_executions: HashMap::new()
-        }
-    }
-
-    async fn add_command_execution(&mut self, request: ExecuteCommandRequest, command_id: CommandId) {
-        let context = self.context.lock().await;
-
+impl handler::Handler {
+    pub async fn add_command_execution(&mut self, request: ExecuteCommandRequest, command_id: CommandId) {
         let execution = CommandExecution {
             id: command_id.clone(),
             command: request.command.clone(),
@@ -36,17 +16,15 @@ impl CommandHandler {
             executor: request.executor.clone(),
         };
 
-        if let Err(err) = context.dal.save_command_execution(execution).await {
+        if let Err(err) = self.dal.save_command_execution(execution).await {
             log::error!("Error saving command execution: {}", err);
         }
     }
 
-    async fn finish_comand_execution(&mut self, mut execution: CommandExecution, state: CommandState) {
-        let context = self.context.lock().await;
-
+    pub async fn finish_comand_execution(&mut self, mut execution: CommandExecution, state: CommandState) {
         // Mark as finished
         execution.state = state;
-        if let Err(err) = context.dal.update_command_execution(execution.clone()) {
+        if let Err(err) = self.dal.update_command_execution(execution.clone()) {
             log::error!("Error updating command execution: {}", err);
         }
 
@@ -61,15 +39,14 @@ impl CommandHandler {
         }
 
         self.executions_last_sent.remove(&execution.id);
-        if let Err(err) = context.dal.remove_command_execution(&execution.id).await {
+        if let Err(err) = self.dal.remove_command_execution(&execution.id).await {
             log::error!("Error removing command execution: {}", err);
         }
     }
 
-    async fn cancel_command_execution(&mut self, command_id: CommandId) {
+    pub async fn cancel_command_execution(&mut self, command_id: CommandId) {
         let execution; {
-            let context = self.context.lock().await;
-            match context.dal.get_command_execution(&command_id).await {
+            match self.dal.command_execution(&command_id).await {
                 Ok(exec) => execution = exec,
                 Err(err) => {
                     log::error!("Error getting command execution: {}", err);
@@ -87,21 +64,8 @@ impl CommandHandler {
     async fn save_command_execution(&mut self, mut execution: CommandExecution, state: CommandState) {
         execution.state = state;
 
-        let context = self.context.lock().await;
-        if let Err(err) = context.dal.save_command_execution(execution).await {
+        if let Err(err) = self.dal.save_command_execution(execution).await {
             log::error!("Error saving command execution: {}", err);
-        }
-    }
-
-    async fn handle_client_event(&mut self, event: ClientEvent) {
-        match event {
-            ClientEvent::ExecuteCommand { request, command_id } => {
-                self.add_command_execution(request, command_id).await;
-            },
-            ClientEvent::CancelCommand { command_id } => {
-                self.cancel_command_execution(command_id).await;
-            },
-            _ => {}
         }
     }
 
@@ -116,11 +80,7 @@ impl CommandHandler {
         // Get MAV ID for Vehicle
         let mav_id; {
             if let CommandExecutor::Vehicle { ref vehicle_id } = execution.executor {
-                let mav_id_opt;
-                {
-                    let context = self.context.lock().await;
-                    mav_id_opt = context.mav_id_from_vehicle_id(&vehicle_id);
-                }
+                let mav_id_opt = self.mav_id_from_vehicle_id(&vehicle_id);
                 if mav_id_opt.is_none() {
                     log::warn!("Vehicle not found: {}", vehicle_id);
                     self.finish_comand_execution(execution, CommandState::Failed {}).await;
@@ -155,8 +115,7 @@ impl CommandHandler {
             let encoded: Option<protocol::EncodedCommand>;
 
             if let Command::SetMode { mode } = &execution.command {
-                let context = self.context.lock().await;
-                let modes = context.mav_modes.get(&mav_id);
+                let modes = self.mav_modes.get(&mav_id);
                 if modes.is_none() {
                     log::warn!("Modes are not initialised for vehicle: {}", mav_id);
                     return None;
@@ -189,12 +148,11 @@ impl CommandHandler {
         None
     }
 
-    async fn collect_execution_messages(&mut self) -> Vec<MavMessage> {
+    pub async fn collect_command_messages(&mut self) -> Vec<MavMessage> {
         let mut messages = Vec::new();
 
         let executions: Vec<CommandExecution>; {
-            let context = self.context.lock().await;
-            match context.dal.get_all_command_executions().await {
+            match self.dal.all_command_executions().await {
                 Ok(execs) => executions = execs,
                 Err(err) => {
                     log::error!("Error getting executions: {}", err);
@@ -211,15 +169,14 @@ impl CommandHandler {
         messages
     }
 
-    async fn handle_ack(&mut self, mav_id: u8, ack: &COMMAND_ACK_DATA) {
+    pub async fn handle_command_ack(&mut self, mav_id: u8, ack: &COMMAND_ACK_DATA) {
         let id = self.waiting_ack_executions.get(&(ack.command as u16, mav_id));
         if id.is_none() {
             return;
         }
 
         let execution: CommandExecution; {
-            let context = self.context.lock().await;
-            match context.dal.get_command_execution(&id.clone().unwrap()).await {
+            match self.dal.command_execution(&id.clone().unwrap()).await {
                 Ok(exec) => execution = exec,
                 Err(err) => {
                     log::error!("Can't command execution for ack: {}", err);
@@ -251,27 +208,6 @@ impl CommandHandler {
             MavResult::MAV_RESULT_CANCELLED => {
                 self.finish_comand_execution(execution, CommandState::Canceled {}).await
             },
-        }
-    }
-
-    pub async fn prepare_messages(&mut self) -> Vec<MavMessage> {
-        match self.client_events_rx.try_recv() {
-            Ok(event) => self.handle_client_event(event).await,
-            Err(err) => {
-                if err != tokio::sync::broadcast::error::TryRecvError::Empty {
-                    log::error!("RX error: {}", err);
-                }
-            }
-        }
-        self.collect_execution_messages().await
-    }
-
-    pub async fn handle_message(&mut self, header: &MavHeader, msg: &MavMessage) {
-        match msg {
-            MavMessage::COMMAND_ACK(ack) => {
-                self.handle_ack(header.system_id, ack).await;
-            },
-            _ => {}
         }
     }
 }

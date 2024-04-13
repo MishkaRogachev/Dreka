@@ -1,39 +1,9 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::{spatial::Geodetic, vehicles::VehicleId};
+use super::spatial::Geodetic;
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
-pub struct Flight {
-    pub pitch: f32,
-    pub roll: f32,
-    pub yaw: f32,
-
-    pub position: Geodetic,
-    pub target_position: Geodetic,
-
-    pub indicated_airspeed: f32,
-    pub true_airspeed: f32,
-    pub ground_speed: f32,
-
-    pub throttle: u16,
-
-    pub altitude_amsl: f32,
-    pub climb: f32,
-
-    pub wp_distance: f32,
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
-pub struct Navigation {
-    pub position: Geodetic,
-    pub course: f32,
-    pub ground_speed: f32,
-    pub fix: u8,
-    pub eph: u16,
-    pub epv: u16,
-    pub satellites_visible: u8,
-}
+pub type TelemetryId = String;
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum SensorType {
@@ -54,6 +24,51 @@ pub enum SensorType {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+pub struct Flight {
+    pub id: TelemetryId,
+    pub timestamp: i64,
+
+    pub pitch: f32,
+    pub roll: f32,
+    pub yaw: f32,
+
+    pub indicated_airspeed: f32,
+    pub true_airspeed: f32,
+    pub ground_speed: f32,
+
+    pub throttle: u16,
+
+    pub altitude_amsl: f32,
+    pub climb: f32,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+pub struct Navigation {
+    pub id: TelemetryId,
+    pub timestamp: i64,
+
+    pub position: Geodetic,
+    pub target_position: Geodetic,
+    pub home_position: Geodetic,
+    pub wp_distance: f32,
+    pub current_wp: u16,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+pub struct RawSns {
+    pub id: TelemetryId,
+    pub timestamp: i64,
+
+    pub position: Geodetic,
+    pub course: f32,
+    pub ground_speed: f32,
+    pub fix: u8,
+    pub eph: u16,
+    pub epv: u16,
+    pub satellites_visible: u8
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct Sensor {
     pub name: String,
     pub sensor: SensorType,
@@ -63,6 +78,9 @@ pub struct Sensor {
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct System {
+    pub id: TelemetryId,
+    pub timestamp: i64,
+
     pub sensors: Vec<Sensor>,
     pub arm_ready: bool,
 
@@ -71,43 +89,43 @@ pub struct System {
     pub battery_remaining: i8
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
-pub struct VehicleTelemetry {
-    pub vehicle_id: VehicleId,
-    pub timestamp: i64,
-
-    pub flight: Option<Flight>,
-    pub navigation: Option<Navigation>,
-    pub system: Option<System>
-}
-
-impl Default for Flight {
-    fn default() -> Flight {
+impl Flight {
+    pub fn default_for_id(id: &TelemetryId) -> Self {
         Self {
+            id: id.clone(),
+            timestamp: 0,
             pitch: 0.0,
             roll: 0.0,
             yaw: 0.0,
-
-            position: Geodetic::default(),
-            target_position: Geodetic::default(),
-
             indicated_airspeed: 0.0,
             true_airspeed: 0.0,
             ground_speed: 0.0,
-
             throttle: 0,
-
             altitude_amsl: 0.0,
-            climb: 0.0,
-
-            wp_distance: 0.0,
+            climb: 0.0
         }
     }
 }
 
-impl Default for Navigation {
-    fn default() -> Navigation {
+impl Navigation {
+    pub fn default_for_id(id: &TelemetryId) -> Self {
         Self {
+            id: id.clone(),
+            timestamp: 0,
+            position: Geodetic::default(),
+            target_position: Geodetic::default(),
+            home_position: Geodetic::default(),
+            wp_distance: 0.0,
+            current_wp: 0
+        }
+    }
+}
+
+impl RawSns {
+    pub fn default_for_id(id: &TelemetryId) -> Self {
+        Self {
+            id: id.clone(),
+            timestamp: 0,
             position: Geodetic::default(),
             course: 0.0,
             ground_speed: 0.0,
@@ -119,9 +137,11 @@ impl Default for Navigation {
     }
 }
 
-impl Default for System {
-    fn default() -> System {
+impl System {
+    pub fn default_for_id(id: &TelemetryId) -> Self {
         Self {
+            id: id.clone(),
+            timestamp: 0,
             sensors: Vec::new(),
             arm_ready: false,
             battery_current: 0.0,

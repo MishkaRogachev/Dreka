@@ -7,9 +7,8 @@ import * as Cesium from 'cesium';
 import type { MapInteractionCesium } from "$lib/map/cesium/interaction";
 import { MapVehicleCesium } from "$lib/map/cesium/vehicle";
 
-import type { VehicleTelemetry } from "$bindings/telemetry";
 import { Vehicle, vehicles, selectedVehicleID } from "$stores/vehicles";
-import { vehiclesTelemetry } from "$stores/telemetry";
+import { type VehicleTelemetry, vehiclesTelemetry } from "$stores/telemetry";
 
 export let cesium: Cesium.Viewer;
 export let interaction: MapInteractionCesium;
@@ -42,8 +41,10 @@ onMount(async () => {
 
     vehiclesTelemetry.subscribe((tmi: Map<string, VehicleTelemetry>) => {
         tmi.forEach((tmi: VehicleTelemetry, vehicleID: string) => {
-            if (mapVehicles.has(vehicleID) && tmi.flight) {
-                mapVehicles.get(vehicleID)!.updateFromFlight(tmi.flight);
+            let vehicle = mapVehicles.get(vehicleID);
+            if (vehicle) {
+                vehicle.updateFromFlight(tmi.flight);
+                vehicle.updateFromNavigation(tmi.navigation);
             }
         });
     })

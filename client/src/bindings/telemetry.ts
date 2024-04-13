@@ -1,21 +1,38 @@
 import { type Geodetic } from "$bindings/spatial";
 
 export interface Flight {
+    id: string,
+    timestamp: number,
+
     pitch: number,
     roll: number,
     yaw: number,
-    position: Geodetic,
-    target_position: Geodetic,
+
     indicated_airspeed: number,
     true_airspeed: number,
     ground_speed: number,
+
     throttle: number,
+
     altitude_amsl: number,
     climb: number,
-    wp_distance: number
 }
 
 export interface Navigation {
+    id: string,
+    timestamp: number,
+
+    position: Geodetic,
+    target_position: Geodetic,
+    home_position: Geodetic,
+    wp_distance: number,
+    current_wp: number,
+}
+
+export interface RawSns {
+    id: string,
+    timestamp: number,
+
     position: Geodetic,
     course: number,
     ground_speed: number,
@@ -50,25 +67,13 @@ export interface Sensor {
 }
 
 export interface System {
+    id: string,
+    timestamp: number,
+
     sensors: Array<Sensor>,
     arm_ready: boolean,
+
     battery_current: number,
     battery_voltage: number,
     battery_remaining: number
-}
-
-export class VehicleTelemetry {
-    constructor() {
-        this.vehicle_id = "";
-        this.timestamp = Date.now();
-        this.flight = undefined;
-        this.navigation = undefined;
-        this.system = undefined;
-    }
-
-    vehicle_id: string
-    timestamp: number
-    flight?: Flight
-    navigation?: Navigation
-    system?: System
 }

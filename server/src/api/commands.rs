@@ -33,7 +33,7 @@ pub async fn cancel_command(context: web::Data<ApiContext>, request: web::Json<C
 #[get("/commands/execution/{command_id}")]
 pub async fn get_command_execution(context: web::Data<ApiContext>, path: web::Path<String>) -> impl Responder {
     let command_id = &path.into_inner();
-    let result = context.dal.get_command_execution(command_id).await;
+    let result = context.dal.command_execution(command_id).await;
 
     match result {
         Ok(execution) => return HttpResponse::Ok().json(execution),
@@ -46,7 +46,7 @@ pub async fn get_command_execution(context: web::Data<ApiContext>, path: web::Pa
 
 #[get("/commands/executions")]
 pub async fn get_command_executions(context: web::Data<ApiContext>) -> impl Responder {
-    let result = context.dal.get_all_command_executions().await;
+    let result = context.dal.all_command_executions().await;
 
     match result {
         Ok(executions) => return HttpResponse::Ok().json(executions),

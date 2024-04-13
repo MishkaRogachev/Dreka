@@ -8,11 +8,7 @@ use crate::{bus::bus, dal::dal};
 
 use crate::services::communication::traits;
 
-use super::context::MavlinkContext;
-use super::heartbeat::handler::HeartbeatHandler;
-use super::telemetry::handler::TelemetryHandler;
-use super::commands::handler::CommandHandler;
-use super::missions::handler::MissionHandler;
+use super::handler::Handler;
 
 const MAVLINK_POLL_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(5);
 const RESET_STATS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(1000);
@@ -25,10 +21,10 @@ pub struct MavlinkConnection {
     mav_address: String,
     mav_version: mavlink::MavlinkVersion,
     command_id: Option<CancellationToken>,
-    internal: Arc<Mutex<MavlinkConnectionInternal>>
+    statistics: Arc<Mutex<MavlinkConnectionStatistics>>
 }
 
-struct MavlinkConnectionInternal {
+struct MavlinkConnectionStatistics {
     last_recieved: time::Instant,
     bytes_received_sec: usize,
     bytes_sent_sec: usize,
@@ -51,7 +47,7 @@ impl MavlinkConnection {
             mav_address: link_type.to_mavlink(),
             mav_version: protocol.to_mavlink(),
             command_id: None,
-            internal: Arc::new(Mutex::new(MavlinkConnectionInternal {
+            statistics: Arc::new(Mutex::new(MavlinkConnectionStatistics {
                 last_recieved: time::Instant::now(),
                 bytes_received_sec: 0,
                 bytes_sent_sec: 0,
@@ -93,26 +89,15 @@ impl traits::IConnection for MavlinkConnection {
         self.command_id = Some(command_id);
 
         let mut last_stats_reset = time::Instant::now();
-        let mav_context = Arc::new(Mutex::new(MavlinkContext::new(
-            self.dal.clone(),
-            self.server_bus.clone(),
-        )));
-        let internal = self.internal.clone();
+        let statistics = self.statistics.clone();
         let cloned_mav = mav.clone();
-
-        let command_events_rx = self.client_bus.subscribe();
-        let mission_events_rx = self.client_bus.subscribe();
+        let mut handler = Handler::new(self.dal.clone(), self.server_bus.clone(), self.client_bus.subscribe());
 
         tokio::task::spawn(async move {
-            let mut heartbeat_handler = HeartbeatHandler::new(mav_context.clone());
-            let mut telemetry_handler = TelemetryHandler::new(mav_context.clone());
-            let mut command_handler = CommandHandler::new(mav_context.clone(), command_events_rx);
-            let mut mission_handler = MissionHandler::new(mav_context.clone(), mission_events_rx);
-
             loop {
                 let now = time::Instant::now();
                 if now.checked_duration_since(last_stats_reset) > Some(RESET_STATS_INTERVAL) {
-                    let mut lock = internal.lock().await;
+                    let mut lock = statistics.lock().await;
                     lock.bytes_received_sec = lock.bytes_received_current;
                     lock.bytes_sent_sec = lock.bytes_sent_current;
                     lock.bytes_received_current = 0;
@@ -123,15 +108,12 @@ impl traits::IConnection for MavlinkConnection {
                 // Parse incomming packets
                 match cloned_mav.recv() {
                     Ok((header, msg)) => {
-                        let mut lock = internal.lock().await;
+                        let mut lock = statistics.lock().await;
                         // Log last recv time and bytes
                         lock.last_recieved = now;
                         lock.bytes_received_current = lock.bytes_received_current + std::mem::size_of_val(&msg);
 
-                        heartbeat_handler.handle_message(&header, &msg).await;
-                        telemetry_handler.handle_message(&header, &msg).await;
-                        command_handler.handle_message(&header, &msg).await;
-                        mission_handler.handle_message(&header, &msg).await;
+                        handler.handle_message(&header, &msg).await;
                     },
                     Err(mavlink::error::MessageReadError::Io(err)) => {
                         match err.kind() {
@@ -141,7 +123,7 @@ impl traits::IConnection for MavlinkConnection {
                             },
                             _ => {
                                 cloned_command_id.cancel();
-                                let mut lock = internal.lock().await;
+                                let mut lock = statistics.lock().await;
                                 lock.bytes_received_sec = 0;
                                 lock.bytes_sent_sec = 0;
                                 lock.bytes_received_current = 0;
@@ -154,12 +136,8 @@ impl traits::IConnection for MavlinkConnection {
                     _ => {}
                 }
 
-                // Send commands
-                let mut messages: Vec<mavlink::common::MavMessage> = Vec::new();
-
-                messages.append(&mut command_handler.prepare_messages().await);
-                messages.append(&mut mission_handler.prepare_messages().await);
-                for command in messages {
+                // Send messages
+                for command in handler.prepare_messages().await {
                     match cloned_mav.send_default(&command) {
                         Ok(_) => {},
                         Err(error) => println!("Mavlink send message error: {:?}", error),
@@ -199,7 +177,7 @@ impl traits::IConnection for MavlinkConnection {
     }
 
     async fn is_online(&self) -> bool {
-        let last_recieved_time = self.internal.lock().await.last_recieved;
+        let last_recieved_time = self.statistics.lock().await.last_recieved;
         if time::Instant::now().checked_duration_since(last_recieved_time) < Some(ONLINE_INTERVAL) {
             return true;
         } else {
@@ -208,11 +186,11 @@ impl traits::IConnection for MavlinkConnection {
     }
 
     async fn bytes_received(&self) -> usize {
-        return self.internal.lock().await.bytes_received_sec;
+        return self.statistics.lock().await.bytes_received_sec;
     }
 
     async fn bytes_sent(&self) -> usize {
-        return self.internal.lock().await.bytes_sent_sec;
+        return self.statistics.lock().await.bytes_sent_sec;
     }
 }
 

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::communication::{LinkDescription, LinkId, LinkStatus};
 use super::vehicles::{VehicleDescription, VehicleId, VehicleStatus};
-use super::telemetry::VehicleTelemetry;
+use super::telemetry::{Flight, Navigation, RawSns, System};
 use super::commands::{CommandId, CommandExecution, ExecuteCommandRequest};
 use super::missions::{Mission, MissionId, MissionRoute, MissionRouteItem, MissionStatus};
 
@@ -37,7 +37,10 @@ pub enum ServerEvent {
     VehicleStatusUpdated { status: VehicleStatus },
 
     // Telemetry
-    TelemetryUpdated { telemetry: VehicleTelemetry },
+    FlightUpdated { vehicle_id: VehicleId, flight: Flight },
+    NavigationUpdated { vehicle_id: VehicleId, navigation: Navigation },
+    RawSnsUpdated { vehicle_id: VehicleId, raw_sns: RawSns },
+    SystemUpdated { vehicle_id: VehicleId, system: System },
 
     // Commands
     CommandExecutionUpserted { execution: CommandExecution },

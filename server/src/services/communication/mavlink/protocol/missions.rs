@@ -1,6 +1,7 @@
 use mavlink::common::*;
+
 use crate::models::{missions::*, spatial::*};
-use super::super::telemetry::protocol::*;
+use super::telemetry::*;
 
 pub fn mission_request_list(mav_id: &u8) -> MavMessage {
     log::info!("Request mission items count from MAVLink {}", mav_id);
@@ -37,6 +38,28 @@ pub fn send_mission_count(mav_id: &u8, count: u16) -> MavMessage {
         target_system: mav_id.clone(),
         target_component: MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
         // mission_type: MavMissionType::MAV_MISSION_TYPE_MISSION
+    });
+}
+
+pub fn send_mission_home_item(mav_id: &u8, position: &Geodetic) -> MavMessage {
+    log::info!("Send home position to MAVLink {}", mav_id);
+    let (frame, x, y, z) = position_to_fxyz(&position);
+    return MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
+        command: MavCmd::MAV_CMD_NAV_WAYPOINT,
+        frame,
+        x,
+        y,
+        z,
+        param1: 0.0,
+        param2: 0.0,
+        param3: 0.0,
+        param4: 0.0,
+        seq: 0,
+        //mission_type: mavlink::common::MavMissionType::MAV_MISSION_TYPE_MISSION,
+        target_system: mav_id.clone(),
+        target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
+        current: 0,
+        autocontinue: 1
     });
 }
 
@@ -250,6 +273,10 @@ pub fn mission_route_item_from_mavlink(item_data: &MISSION_ITEM_INT_DATA) -> Mis
             MissionRouteItem::Gap {}
         }
     }
+}
+
+pub fn mission_home_item_from_mavlink(item_data: &MISSION_ITEM_INT_DATA) -> Geodetic {
+    return position_from_mavlink(item_data);
 }
 
 fn position_to_fxyz(position: &Geodetic) -> (MavFrame, i32, i32, f32) {

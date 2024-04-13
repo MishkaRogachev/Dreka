@@ -1,7 +1,7 @@
 pub mod connection;
-
-mod context;
-mod heartbeat;
-mod telemetry;
-mod commands;
-mod missions;
+mod protocol;
+mod handler;
+mod handler_heartbeat;
+mod handler_telemetry;
+mod handler_commands;
+mod handler_missions;
