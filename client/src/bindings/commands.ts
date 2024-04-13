@@ -5,20 +5,25 @@ export interface Command {
     ArmDisarm?: { arm: boolean };
     SetMode?: { mode: VehicleMode };
     SetWaypoint?: { wpt: number };
+    SetHome?: { position: Geodetic };
+
     ReturnToLaunch?: {};
     NavTo?: { position: Geodetic };
-    SetReturn?: { position: Geodetic };
+
     SetAltitude?: { altitude: number };
     SetLoiterRadius?: { radius: number };
+
     CalibrateAirspeed?: {};
     CalibrateReferencePressure?: {};
     CalibrateTemperature?: {};
+
     SetAirSpeed?: { value: number };
     SetGroundSpeed?: { value: number };
     SetThrottle?: { value: number };
     ManualControl?: { pitch: number; roll: number; yaw: number; thrust: number };
     SetServo?: { channel: number; value: number };
     OverrideServos?: { servos: { [channel: number]: number } };
+
     Takeoff?: { altitude: number };
     GoAround?: {};
 }

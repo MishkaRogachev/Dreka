@@ -136,7 +136,8 @@ export class MapMissionRouteCesium implements MapMissionRoute {
     }
 
     invoke(event: MapMissionRouteEvent, item: MissionRouteItem, index: number) {
-        this.listeners.get(event)!(item, index);
+        let cb = this.listeners.get(event);
+        if (cb) cb(item, index);
     }
 
     update(route: MissionRoute) {

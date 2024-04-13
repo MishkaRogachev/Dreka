@@ -9,11 +9,11 @@ import CommandBadge from '$components/common/CommandBadge.svelte';
 
 export let vehicle: Vehicle;
 
+let modeToken: string | null = null
+
 $: currentMode = vehicle.status?.mode || VehicleMode.None;
 $: availableModes = vehicle.description.available_modes;
 $: modeExecution = modeToken ? $commandExecutions.get(modeToken) : undefined
-
-let modeToken: string | null = null
 
 async function setVehicleMode(mode: VehicleMode) {
     modeToken = await commandExecutions.executeCommand(

@@ -7,11 +7,11 @@ import CommandBadge from '$components/common/CommandBadge.svelte';
 
 export let vehicle: Vehicle;
 
+let wptToken: string | null = null
+
 $: currentWaypont = 0 // TODO: currentWaypoint
 $: availableWayponts = ["HOME"] // TODO: currentWaypoint
 $: wptExecution = wptToken ? $commandExecutions.get(wptToken) : undefined
-
-let wptToken: string | null = null
 
 async function setWaypoint(wpt: number) {
     wptToken = await commandExecutions.executeCommand(

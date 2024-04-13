@@ -84,3 +84,11 @@ export enum MapMissionRouteEvent {
 export interface MapMissionRoute {
     subscribe: (event: MapMissionRouteEvent, listener: (item: MissionRouteItem, index: number) => void) => void
 }
+
+export enum MapVehicleEvent {
+    Activated,
+    HomeChanged,
+}
+export interface MapVehicle {
+    subscribe: (event: MapVehicleEvent, listener: (position: Geodetic) => void) => void
+}

@@ -2,6 +2,7 @@ use mavlink::common::*;
 
 use crate::models::commands::Command;
 use crate::models::spatial::Geodetic;
+use super::telemetry::encode_lat_lon;
 
 fn arm_disarm(mav_id: u8, arm: bool, attempt: u8) -> MavMessage {
     log::info!("Mav: {} Arm/Disarm: {}", mav_id, arm);
@@ -17,6 +18,25 @@ fn arm_disarm(mav_id: u8, arm: bool, attempt: u8) -> MavMessage {
         target_system: mav_id,
         target_component: mavlink::common::MavComponent::MAV_COMP_ID_ALL as u8,
         confirmation: attempt,
+    })
+}
+
+fn set_home(mav_id: u8, position: &Geodetic) -> MavMessage {
+    log::info!("Mav: {} SetHome: {:?}", mav_id, position);
+    MavMessage::COMMAND_INT(COMMAND_INT_DATA{
+        param1: 0.0,
+        param2: 0.0,
+        param3: 0.0,
+        param4: 0.0,
+        command: MavCmd::MAV_CMD_DO_SET_HOME,
+        frame: mavlink::common::MavFrame::MAV_FRAME_GLOBAL_INT,
+        current: 0,
+        autocontinue: 0,
+        x: encode_lat_lon(position.latitude),
+        y: encode_lat_lon(position.longitude),
+        z: position.altitude,
+        target_system: mav_id,
+        target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
     })
 }
 
@@ -39,21 +59,21 @@ pub fn set_mode(mav_id: u8, mode: u32, attempt: u8) -> MavMessage {
 
 fn nav_to(mav_id: u8, position: &Geodetic) -> MavMessage {
     log::info!("Mav: {} Nav to: {:?}", mav_id, position);
-    MavMessage::MISSION_ITEM(MISSION_ITEM_DATA{
+    MavMessage::MISSION_ITEM(MISSION_ITEM_DATA{ // TODO: try COMMAND_INT
         param1: 0.0,
         param2: 0.0,
         param3: 0.0,
         param4: 0.0,
-        frame: mavlink::common::MavFrame::MAV_FRAME_GLOBAL_INT,
         command: mavlink::common::MavCmd::MAV_CMD_NAV_WAYPOINT,
+        frame: mavlink::common::MavFrame::MAV_FRAME_GLOBAL_INT,
         current: 2, // guided
         seq: 0,
         autocontinue: 0,
-        target_system: mav_id,
-        target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
         x: position.latitude as f32,
         y: position.longitude as f32,
-        z: position.altitude
+        z: position.altitude,
+        target_system: mav_id,
+        target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8
     })
 }
 
@@ -141,6 +161,10 @@ pub fn encode_command(command: &Command, mav_id: u8, attempt: u8) -> Option<Enco
         Command::ArmDisarm { arm } => Some(EncodedCommand {
             message: arm_disarm(mav_id, *arm, attempt),
             ack_cmd: Some(MavCmd::MAV_CMD_COMPONENT_ARM_DISARM),
+        }),
+        Command::SetHome { position } => Some(EncodedCommand {
+            message: set_home(mav_id, position),
+            ack_cmd: Some(MavCmd::MAV_CMD_DO_SET_HOME),
         }),
         Command::NavTo { position } => Some(EncodedCommand {
             message: nav_to(mav_id, position),

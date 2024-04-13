@@ -76,11 +76,8 @@ impl handler::Handler {
             log::error!("Error getting mission route: {}", err);
             return;
         }
-        let total = route.unwrap().items.len() as u16;
-        if total == 0 {
-            log::info!("Empty mission, skipping upload");
-            return;
-        }
+        // NOTE: +1 for HOME item
+        let total = (route.unwrap().items.len() + 1) as u16;
 
         log::info!("Upload mission ({} items) for MAVLink {}", total, mav_id);
         status.state = MissionUpdateState::PrepareUpload { total };
@@ -137,8 +134,7 @@ impl handler::Handler {
                 return Some(protocol::request_mission_item(mav_id, progress));
             },
             MissionUpdateState::PrepareUpload { total } => {
-                // NOTE: +1 for HOME item
-                return Some(protocol::send_mission_count(mav_id, total + 1));
+                return Some(protocol::send_mission_count(mav_id, total));
             },
             MissionUpdateState::Upload { total: _, progress } => {
                 if progress == 0 {
@@ -183,7 +179,7 @@ impl handler::Handler {
             status.state = if data.count == 0 {
                 MissionUpdateState::Actual { total: 0 }
             } else {
-                MissionUpdateState::Download { total: data.count, progress: 1 }
+                MissionUpdateState::Download { total: data.count, progress: 0 }
             };
 
             // Crop mission items

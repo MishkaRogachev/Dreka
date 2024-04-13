@@ -56,6 +56,23 @@ impl handler::Handler {
         }
     }
 
+    pub async fn handle_home_position(&mut self, mav_id: u8, home_pos: &HOME_POSITION_DATA) {
+        let (mut navigation, vehicle_id) = match self.vehicle_id_from_mav_id(&mav_id) {
+            Some(vehicle_id) => (self.dal.telemetry_navigation(&vehicle_id).await.unwrap_or(
+                Navigation::default_for_id(&vehicle_id)), vehicle_id),
+            None => return
+        };
+
+        navigation.home_position.latitude = protocol::decode_lat_lon(home_pos.latitude);
+        navigation.home_position.longitude = protocol::decode_lat_lon(home_pos.longitude);
+        navigation.home_position.altitude = protocol::decode_altitude(home_pos.altitude);
+        navigation.home_position.frame = GeodeticFrame::Wgs84AboveSeaLevel;
+
+        if let Err(err) = self.dal.save_telemetry_navigation(vehicle_id, navigation).await {
+            log::error!("Save navigation telemetry error: {}", err);
+        }
+    }
+
     pub async fn handle_gps_raw(&mut self, mav_id: u8, gps_raw: &GPS_RAW_INT_DATA) { 
         let (mut raw_sns, vehicle_id) = match self.vehicle_id_from_mav_id(&mav_id) {
             Some(vehicle_id) => (self.dal.telemetry_raw_sns(&vehicle_id).await.unwrap_or(

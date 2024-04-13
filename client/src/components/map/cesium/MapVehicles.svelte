@@ -4,16 +4,28 @@ import { get } from 'svelte/store';
 
 import * as Cesium from 'cesium';
 
+import type { Geodetic } from '$bindings/spatial';
+
+import { MapVehicleEvent } from '$lib/interfaces/map';
 import type { MapInteractionCesium } from "$lib/map/cesium/interaction";
 import { MapVehicleCesium } from "$lib/map/cesium/vehicle";
 
 import { Vehicle, vehicles, selectedVehicleID } from "$stores/vehicles";
 import { type VehicleTelemetry, vehiclesTelemetry } from "$stores/telemetry";
+import { commandExecutions } from '$stores/commands';
 
 export let cesium: Cesium.Viewer;
 export let interaction: MapInteractionCesium;
 
 let mapVehicles = new Map<string, MapVehicleCesium>
+
+async function setHome(vehicleId: string, position: Geodetic) {
+    await commandExecutions.executeCommand(
+        { SetHome: { position: position } },
+        { Vehicle: { vehicle_id: vehicleId }
+    });
+    // TODO: executions handling
+}
 
 onMount(async () => {
     vehicles.subscribe((vehicles: Map<string, Vehicle>) => {
@@ -26,6 +38,9 @@ onMount(async () => {
                 let mapVehicle = new MapVehicleCesium(cesium, interaction)
                 mapVehicle.setSelected(vehicleID === get(selectedVehicleID));
                 mapVehicles.set(vehicleID, mapVehicle);
+                mapVehicle.subscribe(MapVehicleEvent.HomeChanged, (position: Geodetic) => {
+                    setHome(vehicleID, position);
+                });
             }
             mapVehicles.get(vehicleID)!.updateFromDescription(vehicle.description);
         });

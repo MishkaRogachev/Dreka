@@ -60,6 +60,8 @@ impl Handler {
                 self.handle_vfr_hud(header.system_id, vfr_hud).await,
             MavMessage::GLOBAL_POSITION_INT(global_position) =>
                 self.handle_global_position(header.system_id, global_position).await,
+            MavMessage::HOME_POSITION(home_position) =>
+                self.handle_home_position(header.system_id, home_position).await,
             MavMessage::GPS_RAW_INT(gps_raw) =>
                 self.handle_gps_raw(header.system_id, gps_raw).await,
             MavMessage::SYS_STATUS(sys_data) =>

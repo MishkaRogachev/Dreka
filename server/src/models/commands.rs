@@ -10,10 +10,10 @@ pub enum Command {
     ArmDisarm { arm: bool },
     SetMode { mode: VehicleMode },
     SetWaypoint { wpt: u16 },
+    SetHome { position: Geodetic },
 
     ReturnToLaunch {},
     NavTo { position: Geodetic },
-    SetReturn { position: Geodetic },
 
     SetAltitude { altitide: f32},
     SetLoiterRadius { radius: f32},
