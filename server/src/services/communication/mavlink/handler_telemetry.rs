@@ -149,4 +149,35 @@ impl handler::Handler {
             log::error!("Save system telemetry error: {}", err);
         }
     }
+
+    pub async fn handle_mission_item_current(&mut self, mav_id: u8, data: &MISSION_CURRENT_DATA) {
+        let mut status = match self.mission_id_from_mav_id(&mav_id).await {
+            Some(mission_id) => self.dal.mission_status(&mission_id).await.unwrap(),
+            None => return
+        };
+
+        // TODO: mavlink 2 data.mission_state
+
+        // -1 shift for home item
+        status.progress.current = if data.seq > 0 { data.seq - 1 } else { 0 };
+        log::info!("Mission item {} reached by MAVLink {}", data.seq, mav_id);
+
+        if let Err(err) = self.dal.update_mission_status(status.clone()).await {
+            log::error!("Error updating mission status: {}", err);
+        }
+    }
+
+    pub async fn handle_mission_item_reached(&mut self, mav_id: u8, data: &MISSION_ITEM_REACHED_DATA) {
+        let mut status = match self.mission_id_from_mav_id(&mav_id).await {
+            Some(mission_id) => self.dal.mission_status(&mission_id).await.unwrap(),
+            None => return
+        };
+
+        // -1 shift for home item
+        status.progress.reached.push(data.seq - 1);
+
+        if let Err(err) = self.dal.update_mission_status(status.clone()).await {
+            log::error!("Error updating mission status: {}", err);
+        }
+    }
 }

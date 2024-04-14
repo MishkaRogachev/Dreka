@@ -34,7 +34,7 @@ impl Dal {
         let status = self.dao.create(TB_MISSION_STATUSES, MissionStatus{
             id: assignment.id.clone(),
             state: MissionUpdateState::NotActual {},
-            progress: MissionProgress::OnHold {},
+            progress: MissionProgress { current: 0, reached: vec![] },
         }
         ).await?;
 

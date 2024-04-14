@@ -57,6 +57,23 @@ pub fn set_mode(mav_id: u8, mode: u32, attempt: u8) -> MavMessage {
     })
 }
 
+pub fn set_waypoint(mav_id: u8, wp: u16, attempt: u8) -> MavMessage {
+    log::info!("Mav: {} SetWaypoint: {}", mav_id, wp);
+    MavMessage::COMMAND_LONG(COMMAND_LONG_DATA{
+        param1: wp as f32,
+        param2: 0.0,
+        param3: 0.0,
+        param4: 0.0,
+        param5: 0.0,
+        param6: 0.0,
+        param7: 0.0,
+        command: MavCmd::MAV_CMD_DO_SET_MISSION_CURRENT,
+        target_system: mav_id,
+        target_component: mavlink::common::MavComponent::MAV_COMP_ID_ALL as u8,
+        confirmation: attempt,
+    })
+}
+
 fn nav_to(mav_id: u8, position: &Geodetic) -> MavMessage {
     log::info!("Mav: {} Nav to: {:?}", mav_id, position);
     MavMessage::MISSION_ITEM(MISSION_ITEM_DATA{ // TODO: try COMMAND_INT
@@ -165,6 +182,10 @@ pub fn encode_command(command: &Command, mav_id: u8, attempt: u8) -> Option<Enco
         Command::SetHome { position } => Some(EncodedCommand {
             message: set_home(mav_id, position),
             ack_cmd: Some(MavCmd::MAV_CMD_DO_SET_HOME),
+        }),
+        Command::SetWaypoint { wpt } => Some(EncodedCommand {
+            message: set_waypoint(mav_id, *wpt, attempt),
+            ack_cmd: Some(MavCmd::MAV_CMD_DO_SET_MISSION_CURRENT),
         }),
         Command::NavTo { position } => Some(EncodedCommand {
             message: nav_to(mav_id, position),

@@ -51,7 +51,6 @@ pub struct Navigation {
     pub target_position: Geodetic,
     pub home_position: Geodetic,
     pub wp_distance: f32,
-    pub current_wp: u16,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
@@ -115,8 +114,7 @@ impl Navigation {
             position: Geodetic::default(),
             target_position: Geodetic::default(),
             home_position: Geodetic::default(),
-            wp_distance: 0.0,
-            current_wp: 0
+            wp_distance: 0.0
         }
     }
 }

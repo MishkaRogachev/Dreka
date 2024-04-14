@@ -26,7 +26,6 @@ export interface Navigation {
     target_position: Geodetic,
     home_position: Geodetic,
     wp_distance: number,
-    current_wp: number,
 }
 
 export interface RawSns {

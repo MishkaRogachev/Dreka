@@ -74,12 +74,12 @@ export class MapVehicleCesium implements MapVehicle {
 
     updateFromNavigation(navigation: Navigation) {
         const cartesian = cartesianFromGeodetic(navigation.position, navigation.home_position.altitude);
-        this.model.setCartesian(cartesian);
-        this.pylon.setCartesian(cartesian);
 
         if (cartesian !== Cesium.Cartesian3.ZERO && !this.cartesian().equals(cartesian)) {
             this.path.addCartesian(cartesian);
         }
+        this.model.setCartesian(cartesian);
+        this.pylon.setCartesian(cartesian);
 
         const homeCartesian = cartesianFromGeodetic(navigation.home_position, 0);
         this.home.setCartesian(homeCartesian);

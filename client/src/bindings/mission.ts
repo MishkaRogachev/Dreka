@@ -45,9 +45,8 @@ export interface MissionUpdateState {
 }
 
 export interface MissionProgress {
-    OnHold?: {};
-    InProgress?: { current: number, passed: Array<number>; };
-    Finished?: { passed: Array<number>; };
+    current: number;
+    reached: Array<number>;
 }
 
 export interface MissionStatus {

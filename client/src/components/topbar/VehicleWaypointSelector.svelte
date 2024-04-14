@@ -2,6 +2,7 @@
 import { i18n } from '$stores/i18n';
 import { commandExecutions } from '$stores/commands';
 import type { Vehicle } from '$stores/vehicles';
+import { selectedVehicleMission } from '$stores/mission';
 
 import CommandBadge from '$components/common/CommandBadge.svelte';
 
@@ -9,13 +10,15 @@ export let vehicle: Vehicle;
 
 let wptToken: string | null = null
 
-$: currentWaypont = 0 // TODO: currentWaypoint
-$: availableWayponts = ["HOME"] // TODO: currentWaypoint
+$: availableWayponts = $selectedVehicleMission?.route.items.map(item => item.type.toString()) || []
+$: currentWaypont = $selectedVehicleMission?.status.progress.current || 0
+$: currentWpName = currentWaypont >= 0 && currentWaypont < availableWayponts.length ?
+    availableWayponts[currentWaypont] : $i18n.t("WPT")
 $: wptExecution = wptToken ? $commandExecutions.get(wptToken) : undefined
 
 async function setWaypoint(wpt: number) {
     wptToken = await commandExecutions.executeCommand(
-        { SetWaypoint: { wpt: wpt } },
+        { SetWaypoint: { wpt: wpt + 1 } },
         { Vehicle: { vehicle_id: vehicle.description.id }
     });
 }
@@ -27,7 +30,7 @@ async function cancelSetWaypoint() {
 }
 
 function formatWpt(waypoint: String, wpt: number) {
-    return waypoint + " " + wpt;
+    return waypoint + " " + (wpt + 1);
 }
 
 </script>
@@ -35,7 +38,7 @@ function formatWpt(waypoint: String, wpt: number) {
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Set waypoint") }>
     <div class="dropdown dropdown-end">
         <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-32">
-            <a class="grow">{ formatWpt(availableWayponts[currentWaypont], currentWaypont) }</a>
+            <a class="grow">{ formatWpt(currentWpName, currentWaypont) }</a>
         </div>
         <ul tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
         {#each availableWayponts as waypoint, wpt}

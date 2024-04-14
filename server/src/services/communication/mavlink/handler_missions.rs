@@ -7,22 +7,6 @@ use super::{handler, protocol::missions as protocol};
 const MISSION_RESEND_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(2000);
 
 impl handler::Handler {
-    async fn mav_id_for_mission_id(&self, mission_id: &MissionId) -> Option<u8> {
-        let assignment = self.dal.mission_assignment(&mission_id).await;
-        if let Err(err) = assignment {
-            log::error!("Error obtaining mission assignment: {}", err);
-            return None;
-        }
-
-        match self.mav_id_from_vehicle_id(&assignment.unwrap().vehicle_id) {
-            Some(mav_id) => Some(mav_id),
-            None => {
-                log::error!("No MAVLink vehicle for mission: {:?}", &mission_id);
-                None
-            }
-        }
-    }
-
     async fn activate_status(&mut self, mission_id: &MissionId) -> Option<MissionStatus> {
         let status = self.dal.mission_status(mission_id).await;
         if let Err(err) = status {
@@ -53,7 +37,7 @@ impl handler::Handler {
 
         log::info!("Download mission for MAVLink {}", mav_id);
         status.state = MissionUpdateState::PrepareDownload {};
-        self.mav_active_statuses.insert(mav_id, status.clone());
+        self.mav_mission_operation_statuses.insert(mav_id, status.clone());
 
         if let Err(err) = self.dal.update_mission_status(status).await {
             log::error!("Error updating mission status: {}", err);
@@ -81,7 +65,7 @@ impl handler::Handler {
 
         log::info!("Upload mission ({} items) for MAVLink {}", total, mav_id);
         status.state = MissionUpdateState::PrepareUpload { total };
-        self.mav_active_statuses.insert(mav_id, status.clone());
+        self.mav_mission_operation_statuses.insert(mav_id, status.clone());
 
         if let Err(err) = self.dal.update_mission_status(status).await {
             log::error!("Error updating mission status: {}", err);
@@ -100,7 +84,7 @@ impl handler::Handler {
         };
 
         status.state = MissionUpdateState::Clearing {};
-        self.mav_active_statuses.insert(mav_id, status.clone());
+        self.mav_mission_operation_statuses.insert(mav_id, status.clone());
 
         if let Err(err) = self.dal.update_mission_status(status).await {
             log::error!("Error updating mission status: {}", err);
@@ -121,7 +105,7 @@ impl handler::Handler {
             log::error!("Error updating mission status: {}", err);
         }
 
-        self.mav_active_statuses.retain(|_, status| status.id != mission_id);
+        self.mav_mission_operation_statuses.retain(|_, status| status.id != mission_id);
         self.mission_statuses_last_sent.remove(&mission_id);
     }
 
@@ -168,7 +152,7 @@ impl handler::Handler {
     }
 
     pub async fn handle_mission_count(&mut self, mav_id: u8, data: &MISSION_COUNT_DATA) {
-        let status = match self.mav_active_statuses.get_mut(&mav_id) {
+        let status = match self.mav_mission_operation_statuses.get_mut(&mav_id) {
             Some(mav_id) => mav_id,
             None => return
         };
@@ -204,7 +188,7 @@ impl handler::Handler {
     }
 
     pub async fn handle_mission_item_int(&mut self, mav_id: u8, data: &MISSION_ITEM_INT_DATA) {
-        let status = match self.mav_active_statuses.get_mut(&mav_id) {
+        let status = match self.mav_mission_operation_statuses.get_mut(&mav_id) {
             Some(mav_id) => mav_id,
             None => return
         };
@@ -257,7 +241,7 @@ impl handler::Handler {
     }
 
     pub async fn handle_mission_item_request(&mut self, mav_id: u8, data: &MISSION_REQUEST_DATA) {
-        let status = match self.mav_active_statuses.get_mut(&mav_id) {
+        let status = match self.mav_mission_operation_statuses.get_mut(&mav_id) {
             Some(mav_id) => mav_id,
             None => return
         };
@@ -279,7 +263,7 @@ impl handler::Handler {
     }
 
     pub async fn handle_mission_ack(&mut self, mav_id: u8, data: &MISSION_ACK_DATA) {
-        let status = match self.mav_active_statuses.get_mut(&mav_id) {
+        let status = match self.mav_mission_operation_statuses.get_mut(&mav_id) {
             Some(mav_id) => mav_id,
             None => return
         };
@@ -315,7 +299,7 @@ impl handler::Handler {
         let mut messages = Vec::new();
 
         // Collect messages for active statuses
-        for (mav_id, status) in self.mav_active_statuses.iter() {
+        for (mav_id, status) in self.mav_mission_operation_statuses.iter() {
             let now = tokio::time::Instant::now();
             let last_sent = self.mission_statuses_last_sent.get(&status.id);
             if last_sent.is_none() || now.duration_since(*last_sent.unwrap()) >= MISSION_RESEND_INTERVAL {
@@ -327,7 +311,7 @@ impl handler::Handler {
         }
 
         // Remove unactive statuses
-        self.mav_active_statuses.retain(|_, status| {
+        self.mav_mission_operation_statuses.retain(|_, status| {
             match status.state {
                 MissionUpdateState::NotActual {} |
                 MissionUpdateState::Actual { .. } => false,

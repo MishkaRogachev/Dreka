@@ -33,10 +33,9 @@ pub enum MissionUpdateState {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub enum MissionProgress {
-    OnHold {},
-    InProgress { current: u16, passed: Vec<u16> },
-    Finished { passed: Vec<u16> },
+pub struct MissionProgress {
+    pub current: u16,
+    pub reached: Vec<u16>
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]

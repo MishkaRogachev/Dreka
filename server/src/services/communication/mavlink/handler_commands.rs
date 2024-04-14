@@ -29,16 +29,16 @@ impl handler::Handler {
         }
 
         // Remove next
-        let keys_to_remove: Vec<(u16, u8)> = self.waiting_ack_executions
+        let keys_to_remove: Vec<(u16, u8)> = self.waiting_ack_command_executions
             .iter()
             .filter(|&(_, value)| value == &execution.id)
             .map(|(&key, _)| key)
             .collect();
         for key in keys_to_remove {
-            self.waiting_ack_executions.remove(&key);
+            self.waiting_ack_command_executions.remove(&key);
         }
 
-        self.executions_last_sent.remove(&execution.id);
+        self.command_executions_last_sent.remove(&execution.id);
         if let Err(err) = self.dal.remove_command_execution(&execution.id).await {
             log::error!("Error removing command execution: {}", err);
         }
@@ -71,7 +71,7 @@ impl handler::Handler {
 
     async fn process_execution(&mut self, execution: CommandExecution) -> Option<MavMessage> {
         // Early return if interval not exceeded, if even it's not in CommandState::Sent state
-        if let Some(interval) = self.executions_last_sent.get(&execution.id) {
+        if let Some(interval) = self.command_executions_last_sent.get(&execution.id) {
             if interval.elapsed() < COMMAND_RESEND_INTERVAL {
                 return None;
             }
@@ -114,6 +114,7 @@ impl handler::Handler {
         if let CommandState::Sent { attempt } = state {
             let encoded: Option<protocol::EncodedCommand>;
 
+            // Special case for SetMode
             if let Command::SetMode { mode } = &execution.command {
                 let modes = self.mav_modes.get(&mav_id);
                 if modes.is_none() {
@@ -135,9 +136,9 @@ impl handler::Handler {
             if let Some(encoded) = encoded {
                 log::info!("Sending command: {:?}", execution);
                 if let Some(ack_cmd) = encoded.ack_cmd {
-                    self.waiting_ack_executions.insert((ack_cmd as u16, mav_id), execution.id.clone());
+                    self.waiting_ack_command_executions.insert((ack_cmd as u16, mav_id), execution.id.clone());
                 }
-                self.executions_last_sent.insert(execution.id.clone(), time::Instant::now());
+                self.command_executions_last_sent.insert(execution.id.clone(), time::Instant::now());
                 self.save_command_execution(execution, state).await;
                 return Some(encoded.message);
             } else {
@@ -170,7 +171,7 @@ impl handler::Handler {
     }
 
     pub async fn handle_command_ack(&mut self, mav_id: u8, ack: &COMMAND_ACK_DATA) {
-        let id = self.waiting_ack_executions.get(&(ack.command as u16, mav_id));
+        let id = self.waiting_ack_command_executions.get(&(ack.command as u16, mav_id));
         if id.is_none() {
             return;
         }

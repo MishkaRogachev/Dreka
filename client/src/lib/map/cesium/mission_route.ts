@@ -1,5 +1,5 @@
 import { GeodeticFrame } from '$bindings/spatial';
-import { type MissionRoute, type MissionRouteItem, MissionRouteItemType } from '$bindings/mission';
+import { type MissionRoute, type MissionRouteItem, MissionRouteItemType, type MissionProgress } from '$bindings/mission';
 
 import { MapMissionRouteEvent, type MapMissionRoute } from '$lib/interfaces/map';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
@@ -71,7 +71,7 @@ class MapMissionRouteItemCesium {
         }
     }
 
-    update(item: MissionRouteItem) {
+    updateFromRouteItem(item: MissionRouteItem) {
         this.item = item;
 
         const loiterRadius = item.radius || 0;
@@ -106,6 +106,12 @@ class MapMissionRouteItemCesium {
         this.pylon.setCartesian(cartesian);
         this.billboard.setCartesian(cartesian);
         this.circle.setCartesian(cartesian);
+    }
+
+    updateProgress(reached: boolean, current: boolean) {
+        const actual = true; // TODO: implement
+        this.billboard.setBaseColor(current ? Cesium.Color.MAGENTA : actual ? reached ?
+            Cesium.Color.AQUAMARINE : Cesium.Color.WHITE : Cesium.Color.YELLOW);
     }
 
     cartesian(): Cesium.Cartesian3 {
@@ -156,7 +162,7 @@ export class MapMissionRouteCesium implements MapMissionRoute {
         if (cb) cb(item, index);
     }
 
-    update(route: MissionRoute) {
+    updateFromRoute(route: MissionRoute) {
         // Remove extra items
         while (this.items.length > route.items.length) {
             this.deleteRouteItem(this.items.length - 1);
@@ -167,7 +173,15 @@ export class MapMissionRouteCesium implements MapMissionRoute {
         }
 
         route.items.forEach((item, i) => {
-            this.items[i].update(item);
+            this.items[i].updateFromRouteItem(item);
+        });
+    }
+
+    updateFromProgress(progress: MissionProgress) {
+        this.items.forEach((item, i) => {
+            const reached = progress.reached.includes(i);
+            const current = progress.current === i;
+            item.updateProgress(reached, current);
         });
     }
 

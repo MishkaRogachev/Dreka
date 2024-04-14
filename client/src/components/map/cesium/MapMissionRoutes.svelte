@@ -48,7 +48,9 @@ onMount(async () => {
                 });
                 mapRouteItems.set(missionID, mapMission);
             }
-            mapRouteItems.get(missionID)!.update(mission.route);
+            let mapRoute = mapRouteItems.get(missionID)!;
+            mapRoute.updateFromRoute(mission.route);
+            mapRoute.updateFromProgress(mission.status.progress);
         });
 
         // Delete missions removed in store
