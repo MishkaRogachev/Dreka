@@ -1,11 +1,13 @@
 import { writable, derived, get } from 'svelte/store';
 
-import type { Mission, MissionRoute, MissionRouteItem, MissionStatus } from '$bindings/mission';
+import { MissionRouteItemType, type Mission, type MissionRoute, type MissionRouteItem, type MissionStatus } from '$bindings/mission';
 
 import type { WsListener } from '$datasource/ws';
 import { ClientSideEvents, EventsService } from '$services/events';
 import { MissionService } from '$services/mission';
 import { selectedVehicleID } from '$stores/vehicles';
+
+import { i18n } from '$stores/i18n';
 
 export const missions = function () {
     let missionUpserted: WsListener;
@@ -194,3 +196,39 @@ export const selectedVehicleMission = derived([missions, selectedVehicleID], ($d
     }
     return undefined;
 })
+
+
+export function formatRouteItem(type: MissionRouteItemType, index: number) {
+    let name: string;
+    switch (type) {
+    case MissionRouteItemType.Gap:
+        name = get(i18n).t("GAP");
+        break;
+    case MissionRouteItemType.Waypoint:
+        name = get(i18n).t("WPT");
+        break;
+    case MissionRouteItemType.Takeoff:
+        name = get(i18n).t("TKF");
+        break;
+    case MissionRouteItemType.LandStart:
+        name = get(i18n).t("LST");
+        break;
+    case MissionRouteItemType.Landing:
+        name = get(i18n).t("LND");
+        break;
+    case MissionRouteItemType.LoiterTrn:
+        name = get(i18n).t("LOT");
+        break;
+    case MissionRouteItemType.LoiterAlt:
+        name = get(i18n).t("LOA");
+        break;
+    case MissionRouteItemType.TriggerCam:
+        name = get(i18n).t("CAM");
+        break;
+    default:
+        name = type;
+        break;
+    }
+
+    return name + " " + (index + 1);
+}

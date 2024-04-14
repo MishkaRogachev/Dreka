@@ -1,8 +1,10 @@
 <script lang="ts">
+import { MissionRouteItemType } from '$bindings/mission';
+
 import { i18n } from '$stores/i18n';
 import { commandExecutions } from '$stores/commands';
 import type { Vehicle } from '$stores/vehicles';
-import { selectedVehicleMission } from '$stores/mission';
+import { formatRouteItem, selectedVehicleMission } from '$stores/mission';
 
 import CommandBadge from '$components/common/CommandBadge.svelte';
 
@@ -10,10 +12,10 @@ export let vehicle: Vehicle;
 
 let wptToken: string | null = null
 
-$: availableWayponts = $selectedVehicleMission?.route.items.map(item => item.type.toString()) || []
-$: currentWaypont = $selectedVehicleMission?.status.progress.current || 0
-$: currentWpName = currentWaypont >= 0 && currentWaypont < availableWayponts.length ?
-    availableWayponts[currentWaypont] : $i18n.t("WPT")
+$: availableWayponts = $selectedVehicleMission?.route.items.map(item => item.type) || []
+$: currentWptIndex = $selectedVehicleMission?.status.progress.current || 0
+$: currentWptType = currentWptIndex >= 0 && currentWptIndex < availableWayponts.length ?
+    availableWayponts[currentWptIndex] : MissionRouteItemType.Waypoint
 $: wptExecution = wptToken ? $commandExecutions.get(wptToken) : undefined
 
 async function setWaypoint(wpt: number) {
@@ -29,35 +31,34 @@ async function cancelSetWaypoint() {
     }
 }
 
-function formatWpt(waypoint: String, wpt: number) {
-    return waypoint + " " + (wpt + 1);
-}
-
 </script>
 
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Set waypoint") }>
     <div class="dropdown dropdown-end">
-        <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-32">
-            <a class="grow">{ formatWpt(currentWpName, currentWaypont) }</a>
+        <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-28">
+            <a class="grow">{ formatRouteItem(currentWptType, currentWptIndex) }</a>
         </div>
-        <ul tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
-        {#each availableWayponts as waypoint, wpt}
-            <li class="w-32 flex" on:click = {() => {
-                if (wptExecution?.command.SetWaypoint?.wpt === wpt) {
-                    cancelSetWaypoint();
-                } else {
-                    setWaypoint(wpt);
-                }
-            }}>
-                <div class="flex gap-x-2 items-center grow">
-                    <a class={"grow " + (wpt === currentWaypont ? "text-white" : "")}>
-                        { formatWpt(waypoint, wpt) }
-                    </a>
-                    <CommandBadge state={wptExecution?.command.SetWaypoint?.wpt === wpt ? wptExecution?.state : undefined}>
-                    </CommandBadge>
-                </div>
-            </li>
-        {/each}
-        </ul>
+        <div tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300
+            rounded-md max-scroll-area-height overflow-y-auto max-h-96">
+            <ul class="my-0">
+            {#each availableWayponts as waypoint, wpt}
+                <li class="w-28 flex" on:click = {() => {
+                    if (wptExecution?.command.SetWaypoint?.wpt === wpt + 1) {
+                        cancelSetWaypoint();
+                    } else {
+                        setWaypoint(wpt);
+                    }
+                }}>
+                    <div class="flex gap-x-2 items-center grow">
+                        <a class={"grow " + (wpt === currentWptIndex ? "text-white" : "")}>
+                            { formatRouteItem(waypoint, wpt) }
+                        </a>
+                        <CommandBadge state={wptExecution?.command.SetWaypoint?.wpt === wpt + 1 ? wptExecution?.state : undefined}>
+                        </CommandBadge>
+                    </div>
+                </li>
+            {/each}
+            </ul>
+        </div>
     </div>
 </div>

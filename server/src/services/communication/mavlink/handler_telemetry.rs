@@ -160,7 +160,6 @@ impl handler::Handler {
 
         // -1 shift for home item
         status.progress.current = if data.seq > 0 { data.seq - 1 } else { 0 };
-        log::info!("Mission item {} reached by MAVLink {}", data.seq, mav_id);
 
         if let Err(err) = self.dal.update_mission_status(status.clone()).await {
             log::error!("Error updating mission status: {}", err);
