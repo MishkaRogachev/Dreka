@@ -1,4 +1,4 @@
-import type { Geodetic } from '$bindings/spatial';
+import { GeodeticFrame, type Geodetic } from '$bindings/spatial';
 import { type VehicleDescription } from '$bindings/vehicles';
 import type { Flight, Navigation } from '$bindings/telemetry';
 import { toColorCode } from '$bindings/colors';
@@ -53,7 +53,7 @@ export class MapVehicleCesium implements MapVehicle {
     }
 
     onHomeDragged(cartesian: Cesium.Cartesian3) {
-        const geodetic = geodeticFromCartesian(cartesian);
+        const geodetic = geodeticFromCartesian(cartesian, GeodeticFrame.Wgs84AboveSeaLevel, 0);
         if (geodetic) {
             this.invoke(MapVehicleEvent.HomeChanged, geodetic);
         }

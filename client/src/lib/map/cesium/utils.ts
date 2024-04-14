@@ -57,9 +57,9 @@ export function cartesianFromGeodetic(geodetic: Geodetic, homeAltitude: number =
         altitude = geodetic.altitude;
         break;
     case GeodeticFrame.Wgs84AboveTerrain:
-        altitude = geodetic.altitude;
+        altitude = geodetic.altitude; // TODO: terrain altitude
         break;
-    case GeodeticFrame.None: // no breack
+    case GeodeticFrame.None: // no break
     default:
         altitude = 0;
         break;
@@ -67,20 +67,33 @@ export function cartesianFromGeodetic(geodetic: Geodetic, homeAltitude: number =
     return Cesium.Cartesian3.fromDegrees(geodetic.longitude, geodetic.latitude, altitude);
 }
 
-export function geodeticFromCartesian(cartesian: Cesium.Cartesian3, homeAltitude: number = 0): Geodetic | undefined {
+export function geodeticFromCartesian(cartesian: Cesium.Cartesian3, frame: GeodeticFrame, homeAltitude: number): Geodetic | undefined {
     const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
     if (!cartographic) {
         return undefined;
     }
 
     let altitude = cartographic.height;
-    if (homeAltitude)
-        altitude -= homeAltitude;
+    switch (frame) {
+    case GeodeticFrame.Wgs84RelativeHome:
+        altitude = cartographic.height - homeAltitude;
+        break;
+    case GeodeticFrame.Wgs84AboveSeaLevel:
+        altitude = cartographic.height;
+        break;
+    case GeodeticFrame.Wgs84AboveTerrain:
+        altitude = cartographic.height; // TODO: terrain altitude
+        break;
+    case GeodeticFrame.None: // no break
+    default:
+        altitude = 0;
+        break;
+    }
 
     return {
         latitude: Cesium.Math.toDegrees(cartographic.latitude),
         longitude: Cesium.Math.toDegrees(cartographic.longitude),
         altitude: altitude,
-        frame: GeodeticFrame.Wgs84RelativeHome
+        frame: frame
     };
 }

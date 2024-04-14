@@ -6,6 +6,7 @@ import * as Cesium from 'cesium';
 import type { Mission, MissionRouteItem } from '$bindings/mission';
 import { missions } from '$stores/mission';
 import { activeMapPopup } from '$stores/app';
+import { VehicleTelemetry, vehiclesTelemetry } from '$stores/telemetry';
 
 import { MapMissionRouteEvent, type MapViewport } from '$lib/interfaces/map';
 import { MapMissionRouteCesium } from '$lib/map/cesium/mission_route';
@@ -58,6 +59,19 @@ onMount(async () => {
             }
         }
     })
+
+    vehiclesTelemetry.subscribe((tmi: Map<string, VehicleTelemetry>) => {
+        tmi.forEach((tmi: VehicleTelemetry, vehicleId: string) => {
+            for (const [missionId, mission] of $missions) {
+                if (mission.vehicle_id === vehicleId) {
+                    let route = mapRouteItems.get(missionId);
+                    if (route && tmi.navigation) {
+                        route.setHomeAltitude(tmi.navigation.home_position.altitude);
+                    }
+                }
+            }
+        });
+    });
 })
 
 onDestroy(async () => {

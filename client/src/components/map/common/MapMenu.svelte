@@ -88,7 +88,7 @@ function addWaypoint() {
                 latitude: clickGeodetic.latitude,
                 longitude: clickGeodetic.longitude,
                 altitude: clickGeodetic.altitude + TAKEOFF_ALTITUDE,
-                frame: GeodeticFrame.Wgs84RelativeHome
+                frame: GeodeticFrame.Wgs84AboveSeaLevel
             },
             pitch: TAKEOFF_PITCH,
         };

@@ -1,3 +1,4 @@
+import { GeodeticFrame } from '$bindings/spatial';
 import { type MissionRoute, type MissionRouteItem, MissionRouteItemType } from '$bindings/mission';
 
 import { MapMissionRouteEvent, type MapMissionRoute } from '$lib/interfaces/map';
@@ -47,8 +48,11 @@ class MapMissionRouteItemCesium {
     }
 
     onPointDragging(cartesian: Cesium.Cartesian3) {
-        const geodetic = geodeticFromCartesian(cartesian);
-        if (this.item && geodetic) {
+        if (!this.item?.position) {
+            return;
+        }
+        const geodetic = geodeticFromCartesian(cartesian, this.item!.position!.frame, this.route.homeAltitude);
+        if (geodetic) {
             this.item.position = geodetic;
             this.route.invoke(MapMissionRouteEvent.Drag, this.item, this.inRouteIndex());
         }
@@ -57,8 +61,11 @@ class MapMissionRouteItemCesium {
     }
 
     onPointDragged(cartesian: Cesium.Cartesian3) {
-        const geodetic = geodeticFromCartesian(cartesian);
-        if (this.item && geodetic) {
+        if (!this.item?.position) {
+            return;
+        }
+        const geodetic = geodeticFromCartesian(cartesian, this.item!.position!.frame, this.route.homeAltitude);
+        if (geodetic) {
             this.item.position = geodetic;
             this.route.invoke(MapMissionRouteEvent.Changed, this.item, this.inRouteIndex());
         }
@@ -66,10 +73,8 @@ class MapMissionRouteItemCesium {
 
     update(item: MissionRouteItem) {
         this.item = item;
-        // TODO: home altitude
-        const cartesian = item.position ? cartesianFromGeodetic(item.position, 0) : Cesium.Cartesian3.ZERO;
-        const loiterRadius = item.radius || 0;
 
+        const loiterRadius = item.radius || 0;
         let icon: string;
         switch (item.type) {
         case MissionRouteItemType.Takeoff:
@@ -83,14 +88,24 @@ class MapMissionRouteItemCesium {
             break;
         }
 
-        this.billboard.setCartesian(cartesian);
+        this.updatePosition(this.route.homeAltitude)
+
         this.billboard.setIcon(icon);
-
-        this.pylon.setCartesian(cartesian);
-
-        this.circle.setCartesian(cartesian);
         this.circle.setRadius(loiterRadius);
         this.circle.setVisible(loiterRadius > 0);
+    }
+
+    updatePosition(homeAltitude: number) {
+        if (!this.item) {
+            return;
+        }
+        const cartesian = this.item.position ?
+            cartesianFromGeodetic(this.item.position, this.route.homeAltitude) :
+            Cesium.Cartesian3.ZERO;
+
+        this.pylon.setCartesian(cartesian);
+        this.billboard.setCartesian(cartesian);
+        this.circle.setCartesian(cartesian);
     }
 
     cartesian(): Cesium.Cartesian3 {
@@ -119,6 +134,7 @@ export class MapMissionRouteCesium implements MapMissionRoute {
     constructor(cesium: Cesium.Viewer, interaction: MapInteractionCesium) {
         this.cesium = cesium;
         this.interaction = interaction;
+        this.homeAltitude = 0;
 
         this.items = [];
         this.tracks = [];
@@ -153,6 +169,14 @@ export class MapMissionRouteCesium implements MapMissionRoute {
         route.items.forEach((item, i) => {
             this.items[i].update(item);
         });
+    }
+
+    setHomeAltitude(altitude: number) {
+        if (this.homeAltitude === altitude) {
+            return;
+        }
+        this.homeAltitude = altitude;
+        this.items.forEach(item => item.updatePosition(altitude));
     }
 
     addRouteItem() {
@@ -220,6 +244,8 @@ export class MapMissionRouteCesium implements MapMissionRoute {
     indexOfRouteItem(item: MapMissionRouteItemCesium): number {
         return this.items.indexOf(item);
     }
+
+    homeAltitude: number
 
     private items: Array<MapMissionRouteItemCesium>
     private tracks: Array<Cesium.Entity>

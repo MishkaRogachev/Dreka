@@ -1,6 +1,6 @@
 import type { LinkDescription, LinkStatus } from "$bindings/communication";
-import type { VehicleTelemetry } from "$bindings/telemetry";
 import type { VehicleDescription, VehicleStatus } from "$bindings/vehicles";
+import type { Flight, Navigation, RawSns, System } from "$bindings/telemetry";
 import type { CommandExecution } from "$bindings/commands";
 import type { Mission, MissionStatus, MissionRoute, MissionRouteItem } from "$bindings/mission";
 
@@ -16,7 +16,10 @@ export interface ServerEvent {
     VehicleStatusUpdated?: { status: VehicleStatus };
 
     // Telemetry
-    TelemetryUpdated?: { telemetry: VehicleTelemetry };
+    FlightUpdated?: { vehicle_id: string, flight: Flight };
+    NavigationUpdated?: { vehicle_id: string, navigation: Navigation };
+    RawSnsUpdated?: { vehicle_id: string, raw_sns: RawSns };
+    SystemUpdated?: { vehicle_id: string, system: System };
 
     // Commands
     CommandExecutionUpserted?: { execution: CommandExecution };
