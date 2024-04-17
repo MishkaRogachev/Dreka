@@ -60,8 +60,8 @@ function switchVehicleTracking() {} // TODO: center/track vehicle
             value={ telemetry.flight ? telemetry.flight.indicated_airspeed : 0 }/>
         <Parameter name={ $i18n.t("AMSL") } tooltip={ $i18n.t("Altitude Above Mean Sea Level") }
             value={ telemetry.flight ? telemetry.flight.altitude_amsl : 0 }/>
-        <a class="text-sm">{ $i18n.t("m/s") }</a>
-        <a class="text-sm">{ $i18n.t("m") }</a>
+        <a href={null} class="text-sm">{ $i18n.t("m/s") }</a>
+        <a href={null} class="text-sm">{ $i18n.t("m") }</a>
 
     <!-- NAVIGATION DATA DISPLAY -->
         <Parameter name={ $i18n.t("HDG") } tooltip={ $i18n.t("Heading") }
@@ -83,7 +83,7 @@ function switchVehicleTracking() {} // TODO: center/track vehicle
             value={ telemetry.navigation ? formatHeading(telemetry.rawSns.course) : 0 }/>
         <Parameter name={ $i18n.t("HOME") } tooltip={ $i18n.t("Distance to home point") }
             value={ 0 }/> <!-- TODO: home distance -->
-        <a class="text-sm">&deg</a>
-        <a class="text-sm">{ $i18n.t("m") }</a>
+        <a href={null} class="text-sm">&deg</a>
+        <a href={null} class="text-sm">{ $i18n.t("m") }</a>
     </div>
 </div>

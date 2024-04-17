@@ -33,7 +33,7 @@ async function cancelSetVehicleMode() {
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Set mode") }>
     <div class="dropdown dropdown-end">
         <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-28">
-            <a class="grow">{ formatMode(currentMode) }</a>
+            <a href={null} class="grow">{ formatMode(currentMode) }</a>
         </div>
         <ul tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
         {#each availableModes as mode}
@@ -45,7 +45,7 @@ async function cancelSetVehicleMode() {
                 }
             }}>
                 <div class="flex gap-x-2 items-center grow">
-                    <a class={"grow " + (mode === currentMode ? "font-black" : "font-normal")}>
+                    <a href={null} class={"grow " + (mode === currentMode ? "font-black" : "font-normal")}>
                         { formatMode(mode) }
                     </a>
                     <CommandBadge state={modeExecution?.command.SetMode?.mode === mode ? modeExecution?.state : undefined}>

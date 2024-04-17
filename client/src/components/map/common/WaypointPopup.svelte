@@ -2,7 +2,7 @@
 import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 
 import type { MissionRouteItem } from '$bindings/mission';
-import { missions } from '$stores/mission';
+import { formatRouteItem, missions } from '$stores/mission';
 import { i18n } from '$stores/i18n';
 
 import type { MapViewport } from '$lib/interfaces/map';
@@ -73,17 +73,18 @@ onDestroy(() => {
             </div>
         </div> -->
     {:else}
+    <p class="font-bold text-sm text-center">{ formatRouteItem(routeItem.type, index) }</p>
     <ul class="menu">
         <li class="flex" on:click={switchEdit}>
             <div class="flex gap-x-2 items-center grow">
                 { @html editIcon }
-                <a class="grow">{ $i18n.t("Edit waypoint") }</a>
+                <a href={null} class="grow">{ $i18n.t("Edit waypoint") }</a>
             </div>
         </li>
         <li class="flex" on:click={removeItem}>
             <div class="flex gap-x-2 items-center grow">
                 { @html removeIcon }
-                <a class="grow">{ $i18n.t("Remove waypoint") }</a>
+                <a href={null} class="grow">{ $i18n.t("Remove waypoint") }</a>
             </div>
         </li>
     </ul>

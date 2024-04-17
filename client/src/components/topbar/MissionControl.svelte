@@ -119,19 +119,19 @@ function updateFromMissionState(mission: Mission | undefined) {
             <li class="flex" on:click={downloadMission}>
                 <div class="flex gap-x-2 items-center grow">
                     { @html downloadIcon }
-                    <a class="grow">{ $i18n.t("Download mission") }</a>
+                    <a href={null} class="grow">{ $i18n.t("Download mission") }</a>
                 </div>
             </li>
             <li class="flex" on:click={uploadMission}>
                 <div class="flex gap-x-2 items-center grow">
                     { @html uploadIcon }
-                    <a class="grow">{ $i18n.t("Upload mission") }</a>
+                    <a href={null} class="grow">{ $i18n.t("Upload mission") }</a>
                 </div>
             </li>
             <li class="flex" on:click={clearMission}>
                 <div class="flex gap-x-2 items-center grow">
                     { @html removeIcon }
-                    <a class="grow">{ $i18n.t("Clear mission") }</a>
+                    <a href={null} class="grow">{ $i18n.t("Clear mission") }</a>
                 </div>
             </li>
             {/if}
@@ -142,7 +142,7 @@ function updateFromMissionState(mission: Mission | undefined) {
             <li class="flex" on:click={cancelState}>
                 <div class="flex gap-x-2 items-center grow">
                     { @html cancelIcon }
-                    <a class="grow">{ $i18n.t("Cancel operation") }</a>
+                    <a href={null} class="grow">{ $i18n.t("Cancel operation") }</a>
                 </div>
             </li>
             {/if}
@@ -150,7 +150,7 @@ function updateFromMissionState(mission: Mission | undefined) {
             <li class="flex" on:click={createMission}>
                 <div class="flex gap-x-2 items-center grow">
                     { @html addIcon }
-                    <a class="grow">{ $i18n.t("Create new mission") }</a>
+                    <a href={null} class="grow">{ $i18n.t("Create new mission") }</a>
                 </div>
             </li>
             {/if}

@@ -7,7 +7,7 @@ export let precision: number = 0
 
 <div class="tooltip tooltip-left" data-tip={tooltip}>
     <div class="flex flex-col items-center">
-        <a class="text-sm">{name}</a>
+        <a href={null} class="text-sm">{name}</a>
         <span class="countdown font-mono text-xl">{value.toFixed(precision)}</span>
     </div>
 </div>

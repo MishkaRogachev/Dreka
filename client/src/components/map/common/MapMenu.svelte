@@ -116,18 +116,19 @@ onDestroy(() => {
 </script>
 
 <PointedPopup isPopupOpen={$activeMapPopup === "map-global"} bind:popupPosition={menuPosition}>
+    <p class="font-bold text-sm text-center">{ $i18n.t("Coordinate") }</p>
     <ul class="menu">
         <li class="flex" on:click={closeMenu}>
             <div class="flex gap-x-2 items-center grow">
                 { @html targetIcon }
-                <a class="grow">{ $i18n.t("Guided flight here") }</a>
+                <a href={null} class="grow">{ $i18n.t("Guided flight here") }</a>
             </div>
         </li>
     {#if $selectedVehicleMission}
         <li class="flex" on:click={addWaypoint}>
             <div class="flex gap-x-2 items-center grow">
                 { @html wptIcon }
-                <a class="grow">{ $selectedVehicleMission.route.items.length > 0 ?
+                <a href={null} class="grow">{ $selectedVehicleMission.route.items.length > 0 ?
                     $i18n.t("Add waypoint") : $i18n.t("Add takeoff") }</a>
             </div>
         </li>

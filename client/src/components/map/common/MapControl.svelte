@@ -59,9 +59,9 @@ onMount(async () => {
         metersInWidth = pixelScale * scaleWidth;
         metersRounded = roundTo125(metersInWidth);
 
-        let geodetic = crossMode ? viewport.screenXYToGeodetic({ x: viewport.viewportWidth() / 2,
-                                                                    y: viewport.viewportHeight() / 2 }) :
-                                    viewport.screenXYToGeodetic(interaction.mouseCoordinates());
+        let geodetic = crossMode ?
+            viewport.screenXYToGeodetic({ x: viewport.viewportWidth() / 2, y: viewport.viewportHeight() / 2 }) :
+            viewport.screenXYToGeodetic(interaction.mouseCoordinates());
         latitude = degreesToDmsString(geodetic.latitude, false);
         longitude = degreesToDmsString(geodetic.longitude, true);
 
@@ -154,7 +154,7 @@ function clearRuler() { ruler.clear(); }
         </div>
         <div class="tooltip" data-tip={ $i18n.t("Copy to clipboard") }>
         <button class="btn btn-sm join-item font-mono flex-nowrap w-72" on:click={coordsToClipboard}>
-            <a>{ latitude + " " + longitude }</a>
+            <a href={null}>{ latitude + " " + longitude }</a>
         </button>
         </div>
     </div>

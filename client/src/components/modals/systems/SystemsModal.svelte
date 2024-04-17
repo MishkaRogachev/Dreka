@@ -58,7 +58,7 @@ async function cancelArmDisarm() {
     <!-- FILLER -->
     <div class="flex flex-col grow text-center">
     {#if sensors.length === 0}
-        <a class="grow">{ $i18n.t("No sensor data available") }</a>
+        <a href={null} class="grow">{ $i18n.t("No sensor data available") }</a>
     {:else}
         <div class="grow"/>
     {/if}

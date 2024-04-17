@@ -16,7 +16,7 @@ export let currentColor: string
 <details id="colorSelectDropdown" class="dropdown w-full" use:clickOutside={closeDropdown}>
     <summary class="select w-full">
         <div class="flex gap-x-2 items-center grow">
-            <a class="grow">{ $i18n.t(currentColor) }</a>
+            <a href={null} class="grow">{ $i18n.t(currentColor) }</a>
             <kbd class="kbd kbd-sm" style="background-color: {toColorCode(currentColor)}"/>
         </div>
     </summary>
@@ -25,7 +25,7 @@ export let currentColor: string
         <li class={"flex " + (currentColor === color ? "font-bold" : "")}
             on:click = {() => { currentColor = color; closeDropdown(); }}>
             <div class="flex gap-x-2 items-center grow">
-                <a class="grow">{ $i18n.t(color) }</a>
+                <a href={null} class="grow">{ $i18n.t(color) }</a>
                 <kbd class="kbd kbd-sm" style="background-color: {toColorCode(color)}"/>
             </div>
         </li>

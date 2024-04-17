@@ -85,7 +85,7 @@ function closeDropdown() {
                             selectedLinkId = created.description.id || "";
                         }
                         closeDropdown();
-                    }}><a>{ link.name }</a></li>
+                    }}><a href={null}>{ link.name }</a></li>
                 {/each}
             </ul>
         </details>
@@ -102,7 +102,7 @@ function closeDropdown() {
     <!-- FILLER -->
     <div class="flex flex-col grow text-center">
     {#if $links.size === 0}
-        <a class="grow">{ $i18n.t("No communication links available") }</a>
+        <a href={null} class="grow">{ $i18n.t("No communication links available") }</a>
     {:else}
         <div class="grow"/>
     {/if}

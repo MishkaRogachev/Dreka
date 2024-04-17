@@ -53,7 +53,7 @@ function closeDropdown() {
                         editingVehicleID = created.description.id || "";
                     }
                     closeDropdown();
-                }}><a>{ $i18n.t("New MAVLink Vehicle") }</a></li>
+                }}><a href={null}>{ $i18n.t("New MAVLink Vehicle") }</a></li>
             </ul>
         </details>
 
@@ -78,7 +78,7 @@ function closeDropdown() {
     <!-- FILLER -->
     <div class="flex flex-col grow text-center">
     {#if $vehicles.size === 0}
-        <a class="grow">{ $i18n.t("No vehicles available") }</a>
+        <a href={null} class="grow">{ $i18n.t("No vehicles available") }</a>
     {:else}
         <div class="grow"/>
     {/if}

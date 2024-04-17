@@ -28,17 +28,17 @@ function openModal(id: string) {
     <ul tabindex="0" class="dropdown-content menu z-[1] p-2 shadow bg-base-300 rounded-box my-2">
         <!-- <h4>{ $i18n.t("Main") }</h4>
         <li class="btn-wide">
-            <a on:click={() => {
+            <a href={null} on:click={() => {
                 $currentPage = Page.Flight;
                 closeDropdown();
             }}>{@html flightIcon} { $i18n.t("Flight") }</a>
         </li> -->
         <h4>{ $i18n.t("Configure") }</h4>
-        <li class="btn-wide"><a on:click={() => {
+        <li class="btn-wide"><a href={null} on:click={() => {
             openModal("communication_modal");
             closeDropdown();
         }}>{@html commIcon} { $i18n.t("Communication") }</a></li>
-        <li class="btn-wide"><a on:click={() => {
+        <li class="btn-wide"><a href={null} on:click={() => {
             openModal("vehicles_modal");
             closeDropdown();
         }}>{@html fleetIcon} { $i18n.t("Vehicles") }</a></li>
@@ -67,7 +67,7 @@ function openModal(id: string) {
                     <option value={localeOption}>{ $i18n.t(localeOption) }</option>
                 {/each}
         </label></li>
-        <li class="btn-wide"><a on:click={() => {
+        <li class="btn-wide"><a href={null} on:click={() => {
             openModal("about_modal");
             closeDropdown();
         }}>{@html aboutIcon} { $i18n.t("About") }</a></li>

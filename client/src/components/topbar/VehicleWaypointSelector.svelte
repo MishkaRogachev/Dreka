@@ -35,7 +35,7 @@ async function cancelSetWaypoint() {
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Set waypoint") }>
     <div class="dropdown dropdown-end">
         <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-28">
-            <a class="grow">{ formatRouteItem(currentWptType, currentWptIndex) }</a>
+            <a href={null} class="grow">{ formatRouteItem(currentWptType, currentWptIndex) }</a>
         </div>
         <div tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300
             rounded-md max-scroll-area-height overflow-y-auto max-h-96">
@@ -49,7 +49,7 @@ async function cancelSetWaypoint() {
                     }
                 }}>
                     <div class="flex gap-x-2 items-center grow">
-                        <a class={"grow " + (wpt === currentWptIndex ? "font-black" : "font-normal")}>
+                        <a href={null} class={"grow " + (wpt === currentWptIndex ? "font-black" : "font-normal")}>
                             { formatRouteItem(waypoint, wpt) }
                         </a>
                         <CommandBadge state={wptExecution?.command.SetWaypoint?.wpt === wpt + 1 ? wptExecution?.state : undefined}>
