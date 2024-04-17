@@ -1,6 +1,7 @@
 
 <script lang="ts">
 
+import { userPreferences } from "$stores/preferences";
 import type { MapLayers, ImageryLayer } from "$lib/interfaces/map";
 
 import upIcon from "$assets/svg/up.svg?raw"
@@ -10,13 +11,17 @@ export let layers: MapLayers
 
 let imageryLayers = layers.imageryLayers();
 
-async function switchLayerVisibility(imageryLayer: ImageryLayer) {
+function saveLayers() {
+    $userPreferences.set("map/imagery_layers", JSON.stringify(layers.imageryLayers()));
+}
+
+function switchLayerVisibility(imageryLayer: ImageryLayer) {
     imageryLayer.visibility = !imageryLayer.visibility;
     layers.updateImageryLayer(imageryLayer);
     imageryLayers = layers.imageryLayers();
 }
 
-async function switchLayerOpacity(imageryLayer: ImageryLayer) {
+function switchLayerOpacity(imageryLayer: ImageryLayer) {
     if (imageryLayer.opacity < 0.25 || imageryLayer.opacity >= 1.0) {
         imageryLayer.opacity = 0.25;
     } else if (imageryLayer.opacity < 0.50) {
@@ -30,12 +35,12 @@ async function switchLayerOpacity(imageryLayer: ImageryLayer) {
     imageryLayers = layers.imageryLayers();
 }
 
-async function raiseLayer(imageryLayer: ImageryLayer) {
+function raiseLayer(imageryLayer: ImageryLayer) {
     layers.raiseImageryLayer(imageryLayer);
     imageryLayers = layers.imageryLayers();
 }
 
-async function lowerLayer(imageryLayer: ImageryLayer) {
+function lowerLayer(imageryLayer: ImageryLayer) {
     layers.lowerImageryLayer(imageryLayer);
     imageryLayers = layers.imageryLayers();
 }

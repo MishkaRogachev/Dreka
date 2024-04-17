@@ -3,11 +3,11 @@ import { onMount, onDestroy } from 'svelte';
 
 import MapLayersView from './MapLayersView.svelte';
 
-import { degreesToDmsString, roundTo125 } from "$lib/common/formats";
+import { roundTo125 } from "$lib/common/formats";
 import type { MapViewport, MapInteraction, MapRuler, MapGraticule, MapLayers } from "$lib/interfaces/map";
 
 import { userPreferences } from '$stores/preferences';
-import { i18n } from '$stores/i18n';
+import { formatGeodeticCoordinates, i18n } from '$stores/i18n';
 
 import crossImg from "$assets/svg/cross.svg";
 
@@ -27,44 +27,35 @@ export let ruler: MapRuler;
 export let graticule: MapGraticule;
 export let layers: MapLayers;
 
-const scaleFactor: number = 10
+const scaleFactor: number = 50
 
 let scaleWidth: number = 0.0;
 let zoomInPressed: boolean = false;
 let zoomOutPressed: boolean = false;
 
 let heading: number = 0.0;
-
 let pixelScale: number = 0.0;
-let metersInWidth: number = 0.0;
-let metersRounded: number = 0.0;
-
-let latitude: string = "-";
-let longitude: string = "-";
-
+let geodeticCoordinates: string;
 let crossMode: boolean = false;
 
 let rulerMode: boolean = false;
 let rulerLength: number = 0.0;
-
 let gridMode: boolean = false;
 
-let interval: any;
+let mouseInterval: NodeJS.Timeout;
+
+$: metersInWidth = pixelScale * scaleWidth;
+$: metersRounded = roundTo125(metersInWidth);
 
 onMount(async () => {
-    // Update UI every 250ms
-    interval = setInterval(() => {
-        heading = viewport.heading();
+    viewport.subscribe(viewportListener);
+    mouseInterval = setInterval(() => {
+        if (!crossMode) {
+            let geodetic = viewport.screenXYToGeodetic(interaction.mouseCoordinates());
+            geodeticCoordinates = formatGeodeticCoordinates(geodetic).join(";");
+        }
+
         pixelScale = viewport.pixelScale();
-        metersInWidth = pixelScale * scaleWidth;
-        metersRounded = roundTo125(metersInWidth);
-
-        let geodetic = crossMode ?
-            viewport.screenXYToGeodetic({ x: viewport.viewportWidth() / 2, y: viewport.viewportHeight() / 2 }) :
-            viewport.screenXYToGeodetic(interaction.mouseCoordinates());
-        latitude = degreesToDmsString(geodetic.latitude, false);
-        longitude = degreesToDmsString(geodetic.longitude, true);
-
         rulerLength = Math.round(ruler.distance());
 
         if (zoomInPressed) {
@@ -74,17 +65,30 @@ onMount(async () => {
         if (zoomOutPressed) {
             viewport.zoomOut(pixelScale * scaleFactor);
         }
+    }, 100);
+    viewportListener();
+});
 
-        $userPreferences.set("map/viewport", JSON.stringify(viewport.save()));
-        $userPreferences.set("map/imagery_layers", JSON.stringify(layers.imageryLayers()));
-    }, 250);
-})
+onDestroy(() => {
+    viewport.unsubscribe(viewportListener);
+    clearInterval(mouseInterval);
+});
 
-onDestroy(async () => { clearInterval(interval); })
+let viewportListener = () => {
+    heading = viewport.heading();
+    pixelScale = viewport.pixelScale();
+
+    let geodetic = crossMode ?
+        viewport.screenXYToGeodetic({ x: viewport.viewportWidth() / 2, y: viewport.viewportHeight() / 2 }) :
+        viewport.screenXYToGeodetic(interaction.mouseCoordinates());
+    geodeticCoordinates = formatGeodeticCoordinates(geodetic).join(";");
+
+    $userPreferences.set("map/viewport", JSON.stringify(viewport.save()));
+}
 
 function resetCompas() { viewport.lookTo(0, -90, 2); }
 function switchCrossMode() { crossMode = !crossMode; }
-function coordsToClipboard() { navigator.clipboard.writeText(latitude + " " + longitude); }
+function coordsToClipboard() { navigator.clipboard.writeText(geodeticCoordinates); }
 function switchRulerMode() {
     rulerMode = !rulerMode;
     ruler.setEnabled(rulerMode);
@@ -100,9 +104,9 @@ function clearRuler() { ruler.clear(); }
 #mapControlPanel {
     position: absolute;
     width: 60%;
-    bottom: 16px;
-    left: 16px;
-    gap: 8px;
+    bottom: 8px;
+    left: 8px;
+    gap: 4px;
     background: transparent;
     display: flex;
     flex-direction: row;
@@ -140,7 +144,7 @@ function clearRuler() { ruler.clear(); }
 <div id="mapControlPanel">
     <!-- Compass -->
     <div class="tooltip" data-tip={ $i18n.t("To North") }>
-        <button class="btn btn-lg btn-circle" on:click={resetCompas}>
+        <button class="btn btn btn-circle" on:click={resetCompas}>
             <div style="transform:rotate({heading}deg);">{@html compasIcon}</div>
         </button>
     </div>
@@ -153,8 +157,8 @@ function clearRuler() { ruler.clear(); }
             </button>
         </div>
         <div class="tooltip" data-tip={ $i18n.t("Copy to clipboard") }>
-        <button class="btn btn-sm join-item font-mono flex-nowrap w-72" on:click={coordsToClipboard}>
-            <a href={null}>{ latitude + " " + longitude }</a>
+        <button class="btn btn-sm join-item font-mono flex-nowrap w-64" on:click={coordsToClipboard}>
+            <a href={null}>{ geodeticCoordinates }</a>
         </button>
         </div>
     </div>
@@ -201,17 +205,21 @@ function clearRuler() { ruler.clear(); }
     </div>
 
     <!-- Grid Tool -->
-    <div class="tooltip" data-tip={ gridMode ? $i18n.t("Disable grid") : $i18n.t("Enable grid") }>
-        <button class={"btn btn-sm px-2 " + (gridMode ? "btn-accent" : "")} on:click={switchGridMode}>{@html gridIcon}</button>
+    <div class="join btn-sm p-0">
+        <div class="tooltip" data-tip={ gridMode ? $i18n.t("Disable grid") : $i18n.t("Enable grid") }>
+            <button class={"btn btn-sm px-2 " + (gridMode ? "btn-accent" : "")} on:click={switchGridMode}>{@html gridIcon}</button>
+        </div>
     </div>
 
     <!-- Map Layers -->
-    <div class="tooltip" data-tip={ $i18n.t("Map layers") }>
-        <div tabindex="0" class="dropdown dropdown-top dropdown-end">
-            <label tabindex="0" class="btn btn-sm px-2">{@html layersIcon}</label>
-            <ul class="dropdown-content z-[1] menu p-2 my-2 shadow bg-base-100 rounded-box">
-                <MapLayersView layers={layers} />
-            </ul>
+    <div class="join btn-sm p-0">
+        <div class="tooltip" data-tip={ $i18n.t("Map layers") }>
+            <div tabindex="0" class="dropdown dropdown-top dropdown-end">
+                <label tabindex="0" class="btn btn-sm px-2">{@html layersIcon}</label>
+                <ul class="dropdown-content z-[1] menu p-2 my-2 shadow bg-base-100 rounded-box">
+                    <MapLayersView layers={layers} />
+                </ul>
+            </div>
         </div>
     </div>
 </div>

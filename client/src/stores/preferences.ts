@@ -25,5 +25,5 @@ function getPreferences(): Map<string, string> {
     return new Map();
 }
 
-// Save user preferences every second
+// TODO: replace with explicit call to savePreferences()
 let interval = setInterval(() => { savePreferences(); }, SAVE_PREFERENCES_INTERVAL);

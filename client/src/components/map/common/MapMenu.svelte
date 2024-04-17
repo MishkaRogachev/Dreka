@@ -4,7 +4,7 @@ import { onMount, onDestroy } from 'svelte';
 import { GeodeticFrame, type Cartesian, type Geodetic } from '$bindings/spatial';
 import { type MissionRouteItem, MissionRouteItemType } from '$bindings/mission';
 
-import { i18n } from '$stores/i18n';
+import { formatGeodeticCoordinates, i18n } from '$stores/i18n';
 import { selectedVehicleID } from '$stores/vehicles';
 import { missions, selectedVehicleMission } from '$stores/mission';
 import { activeMapPopup } from '$stores/app';
@@ -24,7 +24,7 @@ const TAKEOFF_PITCH = 10;
 const MIN_SAFE_ALTITUDE = 50;
 
 let menuPosition = { x: 0, y: 0 };
-let clickGeodetic: Geodetic | null = null;
+let clickGeodetic: Geodetic | undefined = undefined;
 
 let clickListener = (geodetic: Geodetic, position: Cartesian) => {
     if (!selectedVehicleID || $activeMapPopup === "map-global") {
@@ -49,6 +49,7 @@ let viewportListener = () => {
 
 function closeMenu() {
     $activeMapPopup = "";
+    clickGeodetic = undefined;
 }
 
 function addWaypoint() {
@@ -116,7 +117,7 @@ onDestroy(() => {
 </script>
 
 <PointedPopup isPopupOpen={$activeMapPopup === "map-global"} bind:popupPosition={menuPosition}>
-    <p class="font-bold text-sm text-center">{ $i18n.t("Coordinate") }</p>
+    <p class="font-bold text-xs text-center">{ formatGeodeticCoordinates(clickGeodetic).join(";") }</p>
     <ul class="menu">
         <li class="flex" on:click={closeMenu}>
             <div class="flex gap-x-2 items-center grow">

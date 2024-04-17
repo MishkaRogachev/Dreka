@@ -4,47 +4,62 @@ import Hsi from "$components/indicators/HSI.svelte";
 import Parameter from "$components/indicators/Parameter.svelte";
 import VehicleTypeIcon from "$components/common/VehicleTypeIcon.svelte";
 
+import { dashboardVisible } from '$stores/app';
+import { formatGeodeticCoordinates, i18n } from '$stores/i18n';
 import { selectedVehicle } from "$stores/vehicles";
 import { selectedVehicleTelemetry } from "$stores/telemetry";
-import { i18n } from '$stores/i18n';
 
-import { degreesToDmsString, formatHeading } from "$lib/common/formats";
+import { formatHeading } from "$lib/common/formats";
 
 import centerIcon from "$assets/svg/center.svg?raw";
-import switchIcon from "$assets/svg/switch.svg?raw";
-
-let dms: boolean = true
+import hideIcon from "$assets/svg/hide_dashboard.svg?raw";
+import showIcon from "$assets/svg/show_dashboard.svg?raw";
 
 $: telemetry = $selectedVehicleTelemetry
 $: online = $selectedVehicle?.is_online
-
-$: latitude = telemetry.flight ? (dms ? degreesToDmsString(telemetry.navigation.position.latitude, false)
-                : telemetry.navigation.position.latitude.toFixed(6)) : $i18n.t("N/A")
-$: longitude = telemetry.flight ? (dms ? degreesToDmsString(telemetry.navigation.position.longitude, true)
-                : telemetry.navigation.position.longitude.toFixed(6)) : $i18n.t("N/A")
-
-function coordsToClipboard() { navigator.clipboard.writeText(latitude + " " + longitude) }
+$: geodeticCoordinates = formatGeodeticCoordinates(telemetry.navigation?.position)
 
 function switchVehicleTracking() {} // TODO: center/track vehicle
+function coordsToClipboard() { navigator.clipboard.writeText(geodeticCoordinates.join(";")) }
 
 </script>
-
-<div id="dashboard" class="absolute top-10 right-2 bg-base-200 p-4 rounded-md shadow-lg">
-    <div class = "grid grid-cols-4 gap-2 text-center items-center justify-items-stretch">
-    <!-- COORDINATES & TRACK VERHICLE -->
-    <div class="col-span-4 join content-center">
+<div id="dashboard" class="absolute top-10 right-2 bg-base-300 p-0 rounded-md shadow-lg">
+    <!-- TITLE -->
+    <div class="flex join content-center">
+        {#if $dashboardVisible}
         <div class="tooltip tooltip-left" data-tip={ $i18n.t("Center vehicle on map") }>
-            <button class="btn btn-sm px-1 join-item h-full" on:click={switchVehicleTracking}>{@html centerIcon}</button>
+            <button class="btn btn-sm btn-ghost px-1 join-item h-full" on:click={switchVehicleTracking}>{@html centerIcon}</button>
         </div>
         <div class="tooltip tooltip-left grow" data-tip={ $i18n.t("Vehicle coordinates, click to copy") }>
-            <button class="btn btn-sm px-1 join-item font-mono text-right h-full" on:click={coordsToClipboard}>
-                {latitude} <br/> {longitude}
+            <button class="btn btn-xs btn-ghost px-1 join-item font-mono text-right h-full" on:click={coordsToClipboard}>
+                { geodeticCoordinates[0] } <br/> { geodeticCoordinates[1] }
             </button>
         </div>
-        <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("DMS/D.D") }>
-            <button class="btn btn-sm px-1 join-item h-full" on:click={() => { dms = !dms }}>{@html switchIcon}</button>
+        {/if}
+        <div class="tooltip tooltip-left" data-tip={ $dashboardVisible ? $i18n.t("Hide dashboard") : $i18n.t("Show dashboard") }>
+            <button class="btn btn-sm btn-circle btn-ghost" on:click={() => { $dashboardVisible = !$dashboardVisible }}>
+                { @html $dashboardVisible ? hideIcon : showIcon}
+            </button>
         </div>
     </div>
+
+    {#if $dashboardVisible}
+    <div class = "grid grid-cols-4 gap-2 w-50 text-center items-center justify-items-stretch p-2">
+    
+    <!-- <div class="col-span-4 join content-center">
+        <h3 class="font-bold text-lg">{ $i18n.t("Dashboard") }</h3>
+    </div> -->
+    
+        
+    <!-- NAVIGATION
+    <div class="join btn-sm p-0">
+        <div class="tooltip tooltip-left grow" data-tip={ $i18n.t("Vehicle coordinates, click to copy") }>
+            <button class="btn btn-xs px-1 join-item font-mono text-right h-full" on:click={coordsToClipboard}>
+                { geodeticCoordinates.replace(";", "\n\r") }
+            </button>
+        </div>
+
+    </div> -->
     <!-- FLIGHT DATA DISPLAY -->
         <Parameter name={ $i18n.t("GS") } tooltip={ $i18n.t("Ground (GPS) Speed") }
             value={telemetry.navigation ? telemetry.flight.ground_speed : 0}/>
@@ -86,4 +101,5 @@ function switchVehicleTracking() {} // TODO: center/track vehicle
         <a href={null} class="text-sm">&deg</a>
         <a href={null} class="text-sm">{ $i18n.t("m") }</a>
     </div>
+    {/if}
 </div>
