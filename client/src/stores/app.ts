@@ -52,6 +52,7 @@ scale.subscribe(scaleValue => {
     get(userPreferences).set("ui/scale", scaleValue.toString());
 });
 
+// TODO: replace with a web socket state check
 export const isServerOnline = readable(false, (set) => {
     const pingInterval = setInterval(() => {
         AppService.pingServer().then((onlineStatus: any) => {

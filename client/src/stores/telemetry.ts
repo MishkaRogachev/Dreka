@@ -30,7 +30,6 @@ export class VehicleTelemetry {
             target_position: nullGeodetic,
             home_position: nullGeodetic,
             wp_distance: 0,
-            current_wp: 0
         };
         this.rawSns = {
             id: "",

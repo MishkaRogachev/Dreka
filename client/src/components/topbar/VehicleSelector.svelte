@@ -2,8 +2,8 @@
 import { EntityColor } from "$bindings/colors";
 import { VehicleType } from "$bindings/vehicles";
 
-import { selectedVehicleID, selectedVehicle, vehicles } from "$stores/vehicles";
 import { i18n } from '$stores/i18n';
+import { selectedVehicleID, selectedVehicle, vehicles } from "$stores/vehicles";
 
 import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
 
@@ -23,7 +23,7 @@ import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
             <li class="w-64 flex" on:click = {() => { selectedVehicleID.set(vehicle.description.id || ""); }}>
                 <div class="flex gap-x-2 items-center grow">
                     <VehicleTypeIcon vehicleType={vehicle.description.vehicle_type} color={vehicle.description.color}/>
-                    <a class={"grow " + (vehicle.description.id === $selectedVehicleID ? "text-white" : "")}>
+                    <a class={"grow " + (vehicle.description.id === $selectedVehicleID ? "font-black" : "font-normal")}>
                         {vehicle.description.name}
                     </a>
                     <span class={"badge badge-xs " + (vehicle.is_online ? "bg-success" : "bg-neutral-content")} ></span>

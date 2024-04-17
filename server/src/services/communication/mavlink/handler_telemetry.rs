@@ -159,7 +159,7 @@ impl handler::Handler {
         // TODO: mavlink 2 data.mission_state
 
         // -1 shift for home item
-        status.progress.current = if data.seq > 0 { data.seq - 1 } else { 0 };
+        status.progress.current = if data.seq > 0 { Some(data.seq - 1) } else { None };
 
         if let Err(err) = self.dal.update_mission_status(status.clone()).await {
             log::error!("Error updating mission status: {}", err);

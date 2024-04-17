@@ -197,8 +197,10 @@ export const selectedVehicleMission = derived([missions, selectedVehicleID], ($d
     return undefined;
 })
 
-
-export function formatRouteItem(type: MissionRouteItemType, index: number) {
+export function formatRouteItem(type: MissionRouteItemType | undefined, index: number | undefined) {
+    if (!type || index === undefined) {
+        return get(i18n).t("No item ");
+    }
     let name: string;
     switch (type) {
     case MissionRouteItemType.Gap:

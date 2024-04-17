@@ -45,7 +45,7 @@ export interface MissionUpdateState {
 }
 
 export interface MissionProgress {
-    current: number;
+    current?: number;
     reached: Array<number>;
 }
 

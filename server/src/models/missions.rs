@@ -34,7 +34,7 @@ pub enum MissionUpdateState {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct MissionProgress {
-    pub current: u16,
+    pub current: Option<u16>,
     pub reached: Vec<u16>
 }
 

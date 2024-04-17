@@ -10,13 +10,12 @@ import CommandBadge from '$components/common/CommandBadge.svelte';
 
 export let vehicle: Vehicle;
 
-let wptToken: string | null = null
+let wptToken: string | null = null;
 
-$: availableWayponts = $selectedVehicleMission?.route.items.map(item => item.type) || []
-$: currentWptIndex = $selectedVehicleMission?.status.progress.current || 0
-$: currentWptType = currentWptIndex >= 0 && currentWptIndex < availableWayponts.length ?
-    availableWayponts[currentWptIndex] : MissionRouteItemType.Waypoint
-$: wptExecution = wptToken ? $commandExecutions.get(wptToken) : undefined
+$: availableWayponts = $selectedVehicleMission?.route.items.map(item => item.type) || [];
+$: currentWptIndex = $selectedVehicleMission?.status.progress.current;
+$: currentWptType = availableWayponts[currentWptIndex || 0];
+$: wptExecution = wptToken ? $commandExecutions.get(wptToken) : undefined;
 
 async function setWaypoint(wpt: number) {
     wptToken = await commandExecutions.executeCommand(
@@ -50,7 +49,7 @@ async function cancelSetWaypoint() {
                     }
                 }}>
                     <div class="flex gap-x-2 items-center grow">
-                        <a class={"grow " + (wpt === currentWptIndex ? "text-white" : "")}>
+                        <a class={"grow " + (wpt === currentWptIndex ? "font-black" : "font-normal")}>
                             { formatRouteItem(waypoint, wpt) }
                         </a>
                         <CommandBadge state={wptExecution?.command.SetWaypoint?.wpt === wpt + 1 ? wptExecution?.state : undefined}>

@@ -1,11 +1,12 @@
 import { writable, derived, get } from 'svelte/store';
 
-import { type VehicleDescription, type VehicleStatus, VehicleType } from '$bindings/vehicles';
+import { type VehicleDescription, type VehicleStatus, VehicleType, VehicleMode } from '$bindings/vehicles';
 import { EntityColor } from '$bindings/colors';
 
 import type { WsListener } from '$datasource/ws';
 import { ClientSideEvents, EventsService } from '$services/events';
 import { VehiclesService } from '$services/vehicles';
+import { i18n } from '$stores/i18n';
 
 const ONLINE_CHECK_INTERVAL = 250;
 const IS_ONLINE_TIMEOUT = 2000;
@@ -205,4 +206,11 @@ function selectNextAvailableVehicle(vehicles: Map<string, Vehicle>) {
         }
     }
     selectedVehicleID.set(idToSelect);
+}
+
+export function formatMode(mode: VehicleMode | undefined) {
+    if (!mode || mode == VehicleMode.None) {
+        return get(i18n).t("No mode");
+    }
+    return get(i18n).t(mode);
 }
