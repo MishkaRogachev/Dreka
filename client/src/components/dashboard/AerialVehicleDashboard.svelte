@@ -1,7 +1,7 @@
 <script lang="ts">
-import Ai from "$components/indicators/AI.svelte";
-import Hsi from "$components/indicators/HSI.svelte";
-import Parameter from "$components/indicators/Parameter.svelte";
+import Ai from "$components/dashboard/indicators/AI.svelte";
+import Hsi from "$components/dashboard/indicators/HSI.svelte";
+import Parameter from "$components/dashboard/indicators/Parameter.svelte";
 import VehicleTypeIcon from "$components/common/VehicleTypeIcon.svelte";
 
 import { dashboardVisible } from '$stores/app';
@@ -9,6 +9,7 @@ import { formatGeodeticCoordinates, i18n } from '$stores/i18n';
 import { selectedVehicle } from "$stores/vehicles";
 import { selectedVehicleTelemetry } from "$stores/telemetry";
 
+import { longpress } from "$lib/common/longpress";
 import { formatHeading } from "$lib/common/formats";
 
 import centerIcon from "$assets/svg/center.svg?raw";
@@ -19,19 +20,31 @@ $: telemetry = $selectedVehicleTelemetry
 $: online = $selectedVehicle?.is_online
 $: geodeticCoordinates = formatGeodeticCoordinates(telemetry.navigation?.position)
 
-function switchVehicleTracking() {} // TODO: center/track vehicle
-function coordsToClipboard() { navigator.clipboard.writeText(geodeticCoordinates.join(";")) }
+function centerVehicle() {
+    console.log("Centering vehicle on map");
+} // TODO: center/track vehicle
+
+function switchVehicleTracking() {
+    console.log("Switching vehicle tracking");
+} // TODO: center/track vehicle
+
+function coordsToClipboard() {
+    navigator.clipboard.writeText(geodeticCoordinates.join(";"));
+}
 
 </script>
 <div id="dashboard" class="absolute top-10 right-2 bg-base-300 p-0 rounded-md shadow-lg">
     <!-- TITLE -->
-    <div class="flex join content-center">
+    <div class="flex content-center">
         {#if $dashboardVisible}
         <div class="tooltip tooltip-left" data-tip={ $i18n.t("Center vehicle on map") }>
-            <button class="btn btn-sm btn-ghost px-1 join-item h-full" on:click={switchVehicleTracking}>{@html centerIcon}</button>
+            <button class="btn btn-sm btn-circle btn-ghost px-1 h-full"
+                use:longpress={{ delay: 500, repeat: false, onLongPress: switchVehicleTracking }}
+                on:click={centerVehicle}
+            >{@html centerIcon}</button>
         </div>
         <div class="tooltip tooltip-left grow" data-tip={ $i18n.t("Vehicle coordinates, click to copy") }>
-            <button class="btn btn-xs btn-ghost px-1 join-item font-mono text-right h-full" on:click={coordsToClipboard}>
+            <button class="btn btn-xs btn-ghost px-1 font-mono text-right h-full" on:click={coordsToClipboard}>
                 { geodeticCoordinates[0] } <br/> { geodeticCoordinates[1] }
             </button>
         </div>

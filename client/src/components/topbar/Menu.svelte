@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Page, currentPage, Theme, theme, scale, scales } from '$stores/app';
+import { Theme, theme, scale, scales } from '$stores/app';
 import { locale, locales } from '$stores/i18n';
 
 import { clickOutside } from '$lib/common/click-outside';
@@ -26,13 +26,6 @@ function openModal(id: string) {
 <div id="menuDropdown" class="dropdown" use:clickOutside={closeDropdown}>
     <div tabindex="0" class="btn btn-ghost btn-sm m-1">{@html burgerIcon}</div>
     <ul tabindex="0" class="dropdown-content menu z-[1] p-2 shadow bg-base-300 rounded-box my-2">
-        <!-- <h4>{ $i18n.t("Main") }</h4>
-        <li class="btn-wide">
-            <a href={null} on:click={() => {
-                $currentPage = Page.Flight;
-                closeDropdown();
-            }}>{@html flightIcon} { $i18n.t("Flight") }</a>
-        </li> -->
         <h4>{ $i18n.t("Configure") }</h4>
         <li class="btn-wide"><a href={null} on:click={() => {
             openModal("communication_modal");

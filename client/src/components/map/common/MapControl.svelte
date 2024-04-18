@@ -3,6 +3,7 @@ import { onMount, onDestroy } from 'svelte';
 
 import MapLayersView from './MapLayersView.svelte';
 
+import { longpress } from "$lib/common/longpress";
 import { roundTo125 } from "$lib/common/formats";
 import type { MapViewport, MapInteraction, MapRuler, MapGraticule, MapLayers } from "$lib/interfaces/map";
 
@@ -57,14 +58,6 @@ onMount(async () => {
 
         pixelScale = viewport.pixelScale();
         rulerLength = Math.round(ruler.distance());
-
-        if (zoomInPressed) {
-            viewport.zoomIn(pixelScale * scaleFactor);
-        }
-
-        if (zoomOutPressed) {
-            viewport.zoomOut(pixelScale * scaleFactor);
-        }
     }, 100);
     viewportListener();
 });
@@ -89,14 +82,19 @@ let viewportListener = () => {
 function resetCompas() { viewport.lookTo(0, -90, 2); }
 function switchCrossMode() { crossMode = !crossMode; }
 function coordsToClipboard() { navigator.clipboard.writeText(geodeticCoordinates); }
+function zoomIn() { viewport.zoomIn(pixelScale * scaleFactor); }
+function zoomOut() { viewport.zoomOut(pixelScale * scaleFactor); }
+
 function switchRulerMode() {
     rulerMode = !rulerMode;
     ruler.setEnabled(rulerMode);
 }
+
 function switchGridMode() {
     gridMode = !gridMode;
     graticule.setEnabled(gridMode);
 }
+
 function clearRuler() { ruler.clear(); }
 </script>
 
@@ -105,7 +103,7 @@ function clearRuler() { ruler.clear(); }
     position: absolute;
     width: 60%;
     bottom: 8px;
-    left: 8px;
+    left: 12px;
     gap: 4px;
     background: transparent;
     display: flex;
@@ -144,7 +142,7 @@ function clearRuler() { ruler.clear(); }
 <div id="mapControlPanel">
     <!-- Compass -->
     <div class="tooltip" data-tip={ $i18n.t("To North") }>
-        <button class="btn btn btn-circle" on:click={resetCompas}>
+        <button class="btn btn-sm btn-circle scale-125" on:click={resetCompas}>
             <div style="transform:rotate({heading}deg);">{@html compasIcon}</div>
         </button>
     </div>
@@ -166,8 +164,7 @@ function clearRuler() { ruler.clear(); }
     <!-- Map scale -->
     <div class="join btn-sm p-0">
         <div class="tooltip" data-tip={ $i18n.t("Zoom out") }>
-            <button class="btn btn-sm px-1 join-item"
-                on:mousedown={() => zoomOutPressed = true} on:mouseup={() => zoomOutPressed = false} on:mouseleave={() => zoomOutPressed = false}>
+            <button class="btn btn-sm px-1 join-item" use:longpress={{ delay: 100, repeat: true, onLongPress: zoomOut }}>
                 {@html minusIcon}
             </button>
         </div>
@@ -177,8 +174,7 @@ function clearRuler() { ruler.clear(); }
             <div class="scale-tick" style ="left: {metersRounded / metersInWidth * 100}%"></div>
         </div>
         <div class="tooltip" data-tip={ $i18n.t("Zoom in") }>
-            <button class="btn btn-sm px-1 join-item"
-                on:mousedown={() => zoomInPressed = true} on:mouseup={() => zoomInPressed = false} on:mouseleave={() => zoomInPressed = false}>
+            <button class="btn btn-sm px-1 join-item" use:longpress={{ delay: 100, repeat: true, onLongPress: zoomIn }}>
                 {@html plusIcon}
             </button>
         </div>
