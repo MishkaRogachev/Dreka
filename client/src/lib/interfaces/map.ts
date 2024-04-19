@@ -145,4 +145,6 @@ export interface MapFacade {
     layers: MapLayers
     missions: MapMissions
     vehicles: MapVehicles
+
+    calcDistance: (from: Geodetic, to: Geodetic) => number
 }

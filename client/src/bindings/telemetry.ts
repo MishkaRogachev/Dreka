@@ -25,6 +25,16 @@ export interface Navigation {
     position: Geodetic,
     target_position: Geodetic,
     home_position: Geodetic,
+
+    desired_pitch: number,
+    desired_roll: number,
+    desired_bearing: number,
+    target_bearing: number,
+
+    altitiude_error: number,
+    airspeed_error: number,
+    xtrack_error: number,
+
     wp_distance: number,
 }
 

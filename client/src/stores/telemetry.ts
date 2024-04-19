@@ -29,6 +29,13 @@ export class VehicleTelemetry {
             position: nullGeodetic,
             target_position: nullGeodetic,
             home_position: nullGeodetic,
+            desired_pitch: 0,
+            desired_roll: 0,
+            desired_bearing: 0,
+            target_bearing: 0,
+            altitiude_error: 0,
+            airspeed_error: 0,
+            xtrack_error: 0,
             wp_distance: 0,
         };
         this.rawSns = {

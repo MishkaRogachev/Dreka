@@ -78,42 +78,43 @@ function coordsToClipboard() {
 
     <!-- FLIGHT DATA DISPLAY -->
         <Parameter name={ $i18n.t("GS") } tooltip={ $i18n.t("Ground (GPS) Speed") }
-            value={telemetry.navigation ? telemetry.flight.ground_speed : 0}/>
-        <div class="row-span-3 col-span-2 relative">
+            value={ telemetry.flight.ground_speed}/>
+        <div class="row-span-3 col-span-2 flex items-center justify-center">
             <Ai online={online}
-                pitch={telemetry.flight ? telemetry.flight.pitch : 0 }
-                roll={telemetry.flight ? telemetry.flight.roll : 0 }
+                pitch={telemetry.flight.pitch}
+                roll={telemetry.flight.roll}
             />
         </div>
         <Parameter name={ $i18n.t("ASNS") } tooltip={ $i18n.t("Satellite (GPS) Altitude") }
-            value={ telemetry.navigation ? telemetry.navigation.position.altitude : 0 }/>
+            value={ telemetry.navigation.position.altitude}/>
         <Parameter name={ $i18n.t("IAS") } tooltip={ $i18n.t("Indicated Air Speed") }
-            value={ telemetry.flight ? telemetry.flight.indicated_airspeed : 0 }/>
+            value={ telemetry.flight.indicated_airspeed}/>
         <Parameter name={ $i18n.t("AMSL") } tooltip={ $i18n.t("Altitude Above Mean Sea Level") }
-            value={ telemetry.flight ? telemetry.flight.altitude_amsl : 0 }/>
+            value={ telemetry.flight.altitude_amsl}/>
         <a href={null} class="text-sm">{ $i18n.t("m/s") }</a>
         <a href={null} class="text-sm">{ $i18n.t("m") }</a>
 
     <!-- NAVIGATION DATA DISPLAY -->
         <Parameter name={ $i18n.t("HDG") } tooltip={ $i18n.t("Heading") }
-            value={ formatHeading(telemetry.flight ? telemetry.flight.yaw : 0) }/>
-        <div class="row-span-3 col-span-2 relative">
+            value={ formatHeading(telemetry.flight.yaw) }/>
+        <div class="row-span-3 col-span-2 flex items-center justify-center">
             <Hsi
-                heading={telemetry.flight ? telemetry.flight.yaw : 0}
-                course={telemetry.navigation ? telemetry.rawSns.course : 0}
+                heading={telemetry.flight.yaw}
+                course={telemetry.rawSns.course}
+                courseEnabled={telemetry.rawSns.ground_speed > 1}
             />
-            <div id="vehicleMark" class="absolute inset-0 flex items-center justify-center scale-150">
+            <div id="vehicleMark" class="absolute flex items-center justify-center scale-150">
                 <VehicleTypeIcon 
                     vehicleType={$selectedVehicle?.description.vehicle_type} 
                     color={$selectedVehicle?.description.color || ""}/>
             </div>
         </div>
         <Parameter name={ $i18n.t("WPT") } tooltip={ $i18n.t("Distance to next waypoint") }
-            value={ telemetry.flight ? telemetry.navigation.wp_distance : 0 }/>
+            value={ telemetry.navigation.wp_distance}/>
         <Parameter name={ $i18n.t("CRS") } tooltip={ $i18n.t("Course (GPS)") }
-            value={ telemetry.navigation ? formatHeading(telemetry.rawSns.course) : 0 }/>
+            value={ formatHeading(telemetry.rawSns.course) }/>
         <Parameter name={ $i18n.t("HOME") } tooltip={ $i18n.t("Distance to home point") }
-            value={ 0 }/> <!-- TODO: home distance -->
+            value={ $mainMap ? $mainMap.calcDistance(telemetry.navigation.position, telemetry.navigation.home_position) : 0}/> <!-- TODO: home distance -->
         <a href={null} class="text-sm">&deg</a>
         <a href={null} class="text-sm">{ $i18n.t("m") }</a>
     </div>

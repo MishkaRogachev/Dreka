@@ -9,6 +9,7 @@ import { MapGraticuleCesium } from '$lib/map/cesium/graticule';
 import { MapLayersCesium } from '$lib/map/cesium/layers';
 import { MapVehiclesCesium } from '$lib/map/cesium/vehicles';
 import { MapMissionsCesium } from '$lib/map/cesium/missions';
+import type { Geodetic } from '$bindings/spatial';
 
 export class MapFacadeCesium implements MapFacade {
     constructor(container: string) {
@@ -46,6 +47,14 @@ export class MapFacadeCesium implements MapFacade {
     done() {
         this.vehicles.done();
         this.missions.done();
+    }
+
+    calcDistance(from: Geodetic, to: Geodetic): number {
+        if (from === to || !from || !to) return 0;
+        return Cesium.Cartesian3.distance(
+            Cesium.Cartesian3.fromDegrees(from.longitude, from.latitude, from.altitude),
+            Cesium.Cartesian3.fromDegrees(to.longitude, to.latitude, to.altitude)
+        );
     }
 
     cesium: Cesium.Viewer
