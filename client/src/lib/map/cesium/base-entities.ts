@@ -17,6 +17,7 @@ export class BaseEntity {
     }
 
     done() {}
+    // TODO: reduce setters and getters
     baseColor(): Cesium.Color { return this._baseColor; }
     setBaseColor(baseColor: Cesium.Color) { this._baseColor = baseColor; }
     setVisible(visible: boolean) { this._visible = visible; }
@@ -61,6 +62,23 @@ export class BasePointEntity extends BaseEntity implements Interactable {
     }
     removeLabel() { this._entity.label = undefined; }
 
+    centerOnMap() {
+        const distance = Cesium.Cartesian3.distance(this._cartesian, this.cesium.camera.positionWC);
+        this.cesium.zoomTo(this._entity, new Cesium.HeadingPitchRange(
+            this.cesium.camera.heading, this.cesium.camera.pitch, distance));
+    }
+
+    setTracking(tracking: boolean) {
+        BasePointEntity.trackingEnity = tracking ? this : undefined;
+        this.centerOnMap();
+
+        // TODO: anable zoom & tilt
+        this.cesium.scene.screenSpaceCameraController.enableInputs = !tracking;
+
+        // NOTE: this is fallback generic implementation
+        // this.cesium.trackedEntity = tracking ? this._entity : undefined;
+    }
+
     // TODO: enum for subscribitions
     subscribeDragging(listener: Function) { this._draggingListeners.push(listener); }
     subscribeDragged(listener: Function) { this._draggedListeners.push(listener); }
@@ -75,7 +93,12 @@ export class BasePointEntity extends BaseEntity implements Interactable {
         return true;
     }
 
-    setCartesian(cartesian: Cesium.Cartesian3) { this._cartesian = cartesian; }
+    setCartesian(cartesian: Cesium.Cartesian3) {
+        this._cartesian = cartesian;
+        if (BasePointEntity.trackingEnity == this) {
+            this.centerOnMap();
+        }
+    }
 
     setDraggable(draggable: boolean) { this._draggable = draggable; }
     setHovered(hovered: boolean) { this._hovered = hovered; }
@@ -110,6 +133,8 @@ export class BasePointEntity extends BaseEntity implements Interactable {
     protected _draggingListeners: Array<Function>
     protected _draggedListeners: Array<Function>
     protected _clickListeners: Array<Function>
+
+    private static trackingEnity: BasePointEntity | undefined
 }
 
 export class GroundPointEntity extends BasePointEntity {

@@ -8,7 +8,6 @@ export class MapViewportCesium implements MapViewport {
         this.cesium = cesium;
         this.listeners = [];
 
-        // Do it every time postRender, cause camera.changed is too slow
         this.cesium.camera.changed.addEventListener(() => {
             this.listeners.forEach(listener => listener());
         });
@@ -17,15 +16,14 @@ export class MapViewportCesium implements MapViewport {
     subscribe(listener: Function) { this.listeners.push(listener) }
     unsubscribe(listener: Function) { this.listeners = this.listeners.filter(item => item !== listener) }
 
-    flyTo(latitude: number, longitude: number, altitude: number, heading: number, pitch: number, duration: number): void {
-        this.cesium.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
+    resetView(): void {
+        this.cesium.camera.setView({
+            destination: this.cesium.camera.positionWC,
             orientation: {
-                heading: Cesium.Math.toRadians(heading),
-                pitch: Cesium.Math.toRadians(pitch),
+                heading: Cesium.Math.toRadians(0),
+                pitch: Cesium.Math.toRadians(-90),
                 roll: 0.0
-            },
-            duration: duration
+            }
         });
     }
 
@@ -37,18 +35,6 @@ export class MapViewportCesium implements MapViewport {
                 pitch: Cesium.Math.toRadians(pitch),
                 roll: 0.0
             }
-        });
-    }
-
-    lookTo(heading: number, pitch: number, duration: number): void {
-        this.cesium.camera.flyTo({
-            destination : this.cesium.camera.position,
-            orientation : {
-                heading : Cesium.Math.toRadians(heading),
-                pitch : Cesium.Math.toRadians(pitch),
-                roll: this.cesium.camera.roll
-            },
-            duration: duration
         });
     }
 
@@ -134,14 +120,7 @@ export class MapViewportCesium implements MapViewport {
     }
 
     restore(settings: MapViewportSettings) {
-        this.cesium.camera.setView({
-            destination: Cesium.Cartesian3.fromDegrees(settings.longitude, settings.latitude, settings.altitude),
-            orientation: {
-                heading: Cesium.Math.toRadians(settings.heading),
-                pitch: Cesium.Math.toRadians(settings.pitch),
-                roll: 0.0
-            }
-        })
+        this.setView(settings.latitude, settings.longitude, settings.altitude, settings.heading, settings.pitch);
     }
 
     private cesium: Cesium.Viewer

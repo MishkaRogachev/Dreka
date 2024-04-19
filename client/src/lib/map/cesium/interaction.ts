@@ -180,13 +180,11 @@ export class MapInteractionCesium implements MapInteraction {
 
         this.draggingInteractable = interactable;
 
-        if (interactable)
+        if (interactable) {
             interactable.setDragging(true);
+        }
 
-        let scene = this.cesium.scene
-        scene.screenSpaceCameraController.enableRotate = interactable === null;
-        scene.screenSpaceCameraController.enableTranslate = interactable === null;
-        scene.screenSpaceCameraController.enableZoom = interactable === null;
+        this.cesium.scene.screenSpaceCameraController.enableInputs = interactable === null;
     }
 
     cartesianFromPosition(position: Cesium.Cartesian2): Cesium.Cartesian3 | undefined {

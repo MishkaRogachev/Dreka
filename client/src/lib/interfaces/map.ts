@@ -1,6 +1,8 @@
 
-import type { MissionRouteItem } from "$bindings/mission";
+import type { MissionProgress, MissionRoute, MissionRouteItem } from "$bindings/mission";
 import type { Geodetic, Cartesian } from "$bindings/spatial";
+import type { Flight, Navigation } from "$bindings/telemetry";
+import type { VehicleDescription } from "$bindings/vehicles";
 
 export type ClickListener = (geodetic: Geodetic, position: Cartesian) => boolean;
 
@@ -20,9 +22,9 @@ export interface MapViewportSettings {
 }
 
 export interface MapViewport {
-    flyTo: (latitude: number, longitude: number, altitude: number, heading: number, pitch: number, duration: number) => void
+    // TODO: use geodetic here
+    resetView: () => void
     setView: (latitude: number, longitude: number, altitude: number, heading: number, pitch: number) => void
-    lookTo: (heading: number, pitch: number, duration: number) => void
     zoomIn: (amount: number) => void
     zoomOut: (amount: number) => void
 
@@ -75,20 +77,72 @@ export interface MapLayers {
     resetImageryLayers: () => Promise<void>
 }
 
-export enum MapMissionRouteEvent {
+export interface MapMissionRoute {
+    fitOnMap: () => void
+
+    updateFromRoute: (route: MissionRoute) => void
+    updateFromProgress: (progress: MissionProgress) => void
+    setHomeAltitude: (altitude: number) => void
+}
+
+// TODO: add map mission type to aggregate route, fence and rally points
+
+export enum MapMissionsEvent {
     Changed,
     Activated,
     Drag,
     Removed
 }
-export interface MapMissionRoute {
-    subscribe: (event: MapMissionRouteEvent, listener: (item: MissionRouteItem, index: number) => void) => void
+export type MapMissionsEventListener = (missionId: string, item: MissionRouteItem, index: number) => void;
+
+export interface MapMissions {
+    done: () => void
+    subscribe: (event: MapMissionsEvent, listener: MapMissionsEventListener) => void
+
+    setSelectedMission: (missionId: string) => void
+
+    addMission: (missionId: string) => MapMissionRoute
+    removeMission: (missionId: string) => void
+
+    mission: (vehicleId: string) => MapMissionRoute | undefined
+    allMissions: () => Array<MapMissionRoute>
+    missionIds: () => Array<string>
 }
 
-export enum MapVehicleEvent {
+export interface MapVehicle {
+    centerOnMap: () => void
+    setTracking: (tracking: boolean) => void
+
+    updateFromDescription: (description: VehicleDescription) => void
+    updateFromFlight: (flight: Flight) => void
+    updateFromNavigation: (navigation: Navigation) => void
+}
+
+export enum MapVehiclesEvent {
     Activated,
     HomeChanged,
 }
-export interface MapVehicle {
-    subscribe: (event: MapVehicleEvent, listener: (position: Geodetic) => void) => void
+export type MapVehiclesEventListener = (vehicleId: string, position: Geodetic) => void;
+
+export interface MapVehicles {
+    done: () => void
+    subscribe: (event: MapVehiclesEvent, listener: MapVehiclesEventListener) => void
+
+    setSelectedVehicle: (vehicleId: string) => void
+    addVehicle: (vehicleId: string) => MapVehicle
+    removeVehicle: (vehicleId: string) => void
+
+    vehicle: (vehicleId: string) => MapVehicle | undefined
+    allVehicles: () => Array<MapVehicle>
+    vehicleIds: () => Array<string>
+}
+
+export interface MapFacade {
+    interaction: MapInteraction
+    viewport: MapViewport
+    ruler: MapRuler
+    graticule: MapGraticule
+    layers: MapLayers
+    missions: MapMissions
+    vehicles: MapVehicles
 }

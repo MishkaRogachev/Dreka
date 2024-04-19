@@ -1,4 +1,6 @@
-import { readable, writable, get } from 'svelte/store';
+import { readable, writable, get, type Writable } from 'svelte/store';
+
+import type { MapFacade } from '$lib/interfaces/map';
 
 import { AppService } from '$services/app';
 import { userPreferences } from '$stores/preferences';
@@ -9,6 +11,8 @@ export const theme = writable(getTheme())
 
 export const scales = [0.75, 1.00, 1.25, 1.5, 2.0]
 export const scale = writable(getScale())
+
+export const mainMap: Writable<MapFacade | null> = writable(null);
 
 export const dashboardVisible = writable(true);
 export const activeMapPopup = writable("");

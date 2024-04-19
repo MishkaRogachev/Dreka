@@ -5,7 +5,7 @@ import MapLayersView from './MapLayersView.svelte';
 
 import { longpress } from "$lib/common/longpress";
 import { roundTo125 } from "$lib/common/formats";
-import type { MapViewport, MapInteraction, MapRuler, MapGraticule, MapLayers } from "$lib/interfaces/map";
+import type { MapFacade } from "$lib/interfaces/map";
 
 import { userPreferences } from '$stores/preferences';
 import { formatGeodeticCoordinates, i18n } from '$stores/i18n';
@@ -22,17 +22,11 @@ import rulerIcon from "$assets/svg/ruler.svg?raw";
 import closeIcon from "$assets/svg/close.svg?raw";
 import gridIcon from "$assets/svg/grid.svg?raw";
 
-export let viewport: MapViewport;
-export let interaction: MapInteraction;
-export let ruler: MapRuler;
-export let graticule: MapGraticule;
-export let layers: MapLayers;
+export let map: MapFacade;
 
 const scaleFactor: number = 50
 
 let scaleWidth: number = 0.0;
-let zoomInPressed: boolean = false;
-let zoomOutPressed: boolean = false;
 
 let heading: number = 0.0;
 let pixelScale: number = 0.0;
@@ -49,53 +43,53 @@ $: metersInWidth = pixelScale * scaleWidth;
 $: metersRounded = roundTo125(metersInWidth);
 
 onMount(async () => {
-    viewport.subscribe(viewportListener);
+    map.viewport.subscribe(viewportListener);
     mouseInterval = setInterval(() => {
         if (!crossMode) {
-            let geodetic = viewport.screenXYToGeodetic(interaction.mouseCoordinates());
+            let geodetic = map.viewport.screenXYToGeodetic(map.interaction.mouseCoordinates());
             geodeticCoordinates = formatGeodeticCoordinates(geodetic).join(";");
         }
 
-        pixelScale = viewport.pixelScale();
-        rulerLength = Math.round(ruler.distance());
+        pixelScale = map.viewport.pixelScale();
+        rulerLength = Math.round(map.ruler.distance());
     }, 100);
     viewportListener();
 });
 
 onDestroy(() => {
-    viewport.unsubscribe(viewportListener);
+    map.viewport.unsubscribe(viewportListener);
     clearInterval(mouseInterval);
 });
 
 let viewportListener = () => {
-    heading = viewport.heading();
-    pixelScale = viewport.pixelScale();
+    heading = map.viewport.heading();
+    pixelScale = map.viewport.pixelScale();
 
     let geodetic = crossMode ?
-        viewport.screenXYToGeodetic({ x: viewport.viewportWidth() / 2, y: viewport.viewportHeight() / 2 }) :
-        viewport.screenXYToGeodetic(interaction.mouseCoordinates());
+        map.viewport.screenXYToGeodetic({ x: map.viewport.viewportWidth() / 2, y: map.viewport.viewportHeight() / 2 }) :
+        map.viewport.screenXYToGeodetic(map.interaction.mouseCoordinates());
     geodeticCoordinates = formatGeodeticCoordinates(geodetic).join(";");
 
-    $userPreferences.set("map/viewport", JSON.stringify(viewport.save()));
+    $userPreferences.set("map/viewport", JSON.stringify(map.viewport.save()));
 }
 
-function resetCompas() { viewport.lookTo(0, -90, 2); }
+function resetCompas() { map.viewport.resetView(); }
 function switchCrossMode() { crossMode = !crossMode; }
 function coordsToClipboard() { navigator.clipboard.writeText(geodeticCoordinates); }
-function zoomIn() { viewport.zoomIn(pixelScale * scaleFactor); }
-function zoomOut() { viewport.zoomOut(pixelScale * scaleFactor); }
+function zoomIn() { map.viewport.zoomIn(pixelScale * scaleFactor); }
+function zoomOut() { map.viewport.zoomOut(pixelScale * scaleFactor); }
 
 function switchRulerMode() {
     rulerMode = !rulerMode;
-    ruler.setEnabled(rulerMode);
+    map.ruler.setEnabled(rulerMode);
 }
 
 function switchGridMode() {
     gridMode = !gridMode;
-    graticule.setEnabled(gridMode);
+    map.graticule.setEnabled(gridMode);
 }
 
-function clearRuler() { ruler.clear(); }
+function clearRuler() { map.ruler.clear(); }
 </script>
 
 <style>
@@ -164,7 +158,8 @@ function clearRuler() { ruler.clear(); }
     <!-- Map scale -->
     <div class="join btn-sm p-0">
         <div class="tooltip" data-tip={ $i18n.t("Zoom out") }>
-            <button class="btn btn-sm px-1 join-item" use:longpress={{ delay: 100, repeat: true, onLongPress: zoomOut }}>
+            <button class="btn btn-sm px-1 join-item"
+                use:longpress={{ delay: 100, repeat: true, onLongPress: zoomOut, onIdleClick: zoomOut }}>
                 {@html minusIcon}
             </button>
         </div>
@@ -174,7 +169,8 @@ function clearRuler() { ruler.clear(); }
             <div class="scale-tick" style ="left: {metersRounded / metersInWidth * 100}%"></div>
         </div>
         <div class="tooltip" data-tip={ $i18n.t("Zoom in") }>
-            <button class="btn btn-sm px-1 join-item" use:longpress={{ delay: 100, repeat: true, onLongPress: zoomIn }}>
+            <button class="btn btn-sm px-1 join-item"
+                use:longpress={{ delay: 100, repeat: true, onLongPress: zoomIn, onIdleClick: zoomIn }}>
                 {@html plusIcon}
             </button>
         </div>
@@ -213,7 +209,7 @@ function clearRuler() { ruler.clear(); }
             <div tabindex="0" class="dropdown dropdown-top dropdown-end">
                 <label tabindex="0" class="btn btn-sm px-2">{@html layersIcon}</label>
                 <ul class="dropdown-content z-[1] menu p-2 my-2 shadow bg-base-100 rounded-box">
-                    <MapLayersView layers={layers} />
+                    <MapLayersView layers={map.layers} />
                 </ul>
             </div>
         </div>

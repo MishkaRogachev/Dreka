@@ -5,7 +5,7 @@ import { EventsService } from "$services/events";
 
 import Topbar from '$components/topbar/Topbar.svelte';
 
-import MapFacade from '$components/map/cesium/MapFacade.svelte';
+import MapCesium from '$components/map/cesium/MapCesium.svelte';
 import AerialVehicleDashboard from '$components/dashboard/AerialVehicleDashboard.svelte';
 import SystemsModal from '$components/modals/systems/SystemsModal.svelte';
 
@@ -24,7 +24,7 @@ onMount(() => {
 
 <!-- pages, never suspend -->
 <div id="app" class="flex items-center justify-center grow">
-    <MapFacade visible={true} />
+    <MapCesium visible={true} />
     <AerialVehicleDashboard />
     <SystemsModal />
 </div>

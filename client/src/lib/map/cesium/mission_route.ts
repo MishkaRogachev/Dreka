@@ -1,8 +1,8 @@
-import { GeodeticFrame } from '$bindings/spatial';
 import { type MissionRoute, type MissionRouteItem, MissionRouteItemType, type MissionProgress } from '$bindings/mission';
 
-import { MapMissionRouteEvent, type MapMissionRoute } from '$lib/interfaces/map';
+import { MapMissionsEvent, type MapMissionRoute } from '$lib/interfaces/map';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
+import { MapMissionsCesium } from '$lib/map/cesium/missions';
 import { BillboardEntity, PylonEntity, CircleEntity } from "$lib/map/cesium/base-entities"
 import { cartesianFromGeodetic, geodeticFromCartesian } from '$lib/map/cesium/utils';
 
@@ -24,12 +24,13 @@ class MapMissionRouteItemCesium {
         this.billboard.subscribeDragged((cartesian: Cesium.Cartesian3) => { this.onPointDragged(cartesian) });
         this.billboard.subscribeClick(() => {
             if (this.item) {
-                this.route.invoke(MapMissionRouteEvent.Activated, this.item, this.inRouteIndex());
+                this.route.invoke(MapMissionsEvent.Activated, this.item, this.inRouteIndex());
             }
         });
         this.interaction.addInteractable(this.billboard);
 
         this.pylon = new PylonEntity(cesium, 4.0);
+        this.pylon.setBaseColor(Cesium.Color.LIGHTSTEELBLUE);
 
         this.circle = new CircleEntity(cesium, 4.0);
         // TODO: add interaction
@@ -44,7 +45,7 @@ class MapMissionRouteItemCesium {
         this.billboard.done();
         this.pylon.done();
         this.circle.done();
-        this.route.invoke(MapMissionRouteEvent.Removed, this.item!, this.inRouteIndex());
+        this.route.invoke(MapMissionsEvent.Removed, this.item!, this.inRouteIndex());
     }
 
     onPointDragging(cartesian: Cesium.Cartesian3) {
@@ -54,7 +55,7 @@ class MapMissionRouteItemCesium {
         const geodetic = geodeticFromCartesian(cartesian, this.item!.position!.frame, this.route.homeAltitude);
         if (geodetic) {
             this.item.position = geodetic;
-            this.route.invoke(MapMissionRouteEvent.Drag, this.item, this.inRouteIndex());
+            this.route.invoke(MapMissionsEvent.Drag, this.item, this.inRouteIndex());
         }
         this.pylon.setCartesian(this.billboard.cartesian());
         this.circle.setCartesian(this.billboard.cartesian());
@@ -67,7 +68,7 @@ class MapMissionRouteItemCesium {
         const geodetic = geodeticFromCartesian(cartesian, this.item!.position!.frame, this.route.homeAltitude);
         if (geodetic) {
             this.item.position = geodetic;
-            this.route.invoke(MapMissionRouteEvent.Changed, this.item, this.inRouteIndex());
+            this.route.invoke(MapMissionsEvent.Changed, this.item, this.inRouteIndex());
         }
     }
 
@@ -137,29 +138,27 @@ class MapMissionRouteItemCesium {
 }
 
 export class MapMissionRouteCesium implements MapMissionRoute {
-    constructor(cesium: Cesium.Viewer, interaction: MapInteractionCesium) {
-        this.cesium = cesium;
-        this.interaction = interaction;
+    constructor(missionId: string, root: MapMissionsCesium) {
+        this.missionId = missionId;
+        this.root = root;
         this.homeAltitude = 0;
 
         this.items = [];
         this.tracks = [];
-        this.listeners = new Map();
     }
 
     done() {
-        this.tracks.forEach(track => this.cesium.entities.remove(track))
+        this.tracks.forEach(track => this.root.cesium.entities.remove(track))
         this.items.forEach(item => item.done());
         this.items = [];
     }
 
-    subscribe(event: MapMissionRouteEvent, listener: (item: MissionRouteItem, index: number) => void) {
-        this.listeners.set(event, listener);
+    invoke(event: MapMissionsEvent, item: MissionRouteItem, index: number) {
+        this.root.invoke(event, this.missionId, item, index);
     }
 
-    invoke(event: MapMissionRouteEvent, item: MissionRouteItem, index: number) {
-        let cb = this.listeners.get(event);
-        if (cb) cb(item, index);
+    fitOnMap() {
+        // TODO: implement
     }
 
     updateFromRoute(route: MissionRoute) {
@@ -194,7 +193,7 @@ export class MapMissionRouteCesium implements MapMissionRoute {
     }
 
     addRouteItem() {
-        this.items.push(new MapMissionRouteItemCesium(this, this.cesium, this.interaction));
+        this.items.push(new MapMissionRouteItemCesium(this, this.root.cesium, this.root.interaction));
         if (this.items.length > 1) {
             this.addTrack(this.items[this.items.length - 2], this.items[this.items.length - 1]);
         }
@@ -220,7 +219,7 @@ export class MapMissionRouteCesium implements MapMissionRoute {
     }
 
     addTrack(first: MapMissionRouteItemCesium, second: MapMissionRouteItemCesium, index = -1) {
-        const line = this.cesium.entities.add({
+        const line = this.root.cesium.entities.add({
             polyline: {
                 positions: new Cesium.CallbackProperty(() => {
                     if (first.isPositionValid() && second.isPositionValid())
@@ -251,7 +250,7 @@ export class MapMissionRouteCesium implements MapMissionRoute {
     }
 
     removeTrack(index: number) {
-        this.cesium.entities.remove(this.tracks[index]);
+        this.root.cesium.entities.remove(this.tracks[index]);
         this.tracks.splice(index, 1);
     }
 
@@ -259,13 +258,12 @@ export class MapMissionRouteCesium implements MapMissionRoute {
         return this.items.indexOf(item);
     }
 
+    missionId: string
+    root: MapMissionsCesium
+
     homeAltitude: number
 
     private items: Array<MapMissionRouteItemCesium>
     private tracks: Array<Cesium.Entity>
-
-    private cesium: Cesium.Viewer
-    private interaction: MapInteractionCesium
-
-    private listeners: Map<MapMissionRouteEvent, (item: MissionRouteItem, index: number) => void>
 }
+

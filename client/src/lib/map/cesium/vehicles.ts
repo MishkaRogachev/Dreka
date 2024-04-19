@@ -3,7 +3,7 @@ import { type VehicleDescription } from '$bindings/vehicles';
 import type { Flight, Navigation } from '$bindings/telemetry';
 import { toColorCode } from '$bindings/colors';
 
-import { MapVehicleEvent, type MapVehicle } from '$lib/interfaces/map';
+import { MapVehiclesEvent, type MapVehicle, type MapVehicles, type MapVehiclesEventListener } from '$lib/interfaces/map';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
 import { ModelEntity, PylonEntity, PathEntity, BillboardEntity } from "$lib/map/cesium/base-entities"
 import { cartesianFromGeodetic, geodeticFromCartesian } from '$lib/map/cesium/utils';
@@ -15,27 +15,27 @@ import homeIcon from "$assets/svg/home.svg";
 import fixedWing from "$assets/3d/art_v1.glb"
 
 export class MapVehicleCesium implements MapVehicle {
-    constructor(cesium: Cesium.Viewer, interaction: MapInteractionCesium) {
-        this.listeners = new Map();
-        this.interaction = interaction;
+    constructor(vehicleId: string, parent: MapVehiclesCesium) {
+        this.vehicleId = vehicleId;
+        this.parent = parent;
 
         // TODO: click listener to activate vehicle's tooltip
-        this.model = new ModelEntity(cesium);
-        this.pylon = new PylonEntity(cesium, 4.0);
-        this.path = new PathEntity(cesium, 100);
+        this.model = new ModelEntity(parent.cesium);
+        this.pylon = new PylonEntity(parent.cesium, 4.0);
+        this.path = new PathEntity(parent.cesium, 100);
 
-        this.home = new BillboardEntity(cesium);
+        this.home = new BillboardEntity(parent.cesium);
         this.home.setIcon(homeIcon);
         this.home.setDraggable(true);
         this.home.subscribeDragging((cartesian: Cesium.Cartesian3) => { this.onHomeDragging(cartesian) });
         this.home.subscribeDragged((cartesian: Cesium.Cartesian3) => { this.onHomeDragged(cartesian) });
-        this.interaction.addInteractable(this.home);
+        parent.interaction.addInteractable(this.home);
 
-        this.homePylon = new PylonEntity(cesium, 4.0);
+        this.homePylon = new PylonEntity(parent.cesium, 4.0);
     }
 
     done() {
-        this.interaction.removeInteractable(this.home);
+        this.parent.interaction.removeInteractable(this.home);
         this.homePylon.done();
         this.home.done();
 
@@ -55,8 +55,16 @@ export class MapVehicleCesium implements MapVehicle {
     onHomeDragged(cartesian: Cesium.Cartesian3) {
         const geodetic = geodeticFromCartesian(cartesian, GeodeticFrame.Wgs84AboveSeaLevel, 0);
         if (geodetic) {
-            this.invoke(MapVehicleEvent.HomeChanged, geodetic);
+            this.parent.invoke(MapVehiclesEvent.HomeChanged, this.vehicleId, geodetic);
         }
+    }
+
+    centerOnMap() {
+        this.model.centerOnMap();
+    }
+
+    setTracking(tracking: boolean) {
+        this.model.setTracking(tracking);
     }
 
     updateFromDescription(vehicle: VehicleDescription) {
@@ -91,16 +99,8 @@ export class MapVehicleCesium implements MapVehicle {
         this.path.setVisible(selected);
     }
 
-    subscribe(event: MapVehicleEvent, listener: (position: Geodetic) => void) {
-        this.listeners.set(event, listener);
-    }
-
-    invoke(event: MapVehicleEvent, position: Geodetic) {
-        let cb = this.listeners.get(event);
-        if (cb) cb(position);
-    }
-
-    private interaction: MapInteractionCesium;
+    private vehicleId: string;
+    private parent: MapVehiclesCesium;
 
     private path: PathEntity
     private model: ModelEntity
@@ -108,6 +108,67 @@ export class MapVehicleCesium implements MapVehicle {
 
     private home: BillboardEntity
     private homePylon: PylonEntity
+}
 
-    private listeners: Map<MapVehicleEvent, (position: Geodetic) => void>
+export class MapVehiclesCesium implements MapVehicles {
+    constructor(cesium: Cesium.Viewer, interaction: MapInteractionCesium) {
+        this.cesium = cesium;
+        this.interaction = interaction;
+
+        this.selectedVehicleId = "";
+        this.vehicles = new Map();
+        this.listeners = new Map();
+    }
+
+    done() {
+        this.vehicles.forEach(vehicle => vehicle.done());
+        this.vehicles.clear();
+    }
+
+    subscribe(event: MapVehiclesEvent, listener: MapVehiclesEventListener) {
+        this.listeners.set(event, listener);
+    }
+
+    invoke(event: MapVehiclesEvent, vehicleId: string, position: Geodetic) {
+        let cb = this.listeners.get(event);
+        if (cb) cb(vehicleId, position);
+    }
+
+    setSelectedVehicle(vehicleId: string) {
+        this.selectedVehicleId = vehicleId;
+        this.vehicles.forEach((vehicle, id) => {
+            vehicle.setSelected(id === vehicleId);
+        });
+    }
+
+    addVehicle(vehicleId: string) {
+        let vehicle = new MapVehicleCesium(vehicleId, this);
+        this.vehicles.set(vehicleId, vehicle);
+        vehicle.setSelected(vehicleId === this.selectedVehicleId)
+        return vehicle;
+    }
+
+    removeVehicle(vehicleId: string) {
+        this.vehicles.get(vehicleId)?.done();
+        this.vehicles.delete(vehicleId);
+    }
+
+    vehicle(vehicleId: string) {
+        return this.vehicles.get(vehicleId);
+    }
+
+    allVehicles() {
+        return Array.from(this.vehicles.values());
+    }
+
+    vehicleIds() {
+        return Array.from(this.vehicles.keys());
+    }
+
+    cesium: Cesium.Viewer;
+    interaction: MapInteractionCesium;
+
+    private selectedVehicleId: string;
+    private vehicles: Map<string, MapVehicleCesium>
+    private listeners: Map<MapVehiclesEvent, MapVehiclesEventListener>
 }
