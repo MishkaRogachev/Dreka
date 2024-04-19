@@ -2,17 +2,19 @@
 import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 
 import type { MissionRouteItem } from '$bindings/mission';
-import { formatRouteItem, missions } from '$stores/mission';
+
 import { i18n } from '$stores/i18n';
+import { commandExecutions } from '$stores/commands';
+import { selectedVehicleId } from '$stores/vehicles';
+import { formatRouteItem, missions, selectedVehicleMission } from '$stores/mission';
 
 import type { MapViewport } from '$lib/interfaces/map';
 
 import PointedPopup from '$components/common/PointedPopup.svelte';
 
+import playIcon from "$assets/svg/play.svg?raw";
 import editIcon from "$assets/svg/edit.svg?raw";
 import removeIcon from "$assets/svg/remove.svg?raw";
-// import leftIcon from "$assets/svg/left.svg?raw";
-// import rightIcon from "$assets/svg/right.svg?raw";
 
 export let viewport: MapViewport;
 
@@ -20,24 +22,38 @@ export let routeItem: MissionRouteItem;
 export let missionId: string;
 export let index: number;
 
-let menuPosition = { x: 0, y: 0 };
-let edit: boolean = false;
-
 const dispatch = createEventDispatcher()
 
-$: routeItem, recalcPopupPosition()
+let gotoToken: string | null = null
+let menuPosition = { x: 0, y: 0 };
 
-function closeMenu() {
-    dispatch('close', {});
+$: routeItem, recalcPopupPosition()
+$: gotoExecution = gotoToken ? $commandExecutions.get(gotoToken) : undefined
+
+async function gotoItem() {
+    gotoToken = await commandExecutions.executeCommand(
+        { SetWaypoint: { wpt: index + 1 } },
+        { Vehicle: { vehicle_id: $selectedVehicleId }
+    });
 }
 
-function switchEdit() {
+async function cancelGotoItem() {
+    if (gotoToken) {
+        await commandExecutions.cancelCommand(gotoToken);
+    }
+}
+
+function editItem() {
     // TODO: Add waypoint editing
 }
 
 function removeItem() {
     missions.removeRouteItem(missionId, index);
     closeMenu();
+}
+
+function closeMenu() {
+    dispatch('close', {});
 }
 
 function recalcPopupPosition() {
@@ -63,30 +79,27 @@ onDestroy(() => {
 </script>
 
 <PointedPopup isPopupOpen={true} bind:popupPosition={menuPosition}>
-    {#if edit}
-    
-        <!-- <div class="p-2 w-48 items-center"> TODO: Add waypoint editing
-            <div class="join btn-sm p-0 w-full">
-                <button class="btn btn-ghost btn-sm join-item" on:click={left}>{ @html leftIcon }</button>
-                <button class="btn btn-ghost btn-sm join-item grow">{ index }</button>
-                <button class="btn btn-ghost btn-sm join-item" on:click={right}>{ @html rightIcon }</button>
-            </div>
-        </div> -->
-    {:else}
     <p class="font-bold text-sm text-center">{ formatRouteItem(routeItem.type, index) }</p>
-    <ul class="menu">
-        <li class="flex" on:click={switchEdit}>
+    <ul class="menu p-0">
+        {#if $selectedVehicleMission && $selectedVehicleMission.status.progress.current !== index}
+        <li class="flex" on:click={gotoItem}>
+            <div class="flex gap-x-2 items-center grow">
+                { @html playIcon }
+                <a href={null} class="grow">{ $i18n.t("Goto") }</a>
+            </div>
+        </li>
+        {/if}
+        <li class="flex" on:click={editItem}>
             <div class="flex gap-x-2 items-center grow">
                 { @html editIcon }
-                <a href={null} class="grow">{ $i18n.t("Edit waypoint") }</a>
+                <a href={null} class="grow">{ $i18n.t("Edit") }</a>
             </div>
         </li>
         <li class="flex" on:click={removeItem}>
             <div class="flex gap-x-2 items-center grow">
                 { @html removeIcon }
-                <a href={null} class="grow">{ $i18n.t("Remove waypoint") }</a>
+                <a href={null} class="grow">{ $i18n.t("Remove") }</a>
             </div>
         </li>
     </ul>
-    {/if}
 </PointedPopup>

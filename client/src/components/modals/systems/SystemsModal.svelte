@@ -5,7 +5,7 @@ import BaseModal from "$components/common/BaseModal.svelte";
 import SensorHealth from '$components/modals/systems/SensorHealth.svelte';
 
 import { i18n } from "$stores/i18n";
-import { selectedVehicle, selectedVehicleID } from "$stores/vehicles";
+import { selectedVehicle, selectedVehicleId } from "$stores/vehicles";
 import { selectedVehicleTelemetry } from "$stores/telemetry";
 import { commandExecutions } from '$stores/commands';
 
@@ -23,7 +23,7 @@ let armToken: string | null = null
 async function armDisarmVehicle(arm: boolean) {
     armToken = await commandExecutions.executeCommand(
         { ArmDisarm: { arm: arm } },
-        { Vehicle: { vehicle_id: $selectedVehicleID }
+        { Vehicle: { vehicle_id: $selectedVehicleId }
     });
 }
 

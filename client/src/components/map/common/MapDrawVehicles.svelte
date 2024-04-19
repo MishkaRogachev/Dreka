@@ -5,7 +5,7 @@ import type { Geodetic } from '$bindings/spatial';
 
 import { MapVehiclesEvent, type MapVehicles } from '$lib/interfaces/map';
 
-import { Vehicle, vehicles, selectedVehicleID } from "$stores/vehicles";
+import { Vehicle, vehicles, selectedVehicleId } from "$stores/vehicles";
 import { type VehicleTelemetry, vehiclesTelemetry } from "$stores/telemetry";
 import { commandExecutions } from '$stores/commands';
 
@@ -51,8 +51,8 @@ onMount(async () => {
         });
     })
 
-    selectedVehicleID.subscribe((selectedVehicleID: string) => {
-        mapVehicles.setSelectedVehicle(selectedVehicleID);
+    selectedVehicleId.subscribe((selectedVehicleId: string) => {
+        mapVehicles.setSelectedVehicle(selectedVehicleId);
     });
 
     mapVehicles.subscribe(MapVehiclesEvent.HomeChanged, (vehicleId, position: Geodetic) => {

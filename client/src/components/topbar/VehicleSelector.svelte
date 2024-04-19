@@ -3,7 +3,7 @@ import { EntityColor } from "$bindings/colors";
 import { VehicleType } from "$bindings/vehicles";
 
 import { i18n } from '$stores/i18n';
-import { selectedVehicleID, selectedVehicle, vehicles } from "$stores/vehicles";
+import { selectedVehicleId, selectedVehicle, vehicles } from "$stores/vehicles";
 
 import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
 
@@ -20,10 +20,10 @@ import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
         </div>
         <ul tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
         {#each $vehicles.values() as vehicle}
-            <li class="w-64 flex" on:click = {() => { selectedVehicleID.set(vehicle.description.id || ""); }}>
+            <li class="w-64 flex" on:click = {() => { selectedVehicleId.set(vehicle.description.id || ""); }}>
                 <div class="flex gap-x-2 items-center grow">
                     <VehicleTypeIcon vehicleType={vehicle.description.vehicle_type} color={vehicle.description.color}/>
-                    <a href={null} class={"grow " + (vehicle.description.id === $selectedVehicleID ? "font-black" : "font-normal")}>
+                    <a href={null} class={"grow " + (vehicle.description.id === $selectedVehicleId ? "font-black" : "font-normal")}>
                         {vehicle.description.name}
                     </a>
                     <span class={"badge badge-xs " + (vehicle.is_online ? "bg-success" : "bg-neutral-content")} ></span>

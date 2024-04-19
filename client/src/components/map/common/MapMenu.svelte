@@ -5,7 +5,7 @@ import { GeodeticFrame, type Cartesian, type Geodetic } from '$bindings/spatial'
 import { type MissionRouteItem, MissionRouteItemType } from '$bindings/mission';
 
 import { formatGeodeticCoordinates, i18n } from '$stores/i18n';
-import { selectedVehicleID } from '$stores/vehicles';
+import { selectedVehicleId } from '$stores/vehicles';
 import { missions, selectedVehicleMission } from '$stores/mission';
 import { activeMapPopup } from '$stores/app';
 
@@ -27,7 +27,7 @@ let menuPosition = { x: 0, y: 0 };
 let clickGeodetic: Geodetic | undefined = undefined;
 
 let clickListener = (geodetic: Geodetic, position: Cartesian) => {
-    if (!selectedVehicleID || $activeMapPopup === "map-global") {
+    if (!selectedVehicleId || $activeMapPopup === "map-global") {
         $activeMapPopup = "";
         return false;
     }
@@ -118,7 +118,7 @@ onDestroy(() => {
 
 <PointedPopup isPopupOpen={$activeMapPopup === "map-global"} bind:popupPosition={menuPosition}>
     <p class="font-bold text-xs text-center">{ formatGeodeticCoordinates(clickGeodetic).join(";") }</p>
-    <ul class="menu">
+    <ul class="menu p-0">
         <li class="flex" on:click={closeMenu}>
             <div class="flex gap-x-2 items-center grow">
                 { @html targetIcon }

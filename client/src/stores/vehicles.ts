@@ -49,8 +49,8 @@ export const vehicles = function () {
                     vehicles.set(vehicle.id, new Vehicle(vehicle));
                 }
 
-                if (get(selectedVehicleID) == "") {
-                    selectedVehicleID.set(vehicle.id);
+                if (get(selectedVehicleId) == "") {
+                    selectedVehicleId.set(vehicle.id);
                 }
 
                 return vehicles;
@@ -66,7 +66,7 @@ export const vehicles = function () {
             update(vehicles => {
                 if (vehicles.has(vehicle_id)) {
                     vehicles.delete(vehicle_id);
-                    if (get(selectedVehicleID) == vehicle_id) {
+                    if (get(selectedVehicleId) == vehicle_id) {
                         selectNextAvailableVehicle(vehicles);
                     }
                 }
@@ -163,9 +163,9 @@ export const vehicles = function () {
     }
 } ()
 
-export const selectedVehicleID = writable("")
+export const selectedVehicleId = writable("")
 
-export const selectedVehicle = derived([vehicles, selectedVehicleID], ($data) => {
+export const selectedVehicle = derived([vehicles, selectedVehicleId], ($data) => {
     return $data[0].get($data[1])
 })
 
@@ -206,7 +206,7 @@ function selectNextAvailableVehicle(vehicles: Map<string, Vehicle>) {
             idToSelect = id;
         }
     }
-    selectedVehicleID.set(idToSelect);
+    selectedVehicleId.set(idToSelect);
 }
 
 export function formatMode(mode: VehicleMode | undefined) {

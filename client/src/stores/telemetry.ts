@@ -5,7 +5,7 @@ import type { Flight, Navigation, RawSns, System } from "$bindings/telemetry";
 import type { WsListener } from "$datasource/ws";
 import { EventsService } from "$services/events";
 
-import { selectedVehicleID } from "$stores/vehicles";
+import { selectedVehicleId } from "$stores/vehicles";
 import { nullGeodetic } from "$bindings/spatial";
 
 export class VehicleTelemetry {
@@ -148,6 +148,6 @@ export const vehiclesTelemetry = function () {
     }
 } ()
 
-export const selectedVehicleTelemetry = derived([vehiclesTelemetry, selectedVehicleID], ($data) => {
+export const selectedVehicleTelemetry = derived([vehiclesTelemetry, selectedVehicleId], ($data) => {
     return $data[0].get($data[1]) || new VehicleTelemetry()
 })

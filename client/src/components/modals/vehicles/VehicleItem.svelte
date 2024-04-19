@@ -6,7 +6,7 @@ import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
 import MavlinkIdEdit from '$components/modals/vehicles/MavlinkIdEdit.svelte';
 
 import { type VehicleDescription } from "$bindings/vehicles";
-import { Vehicle, vehicles, usedVehicleTypes, selectedVehicleID, usedVehicleColors } from "$stores/vehicles";
+import { Vehicle, vehicles, usedVehicleTypes, selectedVehicleId, usedVehicleColors } from "$stores/vehicles";
 
 import { i18n } from "$stores/i18n";
 
@@ -49,7 +49,7 @@ function cloneDescription() {
         <div class="grow"/>
 
         <!-- SELECT VECICLE -->
-        {#if $selectedVehicleID === vehicle.description.id}
+        {#if $selectedVehicleId === vehicle.description.id}
             <button class="btn btn-sm z-[1] btn-outline btn-disabled">{ $i18n.t("Selected") }</button>
         {/if}
 

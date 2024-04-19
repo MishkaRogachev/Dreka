@@ -75,21 +75,7 @@ function coordsToClipboard() {
 
     {#if $dashboardVisible}
     <div class = "grid grid-cols-4 gap-2 w-50 text-center items-center justify-items-stretch p-2">
-    
-    <!-- <div class="col-span-4 join content-center">
-        <h3 class="font-bold text-lg">{ $i18n.t("Dashboard") }</h3>
-    </div> -->
-    
-        
-    <!-- NAVIGATION
-    <div class="join btn-sm p-0">
-        <div class="tooltip tooltip-left grow" data-tip={ $i18n.t("Vehicle coordinates, click to copy") }>
-            <button class="btn btn-xs px-1 join-item font-mono text-right h-full" on:click={coordsToClipboard}>
-                { geodeticCoordinates.replace(";", "\n\r") }
-            </button>
-        </div>
 
-    </div> -->
     <!-- FLIGHT DATA DISPLAY -->
         <Parameter name={ $i18n.t("GS") } tooltip={ $i18n.t("Ground (GPS) Speed") }
             value={telemetry.navigation ? telemetry.flight.ground_speed : 0}/>

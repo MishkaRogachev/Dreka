@@ -5,7 +5,7 @@ import { MissionRouteItemType, type Mission, type MissionRoute, type MissionRout
 import type { WsListener } from '$datasource/ws';
 import { ClientSideEvents, EventsService } from '$services/events';
 import { MissionService } from '$services/mission';
-import { selectedVehicleID } from '$stores/vehicles';
+import { selectedVehicleId } from '$stores/vehicles';
 
 import { i18n } from '$stores/i18n';
 
@@ -188,7 +188,7 @@ export const missions = function () {
     }
 } ()
 
-export const selectedVehicleMission = derived([missions, selectedVehicleID], ($data) => {
+export const selectedVehicleMission = derived([missions, selectedVehicleId], ($data) => {
     for (let mission of $data[0].values()) {
         if (mission.vehicle_id === $data[1]) {
             return mission;
