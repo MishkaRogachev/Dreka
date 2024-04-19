@@ -98,6 +98,10 @@ impl Handler {
                 self.handle_gps_raw(header.system_id, gps_raw).await,
             MavMessage::SYS_STATUS(sys_data) =>
                 self.handle_sys_data(header.system_id, sys_data).await,
+            MavMessage::NAV_CONTROLLER_OUTPUT(nav_data) =>
+                self.handle_nav_data(header.system_id, nav_data).await,
+            MavMessage::POSITION_TARGET_GLOBAL_INT(target) =>
+                self.handle_target_position(header.system_id, target).await,
             MavMessage::COMMAND_ACK(ack) =>
                 self.handle_command_ack(header.system_id, ack).await,
             MavMessage::MISSION_COUNT(data) =>

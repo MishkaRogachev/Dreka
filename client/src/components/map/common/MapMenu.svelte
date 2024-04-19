@@ -6,6 +6,7 @@ import { type MissionRouteItem, MissionRouteItemType } from '$bindings/mission';
 
 import { formatGeodeticCoordinates, i18n } from '$stores/i18n';
 import { selectedVehicleId } from '$stores/vehicles';
+import { commandExecutions } from '$stores/commands';
 import { missions, selectedVehicleMission } from '$stores/mission';
 import { activeMapPopup } from '$stores/app';
 
@@ -50,6 +51,19 @@ let viewportListener = () => {
 function closeMenu() {
     $activeMapPopup = "";
     clickGeodetic = undefined;
+}
+
+async function setTarget() {
+    if (!$selectedVehicleId || !clickGeodetic) {
+        return;
+    }
+
+    await commandExecutions.executeCommand(
+        { NavTo: { position: clickGeodetic } },
+        { Vehicle: { vehicle_id: $selectedVehicleId }
+    });
+    // TODO: executions handling
+    closeMenu();
 }
 
 function addWaypoint() {
@@ -119,7 +133,7 @@ onDestroy(() => {
 <PointedPopup isPopupOpen={$activeMapPopup === "map-global"} bind:popupPosition={menuPosition}>
     <p class="font-bold text-xs text-center">{ formatGeodeticCoordinates(clickGeodetic).join(";") }</p>
     <ul class="menu p-0">
-        <li class="flex" on:click={closeMenu}>
+        <li class="flex" on:click={setTarget}>
             <div class="flex gap-x-2 items-center grow">
                 { @html targetIcon }
                 <a href={null} class="grow">{ $i18n.t("Guided flight here") }</a>

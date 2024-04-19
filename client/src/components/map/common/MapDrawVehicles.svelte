@@ -11,6 +11,15 @@ import { commandExecutions } from '$stores/commands';
 
 export let mapVehicles: MapVehicles;
 
+// TODO: group all commands in a single file
+async function setTarget(vehicleId: string, position: Geodetic) {
+    await commandExecutions.executeCommand(
+        { NavTo: { position: position } },
+        { Vehicle: { vehicle_id: vehicleId }
+    });
+    // TODO: executions handling
+}
+
 async function setHome(vehicleId: string, position: Geodetic) {
     await commandExecutions.executeCommand(
         { SetHome: { position: position } },
@@ -55,6 +64,9 @@ onMount(async () => {
         mapVehicles.setSelectedVehicle(selectedVehicleId);
     });
 
+    mapVehicles.subscribe(MapVehiclesEvent.TargetChanged, (vehicleId, position: Geodetic) => {
+        setTarget(vehicleId, position);
+    });
     mapVehicles.subscribe(MapVehiclesEvent.HomeChanged, (vehicleId, position: Geodetic) => {
         setHome(vehicleId, position);
     });

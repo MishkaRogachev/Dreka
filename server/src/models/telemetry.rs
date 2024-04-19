@@ -50,7 +50,17 @@ pub struct Navigation {
     pub position: Geodetic,
     pub target_position: Geodetic,
     pub home_position: Geodetic,
-    pub wp_distance: f32,
+
+    pub desired_pitch: f32,
+    pub desired_roll: f32,
+    pub desired_bearing: f32,
+    pub target_bearing: f32,
+
+    pub altitiude_error: f32,
+    pub airspeed_error: f32,
+    pub xtrack_error: f32,
+
+    pub wp_distance: u16,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
@@ -114,7 +124,14 @@ impl Navigation {
             position: Geodetic::default(),
             target_position: Geodetic::default(),
             home_position: Geodetic::default(),
-            wp_distance: 0.0
+            desired_pitch: 0.0,
+            desired_roll: 0.0,
+            desired_bearing: 0.0,
+            target_bearing: 0.0,
+            altitiude_error: 0.0,
+            airspeed_error: 0.0,
+            xtrack_error: 0.0,
+            wp_distance: 0
         }
     }
 }

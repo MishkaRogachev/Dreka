@@ -8,7 +8,8 @@ const TB_TELEMETRY_RAW_SNS: &str = "telemetry_raw_sns";
 const TB_TELEMETRY_SYSTEM: &str = "telemetry_system";
 
 impl Dal {
-    pub async fn save_telemetry_flight(&self, vehicle_id: VehicleId, flight: Flight) -> anyhow::Result<Flight> {
+    pub async fn save_telemetry_flight(&self, vehicle_id: VehicleId, mut flight: Flight) -> anyhow::Result<Flight> {
+        flight.timestamp = chrono::Utc::now().timestamp();
         let flight = if flight.id.is_empty() {
             self.dao.create(TB_TELEMETRY_FLIGHT, flight).await?
         } else {
@@ -18,7 +19,8 @@ impl Dal {
         Ok(flight)
     }
 
-    pub async fn save_telemetry_navigation(&self, vehicle_id: VehicleId, navigation: Navigation) -> anyhow::Result<Navigation> {
+    pub async fn save_telemetry_navigation(&self, vehicle_id: VehicleId, mut navigation: Navigation) -> anyhow::Result<Navigation> {
+        navigation.timestamp = chrono::Utc::now().timestamp();
         let navigation = if navigation.id.is_empty() {
             self.dao.create(TB_TELEMETRY_NAVIGATION, navigation).await?
         } else {
@@ -28,7 +30,8 @@ impl Dal {
         Ok(navigation)
     }
 
-    pub async fn save_telemtry_raw_sns(&self, vehicle_id: VehicleId, raw_sns: RawSns) -> anyhow::Result<RawSns> {
+    pub async fn save_telemtry_raw_sns(&self, vehicle_id: VehicleId, mut raw_sns: RawSns) -> anyhow::Result<RawSns> {
+        raw_sns.timestamp = chrono::Utc::now().timestamp();
         let raw_sns = if raw_sns.id.is_empty() {
             self.dao.create(TB_TELEMETRY_RAW_SNS, raw_sns).await?
         } else {
@@ -38,7 +41,8 @@ impl Dal {
         Ok(raw_sns)
     }
 
-    pub async fn save_telemetry_system(&self, vehicle_id: VehicleId, system: System) -> anyhow::Result<System> {
+    pub async fn save_telemetry_system(&self, vehicle_id: VehicleId, mut system: System) -> anyhow::Result<System> {
+        system.timestamp = chrono::Utc::now().timestamp();
         let system = if system.id.is_empty() {
             self.dao.create(TB_TELEMETRY_SYSTEM, system).await?
         } else {

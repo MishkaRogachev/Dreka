@@ -121,6 +121,7 @@ export interface MapVehicle {
 export enum MapVehiclesEvent {
     Activated,
     HomeChanged,
+    TargetChanged,
 }
 export type MapVehiclesEventListener = (vehicleId: string, position: Geodetic) => void;
 

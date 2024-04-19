@@ -3,16 +3,19 @@ import { type VehicleDescription } from '$bindings/vehicles';
 import type { Flight, Navigation } from '$bindings/telemetry';
 import { toColorCode } from '$bindings/colors';
 
+import { cartesianFromGeodetic, geodeticFromCartesian } from '$lib/map/cesium/utils';
 import { MapVehiclesEvent, type MapVehicle, type MapVehicles, type MapVehiclesEventListener } from '$lib/interfaces/map';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
 import { ModelEntity, PylonEntity, PathEntity, BillboardEntity } from "$lib/map/cesium/base-entities"
-import { cartesianFromGeodetic, geodeticFromCartesian } from '$lib/map/cesium/utils';
+import { MapSign } from '$lib/map/cesium/common';
 
 import * as Cesium from 'cesium';
 
 import homeIcon from "$assets/svg/home.svg";
+import targetIcon from "$assets/svg/target.svg";
+
 // @ts-ignore
-import fixedWing from "$assets/3d/art_v1.glb"
+import fixedWing from "$assets/3d/art_v1.glb";
 
 export class MapVehicleCesium implements MapVehicle {
     constructor(vehicleId: string, parent: MapVehiclesCesium) {
@@ -24,20 +27,27 @@ export class MapVehicleCesium implements MapVehicle {
         this.pylon = new PylonEntity(parent.cesium, 4.0);
         this.path = new PathEntity(parent.cesium, 100);
 
-        this.home = new BillboardEntity(parent.cesium);
-        this.home.setIcon(homeIcon);
-        this.home.setDraggable(true);
-        this.home.subscribeDragging((cartesian: Cesium.Cartesian3) => { this.onHomeDragging(cartesian) });
-        this.home.subscribeDragged((cartesian: Cesium.Cartesian3) => { this.onHomeDragged(cartesian) });
-        parent.interaction.addInteractable(this.home);
+        this.target = new MapSign(parent.cesium, parent.interaction, targetIcon,
+            (cartesian: Cesium.Cartesian3) => {
+            const geodetic = geodeticFromCartesian(cartesian, GeodeticFrame.Wgs84AboveSeaLevel, 0);
+            if (geodetic) {
+                this.parent.invoke(MapVehiclesEvent.TargetChanged, this.vehicleId, geodetic);
+            }
+        });
+        this.target.setSignColor(Cesium.Color.MAGENTA)
 
-        this.homePylon = new PylonEntity(parent.cesium, 4.0);
+        this.home = new MapSign(parent.cesium, parent.interaction, homeIcon,
+            (cartesian: Cesium.Cartesian3) => {
+            const geodetic = geodeticFromCartesian(cartesian, GeodeticFrame.Wgs84AboveSeaLevel, 0);
+            if (geodetic) {
+                this.parent.invoke(MapVehiclesEvent.HomeChanged, this.vehicleId, geodetic);
+            }
+        });
     }
 
     done() {
-        this.parent.interaction.removeInteractable(this.home);
-        this.homePylon.done();
         this.home.done();
+        this.target.done();
 
         this.path.done();
         this.pylon.done();
@@ -46,17 +56,6 @@ export class MapVehicleCesium implements MapVehicle {
 
     cartesian(): Cesium.Cartesian3 {
         return this.model.cartesian();
-    }
-
-    onHomeDragging(cartesian: Cesium.Cartesian3) {
-        this.homePylon.setCartesian(cartesian);
-    }
-
-    onHomeDragged(cartesian: Cesium.Cartesian3) {
-        const geodetic = geodeticFromCartesian(cartesian, GeodeticFrame.Wgs84AboveSeaLevel, 0);
-        if (geodetic) {
-            this.parent.invoke(MapVehiclesEvent.HomeChanged, this.vehicleId, geodetic);
-        }
     }
 
     centerOnMap() {
@@ -91,7 +90,9 @@ export class MapVehicleCesium implements MapVehicle {
 
         const homeCartesian = cartesianFromGeodetic(navigation.home_position, 0);
         this.home.setCartesian(homeCartesian);
-        this.homePylon.setCartesian(homeCartesian);
+
+        const targetCartesian = cartesianFromGeodetic(navigation.target_position, 0);
+        this.target.setCartesian(targetCartesian);
     }
 
     setSelected(selected: boolean) {
@@ -106,8 +107,8 @@ export class MapVehicleCesium implements MapVehicle {
     private model: ModelEntity
     private pylon: PylonEntity
 
-    private home: BillboardEntity
-    private homePylon: PylonEntity
+    private home: MapSign
+    private target: MapSign
 }
 
 export class MapVehiclesCesium implements MapVehicles {

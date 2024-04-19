@@ -150,6 +150,48 @@ impl handler::Handler {
         }
     }
 
+    pub async fn handle_nav_data(&mut self, mav_id: u8, nav_data: &NAV_CONTROLLER_OUTPUT_DATA) {
+        let (mut navigation, vehicle_id) = match self.vehicle_id_from_mav_id(&mav_id) {
+            Some(vehicle_id) => (self.dal.telemetry_navigation(&vehicle_id).await.unwrap_or(
+                Navigation::default_for_id(&vehicle_id)), vehicle_id),
+            None => return
+        };
+
+        navigation.desired_pitch = protocol::decode_angles(nav_data.nav_pitch);
+        navigation.desired_roll = protocol::decode_angles(nav_data.nav_roll);
+        navigation.desired_bearing = protocol::decode_cog_or_hdg(nav_data.nav_bearing as u16);
+        navigation.target_bearing = protocol::decode_cog_or_hdg(nav_data.target_bearing as u16);
+
+        navigation.altitiude_error = nav_data.alt_error;
+        navigation.airspeed_error = nav_data.aspd_error;
+        navigation.xtrack_error = nav_data.xtrack_error;
+
+        navigation.wp_distance = nav_data.wp_dist;
+
+        if let Err(err) = self.dal.save_telemetry_navigation(vehicle_id, navigation).await {
+            log::error!("Save navigation telemetry error: {}", err);
+        }
+    }
+
+    pub async fn handle_target_position(&mut self, mav_id: u8, data: &POSITION_TARGET_GLOBAL_INT_DATA) {
+        let (mut navigation, vehicle_id) = match self.vehicle_id_from_mav_id(&mav_id) {
+            Some(vehicle_id) => (self.dal.telemetry_navigation(&vehicle_id).await.unwrap_or(
+                Navigation::default_for_id(&vehicle_id)), vehicle_id),
+            None => return
+        };
+
+        navigation.target_position.latitude = protocol::decode_lat_lon(data.lat_int);
+        navigation.target_position.longitude = protocol::decode_lat_lon(data.lon_int);
+        navigation.target_position.altitude = data.alt;
+        navigation.target_position.frame = GeodeticFrame::Wgs84AboveSeaLevel;
+
+        if let Err(err) = self.dal.save_telemetry_navigation(vehicle_id, navigation).await {
+            log::error!("Save navigation telemetry error: {}", err);
+        }
+    }
+
+    // TODO: target_position 
+
     pub async fn handle_mission_item_current(&mut self, mav_id: u8, data: &MISSION_CURRENT_DATA) {
         let mut status = match self.mission_id_from_mav_id(&mav_id).await {
             Some(mission_id) => self.dal.mission_status(&mission_id).await.unwrap(),
@@ -173,6 +215,9 @@ impl handler::Handler {
         };
 
         // -1 shift for home item
+        if data.seq == 0 {
+            return;
+        }
         status.progress.reached.push(data.seq - 1);
 
         if let Err(err) = self.dal.update_mission_status(status.clone()).await {
