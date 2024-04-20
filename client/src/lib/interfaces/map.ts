@@ -77,38 +77,6 @@ export interface MapLayers {
     resetImageryLayers: () => Promise<void>
 }
 
-export interface MapMissionRoute {
-    fitOnMap: () => void
-
-    updateFromRoute: (route: MissionRoute) => void
-    updateFromProgress: (progress: MissionProgress) => void
-    setHomeAltitude: (altitude: number) => void
-}
-
-// TODO: add map mission type to aggregate route, fence and rally points
-
-export enum MapMissionsEvent {
-    Changed,
-    Activated,
-    Drag,
-    Removed
-}
-export type MapMissionsEventListener = (missionId: string, item: MissionRouteItem, index: number) => void;
-
-export interface MapMissions {
-    done: () => void
-    subscribe: (event: MapMissionsEvent, listener: MapMissionsEventListener) => void
-
-    setSelectedMission: (missionId: string) => void
-
-    addMission: (missionId: string) => MapMissionRoute
-    removeMission: (missionId: string) => void
-
-    mission: (vehicleId: string) => MapMissionRoute | undefined
-    allMissions: () => Array<MapMissionRoute>
-    missionIds: () => Array<string>
-}
-
 export interface MapVehicle {
     centerOnMap: () => void
     setTracking: (tracking: boolean) => void
@@ -139,14 +107,46 @@ export interface MapVehicles {
     vehicleIds: () => Array<string>
 }
 
+export interface MapMissionRoute {
+    fitOnMap: () => void
+
+    updateFromRoute: (route: MissionRoute) => void
+    updateFromProgress: (progress: MissionProgress, inMissionMode: boolean) => void
+    setHomeAltitude: (altitude: number) => void
+}
+
+// TODO: add map mission type to aggregate route, fence and rally points
+
+export enum MapMissionsEvent {
+    Changed,
+    Activated,
+    Drag,
+    Removed
+}
+export type MapMissionsEventListener = (missionId: string, item: MissionRouteItem, index: number) => void;
+
+export interface MapMissions {
+    done: () => void
+    subscribe: (event: MapMissionsEvent, listener: MapMissionsEventListener) => void
+
+    setSelectedMission: (missionId: string) => void
+
+    addMission: (missionId: string) => MapMissionRoute
+    removeMission: (missionId: string) => void
+
+    mission: (vehicleId: string) => MapMissionRoute | undefined
+    allMissions: () => Array<MapMissionRoute>
+    missionIds: () => Array<string>
+}
+
 export interface MapFacade {
     interaction: MapInteraction
     viewport: MapViewport
     ruler: MapRuler
     graticule: MapGraticule
     layers: MapLayers
-    missions: MapMissions
     vehicles: MapVehicles
+    missions: MapMissions
 
     calcDistance: (from: Geodetic, to: Geodetic) => number
 }

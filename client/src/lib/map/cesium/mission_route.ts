@@ -8,9 +8,9 @@ import { cartesianFromGeodetic, geodeticFromCartesian } from '$lib/map/cesium/ut
 
 import * as Cesium from 'cesium';
 
-import wptIcon from "$assets/svg/wpt.svg";
-import takeoffIcon from "$assets/svg/takeoff.svg";
-import landingIcon from "$assets/svg/landing.svg";
+import wptIcon from "$assets/svg/map_wpt.svg";
+import takeoffIcon from "$assets/svg/map_takeoff.svg";
+import landingIcon from "$assets/svg/map_landing.svg";
 
 class MapMissionRouteItemCesium {
     constructor(route: MapMissionRouteCesium, cesium: Cesium.Viewer, interaction: MapInteractionCesium) {
@@ -176,10 +176,10 @@ export class MapMissionRouteCesium implements MapMissionRoute {
         });
     }
 
-    updateFromProgress(progress: MissionProgress) {
+    updateFromProgress(progress: MissionProgress, inMissionMode: boolean) {
         this.items.forEach((item, i) => {
             const reached = progress.reached.includes(i);
-            const current = progress.current === i;
+            const current = inMissionMode && progress.current === i;
             item.updateProgress(reached, current);
         });
     }

@@ -45,7 +45,7 @@ export function castRay(position: Cesium.Cartesian3, hpr: Cesium.HeadingPitchRol
 
 // TODO: home and terrain altitudes fix
 export function cartesianFromGeodetic(geodetic: Geodetic, homeAltitude: number = 0): Cesium.Cartesian3 {
-    if (!geodetic || (isNaN(geodetic.latitude) && isNaN(geodetic.longitude)))
+    if (!geodetic || (!geodetic.latitude && !geodetic.longitude))
         return Cesium.Cartesian3.ZERO;
 
     let altitude;

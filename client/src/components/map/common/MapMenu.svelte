@@ -7,6 +7,7 @@ import { type MissionRouteItem, MissionRouteItemType } from '$bindings/mission';
 
 import { formatGeodeticCoordinates, i18n } from '$stores/i18n';
 import { selectedVehicle, selectedVehicleId } from '$stores/vehicles';
+import { selectedVehicleTelemetry } from '$stores/telemetry';
 import { commandExecutions } from '$stores/commands';
 import { missions, selectedVehicleMission } from '$stores/mission';
 import { activeMapPopup } from '$stores/app';
@@ -15,8 +16,8 @@ import type { MapInteraction, MapViewport } from '$lib/interfaces/map';
 
 import PointedPopup from '$components/common/PointedPopup.svelte';
 
-import targetIcon from "$assets/svg/target_wpt.svg?raw";
-import wptIcon from "$assets/svg/wpt.svg?raw";
+import targetIcon from "$assets/svg/map_target_wpt.svg?raw";
+import wptIcon from "$assets/svg/map_wpt.svg?raw";
 import copyIcon from "$assets/svg/copy.svg?raw";
 
 export let viewport: MapViewport;
@@ -62,8 +63,17 @@ async function setTarget() {
         return;
     }
 
+    const prevPosition = $selectedVehicleTelemetry?.navigation?.target_position || undefined;
+
+    const position = {
+        latitude: clickGeodetic.latitude,
+        longitude: clickGeodetic.longitude,
+        altitude: prevPosition?.altitude | MIN_SAFE_ALTITUDE,
+        frame: prevPosition?.frame || GeodeticFrame.Wgs84RelativeHome
+    };
+
     await commandExecutions.executeCommand(
-        { NavTo: { position: clickGeodetic } },
+        { NavTo: { position: position } },
         { Vehicle: { vehicle_id: $selectedVehicleId }
     });
     // TODO: executions handling

@@ -10,12 +10,11 @@ import type { MapFacade } from "$lib/interfaces/map";
 import { userPreferences } from '$stores/preferences';
 import { formatGeodeticCoordinates, i18n } from '$stores/i18n';
 
-import crossImg from "$assets/svg/cross.svg";
+import crossImg from "$assets/svg/map_cross.svg";
 
 import compasIcon from "$assets/svg/compas.svg?raw";
 import layersIcon from "$assets/svg/layers.svg?raw"
-import crossIcon from "$assets/svg/cross.svg?raw";
-import cursorIcon from "$assets/svg/cursor.svg?raw";
+import crossIcon from "$assets/svg/cross_mode.svg?raw";
 import minusIcon from "$assets/svg/minus.svg?raw";
 import plusIcon from "$assets/svg/plus.svg?raw";
 import rulerIcon from "$assets/svg/ruler.svg?raw";

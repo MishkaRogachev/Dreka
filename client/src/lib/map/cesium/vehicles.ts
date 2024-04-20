@@ -11,8 +11,8 @@ import { MapSign } from '$lib/map/cesium/common';
 
 import * as Cesium from 'cesium';
 
-import homeIcon from "$assets/svg/home.svg";
-import targetIcon from "$assets/svg/target_wpt.svg";
+import homeIcon from "$assets/svg/map_home.svg";
+import targetIcon from "$assets/svg/map_target_wpt.svg";
 
 // @ts-ignore
 import fixedWing from "$assets/3d/art_v1.glb";
@@ -77,6 +77,7 @@ export class MapVehicleCesium implements MapVehicle {
 
     updateFromStatus(status: VehicleStatus | undefined) {
         // TODO: online fading
+        this.target.setVisible(!!status && (status.mode === VehicleMode.Guided || status.mode === VehicleMode.Loiter))
         this.target.setEnabled(!!status && status.mode === VehicleMode.Guided)
     }
 
@@ -98,7 +99,6 @@ export class MapVehicleCesium implements MapVehicle {
 
         if (navigation.target_position.latitude === navigation.home_position.latitude &&
             navigation.target_position.longitude === navigation.home_position.longitude) {
-            this.target.setCartesian(Cesium.Cartesian3.ZERO);
             this.home.setSignColor(Cesium.Color.MAGENTA)
         } else {
             const targetCartesian = cartesianFromGeodetic(navigation.target_position, 0);

@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
 
+import type { Geodetic } from '$bindings/spatial';
+
 import type { MapFacade } from "$lib/interfaces/map";
 
 import { MapViewportCesium } from '$lib/map/cesium/viewport';
@@ -9,7 +11,6 @@ import { MapGraticuleCesium } from '$lib/map/cesium/graticule';
 import { MapLayersCesium } from '$lib/map/cesium/layers';
 import { MapVehiclesCesium } from '$lib/map/cesium/vehicles';
 import { MapMissionsCesium } from '$lib/map/cesium/missions';
-import type { Geodetic } from '$bindings/spatial';
 
 export class MapFacadeCesium implements MapFacade {
     constructor(container: string) {

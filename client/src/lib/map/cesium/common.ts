@@ -25,25 +25,30 @@ export class MapSign {
     }
 
     done() {
-        this.interaction.removeInteractable(this.sign)
-        this.sign.done()
-        this.pylon.done()
+        this.interaction.removeInteractable(this.sign);
+        this.sign.done();
+        this.pylon.done();
     }
 
     setEnabled(enabled: boolean) {
-        this.sign.setDraggable(enabled)
+        this.sign.setDraggable(enabled);
+    }
+
+    setVisible(enabled: boolean) {
+        this.sign.setVisible(enabled);
+        this.pylon.setVisible(enabled);
     }
 
     setCartesian(targetCartesian: Cesium.Cartesian3) {
         if (this.sign.isDragging())
             return;
 
-        this.sign.setCartesian(targetCartesian)
-        this.pylon.setCartesian(targetCartesian)
+        this.sign.setCartesian(targetCartesian);
+        this.pylon.setCartesian(targetCartesian);
     }
 
     setSignColor(color: Cesium.Color) {
-        this.sign.setBaseColor(color)
+        this.sign.setBaseColor(color);
     }
 
     private sign: BillboardEntity

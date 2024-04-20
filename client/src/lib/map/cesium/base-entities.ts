@@ -57,7 +57,7 @@ export class BasePointEntity extends BaseEntity implements Interactable {
             pixelOffset: new Cesium.Cartesian2(0, -25),
             font: "10px Helvetica",
             disableDepthTestDistance: Number.POSITIVE_INFINITY,
-            show: new Cesium.CallbackProperty(() => { return this.hasPosition() }, false),
+            show: new Cesium.CallbackProperty(() => { return this.hasPosition() && this._visible }, false),
         });
     }
     removeLabel() { this._entity.label = undefined; }
@@ -178,7 +178,7 @@ export class BillboardEntity extends BasePointEntity {
             }, false),
             color: new Cesium.CallbackProperty(() => { return this.baseColor() }, false),
             disableDepthTestDistance: Number.POSITIVE_INFINITY,
-            show: new Cesium.CallbackProperty(() => { return this.hasPosition() }, false),
+            show: new Cesium.CallbackProperty(() => { return this.hasPosition() && this._visible }, false),
         });
     }
 
@@ -239,7 +239,8 @@ export class PylonEntity extends BasePointEntity {
             material: new Cesium.PolylineArrowMaterialProperty(
                 new Cesium.CallbackProperty(() => { return this.baseColor() }, false)
             ),
-            width: width
+            width: width,
+            show: new Cesium.CallbackProperty(() => { return this.hasPosition() && this._visible }, false),
         });
     }
 
@@ -383,17 +384,14 @@ export class PathEntity extends BaseEntity {
         this._track = [];
     }
 
-    setVisible(visible: boolean) {
-        this._track.forEach(entity => entity.show = visible);
-    }
-
     addCartesian(cartesian: Cesium.Cartesian3) {
         const point = this.cesium.entities.add({
             position: cartesian,
             point: {
                 pixelSize : 4,
                 color: new Cesium.CallbackProperty(() => { return this.baseColor() }, false),
-            }
+                show: new Cesium.CallbackProperty(() => { return this._visible }, false),
+            },
         });
         this._track.push(point);
 

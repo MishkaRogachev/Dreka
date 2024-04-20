@@ -1,7 +1,10 @@
 <script lang="ts">
 import { onMount, onDestroy } from 'svelte';
 
+import { VehicleMode } from '$bindings/vehicles';
 import type { Mission, MissionRouteItem } from '$bindings/mission';
+
+import { vehicles } from '$stores/vehicles';
 import { missions } from '$stores/mission';
 import { activeMapPopup } from '$stores/app';
 import { VehicleTelemetry, vehiclesTelemetry } from '$stores/telemetry';
@@ -27,7 +30,9 @@ onMount(async () => {
                 mapMission = mapMissions.addMission(missionId);
             }
             mapMission.updateFromRoute(mission.route);
-            mapMission.updateFromProgress(mission.status.progress);
+
+            const inMission = vehicles.vehicle(mission.vehicle_id)?.status?.mode === VehicleMode.Mission;
+            mapMission.updateFromProgress(mission.status.progress, inMission);
         });
 
         // Delete missions removed in store
