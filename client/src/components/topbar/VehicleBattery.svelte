@@ -11,10 +11,12 @@ import battery80Icon from "$assets/svg/battery-80.svg?raw";
 import battery100Icon from "$assets/svg/battery-100.svg?raw";
 
 export let system: System
+// TODO: export let sensor: Sensor
 
 $: percentage = Math.max(0, Math.min(100, system.battery_remaining))
 $: voltage = system.battery_voltage
 $: current = system.battery_current
+$: batteryAvailable = system.battery_voltage > 0
 
 function toBatteryIcon(percentage: number) {
     if (percentage <= 10) {
@@ -32,8 +34,10 @@ function toBatteryIcon(percentage: number) {
     }
 }
 
-function toBatteryClass(percentage: number) {
-    if (percentage <= 10) {
+function toBatteryClass(percentage: number, batteryAvailable: boolean) {
+    if (!batteryAvailable) {
+        return "text-neutral"
+    } else if (percentage <= 10) {
         return "text-error"
     } else if (percentage <= 30) {
         return "text-warning"
@@ -45,13 +49,22 @@ function toBatteryClass(percentage: number) {
 </script>
 
 <div class="dropdown dropdown-hover dropdown-bottom dropdown-end">
-    <div tabindex="0" role="button" class={"btn m-1 fill-current " + toBatteryClass(percentage) }>
+    <div tabindex="0" role="button" class={"btn-xs fill-current " + toBatteryClass(percentage, batteryAvailable) }>
         { @html toBatteryIcon(percentage) }
     </div>
     <div tabindex="0" class="dropdown-content z-[1] p-2 w-36 shadow badge-neutral rounded-md flex flex-col align-middle">
-        <p class="text-left">{ $i18n.t("Battery") + ":  " + percentage.toFixed(0) + "%" }</p>
-        <p class="text-left">{ $i18n.t("Volatage") + ": " + voltage.toFixed(2) + " V"}</p>
-        <p class="text-left">{ $i18n.t("Current") + ":  " + current.toFixed(2) + " A"}</p>
+        <div class="flex justify-between">
+            <div class="text-left">{ $i18n.t("Battery") + ":" }</div>
+            <div class="text-right">{ percentage.toFixed(0) + "%" }</div>
+        </div>
+        <div class="flex justify-between">
+            <div class="text-left">{ $i18n.t("Volatage") + ":" }</div>
+            <div class="text-right">{ voltage.toFixed(2) + " V" }</div>
+        </div>
+        <div class="flex justify-between">
+            <div class="text-left">{ $i18n.t("Current") + ":" }</div>
+            <div class="text-right">{ current.toFixed(2) + " A" }</div>
+        </div>
     </div>
 </div>
 

@@ -13,7 +13,7 @@ import calibrateIcon from "$assets/svg/calibrate.svg?raw";
 import emergencyIcon from "$assets/svg/emergency.svg?raw";
 import criticalIcon from "$assets/svg/critical.svg?raw";
 import unknownIcon from "$assets/svg/unknown.svg?raw";
-import gpsIcon from "$assets/svg/gps.svg?raw";
+
 import radioIcon from "$assets/svg/radio.svg?raw";
 
 $: is_online = $selectedVehicle?.is_online || false
@@ -60,10 +60,6 @@ function toArmText(armed: boolean, readyToArm: boolean) {
 <!-- TODO: Radio RSSI & manual control indication -->
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Radio") }>
     <button class="btn btn-sm btn-ghost btn-circle my-1" >{ @html radioIcon }</button>
-</div>
-<!-- TODO: GPS state, fix, and sattelite count indication -->
-<div class="tooltip tooltip-bottom" data-tip={ $i18n.t("GPS") }>
-    <button class="btn btn-sm btn-ghost btn-circle my-1" >{ @html gpsIcon }</button>
 </div>
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Open systems") }>
     <button class={ "w-22 btn btn-xs " + toArmColorCode(is_online, armed, readyToArm)}
