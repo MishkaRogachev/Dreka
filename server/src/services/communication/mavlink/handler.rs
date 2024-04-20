@@ -102,6 +102,8 @@ impl Handler {
                 self.handle_nav_data(header.system_id, nav_data).await,
             MavMessage::POSITION_TARGET_GLOBAL_INT(target) =>
                 self.handle_target_position(header.system_id, target).await,
+            MavMessage::RADIO_STATUS(radio_status) =>
+                self.handle_radio_status(header.system_id, radio_status).await,
             MavMessage::COMMAND_ACK(ack) =>
                 self.handle_command_ack(header.system_id, ack).await,
             MavMessage::MISSION_COUNT(data) =>

@@ -190,7 +190,20 @@ impl handler::Handler {
         }
     }
 
-    // TODO: target_position 
+    pub async fn handle_radio_status(&mut self, mav_id: u8, radio_status: &RADIO_STATUS_DATA) {
+        let (mut system, vehicle_id) = match self.vehicle_id_from_mav_id(&mav_id) {
+            Some(vehicle_id) => (self.dal.telemetry_system(&vehicle_id).await.unwrap_or(
+                System::default_for_id(&vehicle_id)), vehicle_id),
+            None => return
+        };
+
+        system.radio_rssi = radio_status.rssi;
+        system.radio_remote_rssi = radio_status.remrssi;
+
+        if let Err(err) = self.dal.save_telemetry_system(vehicle_id, system).await {
+            log::error!("Save system telemetry error: {}", err);
+        }
+    }
 
     pub async fn handle_mission_item_current(&mut self, mav_id: u8, data: &MISSION_CURRENT_DATA) {
         let mut status = match self.mission_id_from_mav_id(&mav_id).await {

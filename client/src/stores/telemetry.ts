@@ -57,7 +57,10 @@ export class VehicleTelemetry {
 
             battery_current: 0,
             battery_voltage: 0,
-            battery_remaining: 0
+            battery_remaining: 0,
+
+            radio_rssi: 0,
+            radio_remote_rssi: 0
         };
     }
 

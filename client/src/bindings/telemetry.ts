@@ -84,5 +84,8 @@ export interface System {
 
     battery_current: number,
     battery_voltage: number,
-    battery_remaining: number
+    battery_remaining: number,
+
+    radio_rssi: number,
+    radio_remote_rssi: number,
 }

@@ -1,5 +1,4 @@
 <script lang="ts">
-// TODO: rename it to VehicleStateIndicator
 import { VehicleState } from "$bindings/vehicles";
 
 import { i18n } from "$stores/i18n";
@@ -13,8 +12,6 @@ import calibrateIcon from "$assets/svg/calibrate.svg?raw";
 import emergencyIcon from "$assets/svg/emergency.svg?raw";
 import criticalIcon from "$assets/svg/critical.svg?raw";
 import unknownIcon from "$assets/svg/unknown.svg?raw";
-
-import radioIcon from "$assets/svg/radio.svg?raw";
 
 $: is_online = $selectedVehicle?.is_online || false
 $: vehicleState = $selectedVehicle?.status?.state || VehicleState.Unknown
@@ -57,10 +54,7 @@ function toArmText(armed: boolean, readyToArm: boolean) {
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("State") + ": " + $i18n.t(vehicleState) }>
     { @html toStateIcon(vehicleState) }
 </div>
-<!-- TODO: Radio RSSI & manual control indication -->
-<div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Radio") }>
-    <button class="btn btn-sm btn-ghost btn-circle my-1" >{ @html radioIcon }</button>
-</div>
+<!-- TODO: separate arm indicator -->
 <div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Open systems") }>
     <button class={ "w-22 btn btn-xs " + toArmColorCode(is_online, armed, readyToArm)}
     on:click={() => {

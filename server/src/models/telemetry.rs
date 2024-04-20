@@ -95,7 +95,10 @@ pub struct System {
 
     pub battery_current: f32,
     pub battery_voltage: f32,
-    pub battery_remaining: i8
+    pub battery_remaining: i8,
+
+    pub radio_rssi: u8,
+    pub radio_remote_rssi: u8,
 }
 
 impl Flight {
@@ -161,7 +164,9 @@ impl System {
             arm_ready: false,
             battery_current: 0.0,
             battery_voltage: 0.0,
-            battery_remaining: 0
+            battery_remaining: 0,
+            radio_rssi: 0,
+            radio_remote_rssi: 0
         }
     }
 }
