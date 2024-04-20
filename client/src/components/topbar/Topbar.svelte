@@ -1,13 +1,14 @@
 <script lang="ts">
-import { dashboardVisible } from "$stores/app";
-import { i18n } from "$stores/i18n";
 import { selectedVehicle } from "$stores/vehicles";
+import { selectedVehicleTelemetry } from "$stores/telemetry";
 
 import Menu from "./Menu.svelte";
 import VehicleSelector from "./VehicleSelector.svelte";
 import VehicleModeSelector from "$components/topbar/VehicleModeSelector.svelte";
 import VehicleWaypointSelector from "$components/topbar/VehicleWaypointSelector.svelte";
 import MissionControl from "$components/topbar/MissionControl.svelte";
+
+import VehicleBattery from "./VehicleBattery.svelte";
 import VehicleStatus from "./VehicleStatus.svelte";
 
 </script>
@@ -24,6 +25,7 @@ import VehicleStatus from "./VehicleStatus.svelte";
     </div>
 
     <div class="navbar-end">
+        <VehicleBattery system={$selectedVehicleTelemetry.system}/>
         <VehicleStatus/>
     </div>
 </div>
