@@ -143,16 +143,18 @@ function clearRuler() { map.ruler.clear(); }
 
     <!-- Coordinates -->
     <div class="join btn-sm p-0" >
-        <div class="tooltip" data-tip={ crossMode ? $i18n.t("Cross coordinates") : $i18n.t("Mouse coordinates") }>
-            <button class="btn btn-sm join-item px-1 ml-2" on:click={switchCrossMode}>
-                {@html (crossMode ? crossIcon : cursorIcon)}
+        <div class="tooltip" data-tip={ crossMode ? $i18n.t("Disable cross mode") : $i18n.t("Enable cross mode") }>
+            <button class={ "btn btn-sm px-1 ml-2 " + (crossMode ? "btn-accent join-item" : "") } on:click={switchCrossMode}>
+                {@html crossIcon}
             </button>
         </div>
+        {#if crossMode}
         <div class="tooltip" data-tip={ $i18n.t("Copy to clipboard") }>
         <button class="btn btn-sm join-item font-mono flex-nowrap w-64" on:click={coordsToClipboard}>
             <a href={null}>{ geodeticCoordinates }</a>
         </button>
         </div>
+        {/if}
     </div>
 
     <!-- Map scale -->

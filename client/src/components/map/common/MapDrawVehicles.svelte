@@ -40,6 +40,7 @@ onMount(async () => {
                 mapVehicle = mapVehicles.addVehicle(vehicleId);
             }
             mapVehicle.updateFromDescription(vehicle.description);
+            mapVehicle.updateFromStatus(vehicle.status);
         });
 
         // Delete vehicles removed in store

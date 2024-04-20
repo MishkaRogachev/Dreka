@@ -2,10 +2,11 @@
 import { onMount, onDestroy } from 'svelte';
 
 import { GeodeticFrame, type Cartesian, type Geodetic } from '$bindings/spatial';
+import { VehicleMode } from '$bindings/vehicles';
 import { type MissionRouteItem, MissionRouteItemType } from '$bindings/mission';
 
 import { formatGeodeticCoordinates, i18n } from '$stores/i18n';
-import { selectedVehicleId } from '$stores/vehicles';
+import { selectedVehicle, selectedVehicleId } from '$stores/vehicles';
 import { commandExecutions } from '$stores/commands';
 import { missions, selectedVehicleMission } from '$stores/mission';
 import { activeMapPopup } from '$stores/app';
@@ -14,8 +15,9 @@ import type { MapInteraction, MapViewport } from '$lib/interfaces/map';
 
 import PointedPopup from '$components/common/PointedPopup.svelte';
 
-import targetIcon from "$assets/svg/target.svg?raw";
+import targetIcon from "$assets/svg/target_wpt.svg?raw";
 import wptIcon from "$assets/svg/wpt.svg?raw";
+import copyIcon from "$assets/svg/copy.svg?raw";
 
 export let viewport: MapViewport;
 export let interaction: MapInteraction;
@@ -26,6 +28,8 @@ const MIN_SAFE_ALTITUDE = 50;
 
 let menuPosition = { x: 0, y: 0 };
 let clickGeodetic: Geodetic | undefined = undefined;
+
+$: geodeticCoordinates = clickGeodetic ? formatGeodeticCoordinates(clickGeodetic).join(";") : "";
 
 let clickListener = (geodetic: Geodetic, position: Cartesian) => {
     if (!selectedVehicleId || $activeMapPopup === "map-global") {
@@ -112,6 +116,11 @@ function addWaypoint() {
     closeMenu();
 }
 
+function copyCoordinates() {
+    navigator.clipboard.writeText(geodeticCoordinates);
+    closeMenu();
+}
+
 onMount(async () => {
     interaction.subscribeClick(clickListener);
     viewport.subscribe(viewportListener);
@@ -131,14 +140,16 @@ onDestroy(() => {
 </script>
 
 <PointedPopup isPopupOpen={$activeMapPopup === "map-global"} bind:popupPosition={menuPosition}>
-    <p class="font-bold text-xs text-center">{ formatGeodeticCoordinates(clickGeodetic).join(";") }</p>
+    <p class="font-bold text-xs text-center">{ geodeticCoordinates }</p>
     <ul class="menu p-0">
+        {#if $selectedVehicle && $selectedVehicle.status?.mode === VehicleMode.Guided}
         <li class="flex" on:click={setTarget}>
             <div class="flex gap-x-2 items-center grow">
                 { @html targetIcon }
-                <a href={null} class="grow">{ $i18n.t("Guided flight here") }</a>
+                <a href={null} class="grow">{ $i18n.t("Target point here") }</a>
             </div>
         </li>
+    {/if}
     {#if $selectedVehicleMission}
         <li class="flex" on:click={addWaypoint}>
             <div class="flex gap-x-2 items-center grow">
@@ -148,5 +159,11 @@ onDestroy(() => {
             </div>
         </li>
     {/if}
+        <li class="flex" on:click={copyCoordinates}>
+            <div class="flex gap-x-2 items-center grow">
+                { @html copyIcon }
+                <a href={null} class="grow">{ $i18n.t("Copy coordinates") }</a>
+            </div>
+        </li>
     </ul>
 </PointedPopup>

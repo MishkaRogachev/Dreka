@@ -1,18 +1,18 @@
 import { GeodeticFrame, type Geodetic } from '$bindings/spatial';
-import { type VehicleDescription } from '$bindings/vehicles';
+import { VehicleMode, type VehicleDescription, type VehicleStatus } from '$bindings/vehicles';
 import type { Flight, Navigation } from '$bindings/telemetry';
 import { toColorCode } from '$bindings/colors';
 
 import { cartesianFromGeodetic, geodeticFromCartesian } from '$lib/map/cesium/utils';
 import { MapVehiclesEvent, type MapVehicle, type MapVehicles, type MapVehiclesEventListener } from '$lib/interfaces/map';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
-import { ModelEntity, PylonEntity, PathEntity, BillboardEntity } from "$lib/map/cesium/base-entities"
+import { ModelEntity, PylonEntity, PathEntity } from "$lib/map/cesium/base-entities"
 import { MapSign } from '$lib/map/cesium/common';
 
 import * as Cesium from 'cesium';
 
 import homeIcon from "$assets/svg/home.svg";
-import targetIcon from "$assets/svg/target.svg";
+import targetIcon from "$assets/svg/target_wpt.svg";
 
 // @ts-ignore
 import fixedWing from "$assets/3d/art_v1.glb";
@@ -75,6 +75,11 @@ export class MapVehicleCesium implements MapVehicle {
         this.path.setBaseColor(color);
     }
 
+    updateFromStatus(status: VehicleStatus | undefined) {
+        // TODO: online fading
+        this.target.setEnabled(!!status && status.mode === VehicleMode.Guided)
+    }
+
     updateFromFlight(flight: Flight) {
         this.model.setHpr(flight.yaw, flight.pitch, flight.roll);
     }
@@ -91,8 +96,15 @@ export class MapVehicleCesium implements MapVehicle {
         const homeCartesian = cartesianFromGeodetic(navigation.home_position, 0);
         this.home.setCartesian(homeCartesian);
 
-        const targetCartesian = cartesianFromGeodetic(navigation.target_position, 0);
-        this.target.setCartesian(targetCartesian);
+        if (navigation.target_position.latitude === navigation.home_position.latitude &&
+            navigation.target_position.longitude === navigation.home_position.longitude) {
+            this.target.setCartesian(Cesium.Cartesian3.ZERO);
+            this.home.setSignColor(Cesium.Color.MAGENTA)
+        } else {
+            const targetCartesian = cartesianFromGeodetic(navigation.target_position, 0);
+            this.target.setCartesian(targetCartesian);
+            this.home.setSignColor(Cesium.Color.WHITE)
+        }
     }
 
     setSelected(selected: boolean) {

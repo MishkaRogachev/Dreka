@@ -30,6 +30,10 @@ export class MapSign {
         this.pylon.done()
     }
 
+    setEnabled(enabled: boolean) {
+        this.sign.setDraggable(enabled)
+    }
+
     setCartesian(targetCartesian: Cesium.Cartesian3) {
         if (this.sign.isDragging())
             return;

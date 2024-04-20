@@ -2,7 +2,7 @@
 import type { MissionProgress, MissionRoute, MissionRouteItem } from "$bindings/mission";
 import type { Geodetic, Cartesian } from "$bindings/spatial";
 import type { Flight, Navigation } from "$bindings/telemetry";
-import type { VehicleDescription } from "$bindings/vehicles";
+import type { VehicleDescription, VehicleStatus } from "$bindings/vehicles";
 
 export type ClickListener = (geodetic: Geodetic, position: Cartesian) => boolean;
 
@@ -114,6 +114,7 @@ export interface MapVehicle {
     setTracking: (tracking: boolean) => void
 
     updateFromDescription: (description: VehicleDescription) => void
+    updateFromStatus: (status: VehicleStatus | undefined) => void
     updateFromFlight: (flight: Flight) => void
     updateFromNavigation: (navigation: Navigation) => void
 }

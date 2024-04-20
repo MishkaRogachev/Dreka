@@ -1,4 +1,5 @@
 <script lang="ts">
+// TODO: rename it to VehicleStateIndicator
 import { VehicleState } from "$bindings/vehicles";
 
 import { i18n } from "$stores/i18n";
