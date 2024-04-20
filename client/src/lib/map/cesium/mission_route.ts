@@ -112,7 +112,7 @@ class MapMissionRouteItemCesium {
     updateProgress(reached: boolean, current: boolean) {
         const actual = true; // TODO: implement
         this.billboard.setBaseColor(current ? Cesium.Color.MAGENTA : actual ? reached ?
-            Cesium.Color.AQUAMARINE : Cesium.Color.WHITE : Cesium.Color.YELLOW);
+            Cesium.Color.LIGHTCYAN : Cesium.Color.WHITE : Cesium.Color.YELLOW);
     }
 
     cartesian(): Cesium.Cartesian3 {

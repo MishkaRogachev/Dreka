@@ -9,6 +9,7 @@ import type { MapFacade } from "$lib/interfaces/map";
 
 import { userPreferences } from '$stores/preferences';
 import { formatGeodeticCoordinates, i18n } from '$stores/i18n';
+import { activeMapPopup } from '$stores/app';
 
 import crossImg from "$assets/svg/map_cross.svg";
 
@@ -79,6 +80,7 @@ function zoomIn() { map.viewport.zoomIn(pixelScale * scaleFactor); }
 function zoomOut() { map.viewport.zoomOut(pixelScale * scaleFactor); }
 
 function switchRulerMode() {
+    $activeMapPopup = "";
     rulerMode = !rulerMode;
     map.ruler.setEnabled(rulerMode);
 }

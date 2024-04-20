@@ -1,11 +1,12 @@
 <script lang="ts">
 import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 
+import { VehicleMode } from '$bindings/vehicles';
 import type { MissionRouteItem } from '$bindings/mission';
 
 import { i18n } from '$stores/i18n';
 import { commandExecutions } from '$stores/commands';
-import { selectedVehicleId } from '$stores/vehicles';
+import { selectedVehicleId, selectedVehicle } from '$stores/vehicles';
 import { formatRouteItem, missions, selectedVehicleMission } from '$stores/mission';
 
 import type { MapViewport } from '$lib/interfaces/map';
@@ -77,11 +78,10 @@ onDestroy(() => {
 });
 
 </script>
-
 <PointedPopup isPopupOpen={true} bind:popupPosition={menuPosition}>
     <p class="font-bold text-sm text-center">{ formatRouteItem(routeItem.type, index) }</p>
     <ul class="menu p-0">
-        {#if $selectedVehicleMission && $selectedVehicleMission.status.progress.current !== index}
+        {#if $selectedVehicle?.status?.mode == VehicleMode.Mission && $selectedVehicleMission?.status.progress.current !== index}
         <li class="flex" on:click={gotoItem}>
             <div class="flex gap-x-2 items-center grow">
                 { @html playIcon }
