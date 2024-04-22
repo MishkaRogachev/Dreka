@@ -9,16 +9,16 @@ import downIcon from "$assets/svg/down.svg?raw"
 
 export let layers: MapLayers
 
-let imageryLayers = layers.imageryLayers();
+let imageryLayers = layers.allImageryLayers();
 
 function saveLayers() {
-    $userPreferences.set("map/imagery_layers", JSON.stringify(layers.imageryLayers()));
+    $userPreferences.set("map/imagery_layers", JSON.stringify(layers.allImageryLayers()));
 }
 
 function switchLayerVisibility(imageryLayer: ImageryLayer) {
     imageryLayer.visibility = !imageryLayer.visibility;
     layers.updateImageryLayer(imageryLayer);
-    imageryLayers = layers.imageryLayers();
+    imageryLayers = layers.allImageryLayers();
 }
 
 function switchLayerOpacity(imageryLayer: ImageryLayer) {
@@ -32,17 +32,17 @@ function switchLayerOpacity(imageryLayer: ImageryLayer) {
         imageryLayer.opacity = 1.0;
     }
     layers.updateImageryLayer(imageryLayer);
-    imageryLayers = layers.imageryLayers();
+    imageryLayers = layers.allImageryLayers();
 }
 
 function raiseLayer(imageryLayer: ImageryLayer) {
     layers.raiseImageryLayer(imageryLayer);
-    imageryLayers = layers.imageryLayers();
+    imageryLayers = layers.allImageryLayers();
 }
 
 function lowerLayer(imageryLayer: ImageryLayer) {
     layers.lowerImageryLayer(imageryLayer);
-    imageryLayers = layers.imageryLayers();
+    imageryLayers = layers.allImageryLayers();
 }
 </script>
 

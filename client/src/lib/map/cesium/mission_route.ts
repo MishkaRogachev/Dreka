@@ -3,8 +3,9 @@ import { type MissionRoute, type MissionRouteItem, MissionRouteItemType, type Mi
 import { MapMissionsEvent, type MapMissionRoute } from '$lib/interfaces/map';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
 import { MapMissionsCesium } from '$lib/map/cesium/missions';
-import { BillboardEntity, PylonEntity, CircleEntity } from "$lib/map/cesium/base-entities"
+import { CircleEntity } from "$lib/map/cesium/base-entities"
 import { cartesianFromGeodetic, geodeticFromCartesian } from '$lib/map/cesium/utils';
+import { MapSign } from '$lib/map/cesium/common';
 
 import * as Cesium from 'cesium';
 
@@ -12,64 +13,46 @@ import wptIcon from "$assets/svg/map_wpt.svg";
 import takeoffIcon from "$assets/svg/map_takeoff.svg";
 import landingIcon from "$assets/svg/map_landing.svg";
 
-class MapMissionRouteItemCesium {
+class MapMissionRouteItemCesium extends MapSign {
     constructor(route: MapMissionRouteCesium, cesium: Cesium.Viewer, interaction: MapInteractionCesium) {
+        super(cesium, interaction);
         this.route = route;
-        this.interaction = interaction;
 
-        this.billboard = new BillboardEntity(cesium);
+        this.setDragCallback((cartesian: Cesium.Cartesian3) => {
+            if (!this.item?.position) {
+                return;
+            }
+            const geodetic = geodeticFromCartesian(cartesian, this.item!.position!.frame, this.route.homeAltitude);
+            if (geodetic) {
+                this.item.position = geodetic;
+                this.route.invoke(MapMissionsEvent.Changed, this.item, this.inRouteIndex());
+            }
+        });
 
-        this.billboard.setDraggable(true);
-        this.billboard.subscribeDragging((cartesian: Cesium.Cartesian3) => { this.onPointDragging(cartesian) });
-        this.billboard.subscribeDragged((cartesian: Cesium.Cartesian3) => { this.onPointDragged(cartesian) });
         this.billboard.subscribeClick(() => {
             if (this.item) {
                 this.route.invoke(MapMissionsEvent.Activated, this.item, this.inRouteIndex());
             }
         });
-        this.interaction.addInteractable(this.billboard);
-
-        this.pylon = new PylonEntity(cesium, 4.0);
-        this.pylon.setBaseColor(Cesium.Color.LIGHTSTEELBLUE);
 
         this.circle = new CircleEntity(cesium, 4.0);
-        // TODO: add interaction
+        // TODO: add circle interaction
         // this.circle.setDraggable(true)
         // this.circle.subscribeDragged((radius: number) => { this.onRadiusUpdated(radius) })
         // this.interaction.addInteractable(this.circle)
     }
 
     done() {
-        this.interaction.removeInteractable(this.billboard);
         //this.interaction.removeInteractable(this.circle)
-        this.billboard.done();
-        this.pylon.done();
         this.circle.done();
         this.route.invoke(MapMissionsEvent.Removed, this.item!, this.inRouteIndex());
+        super.done();
     }
 
-    onPointDragging(cartesian: Cesium.Cartesian3) {
-        if (!this.item?.position) {
-            return;
-        }
-        const geodetic = geodeticFromCartesian(cartesian, this.item!.position!.frame, this.route.homeAltitude);
-        if (geodetic) {
-            this.item.position = geodetic;
-            this.route.invoke(MapMissionsEvent.Drag, this.item, this.inRouteIndex());
-        }
-        this.pylon.setCartesian(this.billboard.cartesian());
-        this.circle.setCartesian(this.billboard.cartesian());
-    }
-
-    onPointDragged(cartesian: Cesium.Cartesian3) {
-        if (!this.item?.position) {
-            return;
-        }
-        const geodetic = geodeticFromCartesian(cartesian, this.item!.position!.frame, this.route.homeAltitude);
-        if (geodetic) {
-            this.item.position = geodetic;
-            this.route.invoke(MapMissionsEvent.Changed, this.item, this.inRouteIndex());
-        }
+    setCartesian(cartesian: Cesium.Cartesian3): boolean {
+        super.setCartesian(cartesian)
+        this.circle.setCartesian(cartesian);
+        return true;
     }
 
     updateFromRouteItem(item: MissionRouteItem) {
@@ -91,9 +74,9 @@ class MapMissionRouteItemCesium {
 
         this.updatePosition(this.route.homeAltitude)
 
-        this.billboard.setIcon(icon);
-        this.circle.setRadius(loiterRadius);
-        this.circle.setVisible(loiterRadius > 0);
+        this.setIcon(icon);
+        this.circle.radius = loiterRadius;
+        this.circle.visible = (loiterRadius > 0);
     }
 
     updatePosition(homeAltitude: number) {
@@ -104,33 +87,19 @@ class MapMissionRouteItemCesium {
             cartesianFromGeodetic(this.item.position, this.route.homeAltitude) :
             Cesium.Cartesian3.ZERO;
 
-        this.pylon.setCartesian(cartesian);
-        this.billboard.setCartesian(cartesian);
-        this.circle.setCartesian(cartesian);
+        this.setCartesian(cartesian);
     }
 
     updateProgress(reached: boolean, current: boolean) {
         const actual = true; // TODO: implement
-        this.billboard.setBaseColor(current ? Cesium.Color.MAGENTA : actual ? reached ?
-            Cesium.Color.LIGHTCYAN : Cesium.Color.WHITE : Cesium.Color.YELLOW);
-    }
-
-    cartesian(): Cesium.Cartesian3 {
-        return this.billboard.cartesian()
-    }
-
-    isPositionValid(): boolean {
-        return !this.billboard.cartesian().equals(Cesium.Cartesian3.ZERO)
+        this.billboard.baseColor = current ? Cesium.Color.MAGENTA : actual ? reached ?
+            Cesium.Color.LIGHTCYAN : Cesium.Color.WHITE : Cesium.Color.YELLOW;
     }
 
     inRouteIndex(): number {
         return this.route.indexOfRouteItem(this);
     }
 
-    private interaction: MapInteractionCesium;
-
-    private billboard: BillboardEntity;
-    private pylon: PylonEntity;
     private circle: CircleEntity;
 
     private route: MapMissionRouteCesium;
@@ -266,4 +235,3 @@ export class MapMissionRouteCesium implements MapMissionRoute {
     private items: Array<MapMissionRouteItemCesium>
     private tracks: Array<Cesium.Entity>
 }
-

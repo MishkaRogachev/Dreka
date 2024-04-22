@@ -27,17 +27,19 @@ export class MapVehicleCesium implements MapVehicle {
         this.pylon = new PylonEntity(parent.cesium, 4.0);
         this.path = new PathEntity(parent.cesium, 100);
 
-        this.target = new MapSign(parent.cesium, parent.interaction, targetIcon,
-            (cartesian: Cesium.Cartesian3) => {
+        this.target = new MapSign(parent.cesium, parent.interaction);
+        this.target.setIcon(targetIcon);
+        this.target.setBillboardColor(Cesium.Color.MAGENTA);
+        this.target.setDragCallback((cartesian: Cesium.Cartesian3) => {
             const geodetic = geodeticFromCartesian(cartesian, GeodeticFrame.Wgs84AboveSeaLevel, 0);
             if (geodetic) {
                 this.parent.invoke(MapVehiclesEvent.TargetChanged, this.vehicleId, geodetic);
             }
         });
-        this.target.setSignColor(Cesium.Color.MAGENTA)
 
-        this.home = new MapSign(parent.cesium, parent.interaction, homeIcon,
-            (cartesian: Cesium.Cartesian3) => {
+        this.home = new MapSign(parent.cesium, parent.interaction);
+        this.home.setIcon(homeIcon);
+        this.home.setDragCallback((cartesian: Cesium.Cartesian3) => {
             const geodetic = geodeticFromCartesian(cartesian, GeodeticFrame.Wgs84AboveSeaLevel, 0);
             if (geodetic) {
                 this.parent.invoke(MapVehiclesEvent.HomeChanged, this.vehicleId, geodetic);
@@ -55,7 +57,7 @@ export class MapVehicleCesium implements MapVehicle {
     }
 
     cartesian(): Cesium.Cartesian3 {
-        return this.model.cartesian();
+        return this.model.cartesian;
     }
 
     centerOnMap() {
@@ -67,12 +69,12 @@ export class MapVehicleCesium implements MapVehicle {
     }
 
     updateFromDescription(vehicle: VehicleDescription) {
-        this.model.setUri(fixedWing); // TODO: get from type
+        this.model.modelUri = fixedWing; // TODO: get from type
 
         const color = Cesium.Color.fromCssColorString(toColorCode(vehicle.color));
-        this.model.setBaseColor(color);
-        this.pylon.setBaseColor(color);
-        this.path.setBaseColor(color);
+        this.model.baseColor = color;
+        this.pylon.baseColor = color;
+        this.path.baseColor = color;
     }
 
     updateFromStatus(status: VehicleStatus | undefined) {
@@ -99,17 +101,17 @@ export class MapVehicleCesium implements MapVehicle {
 
         if (navigation.target_position.latitude === navigation.home_position.latitude &&
             navigation.target_position.longitude === navigation.home_position.longitude) {
-            this.home.setSignColor(Cesium.Color.MAGENTA)
+            this.home.setBillboardColor(Cesium.Color.MAGENTA)
         } else {
             const targetCartesian = cartesianFromGeodetic(navigation.target_position, 0);
             this.target.setCartesian(targetCartesian);
-            this.home.setSignColor(Cesium.Color.WHITE)
+            this.home.setBillboardColor(Cesium.Color.WHITE)
         }
     }
 
     setSelected(selected: boolean) {
-        this.model.setSilhouetteColor(selected ? Cesium.Color.WHITE : Cesium.Color.GRAY);
-        this.path.setVisible(selected);
+        this.model.silhouetteColor = selected ? Cesium.Color.WHITE : Cesium.Color.GRAY;
+        this.path.visible = selected;
     }
 
     private vehicleId: string;

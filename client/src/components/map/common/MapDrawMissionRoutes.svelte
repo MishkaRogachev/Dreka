@@ -63,9 +63,6 @@ onMount(async () => {
         activatedItem = [item, missionId, index];
         $activeMapPopup = "waypoint";
     });
-    mapMissions.subscribe(MapMissionsEvent.Drag, (_missionId: string, _item: MissionRouteItem, _index: number) => {
-        activatedItem = undefined;
-    });
     mapMissions.subscribe(MapMissionsEvent.Removed, (missionId: string, _item: MissionRouteItem, index: number) => {
         if (activatedItem && activatedItem[1] === missionId && activatedItem[2] === index) {
             activatedItem = undefined;

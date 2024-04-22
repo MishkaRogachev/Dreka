@@ -12,9 +12,11 @@ class RulerPoint {
         this.ruler = ruler;
 
         this.entity = new GroundPointEntity(cesium, 8);
+        this.entity.baseColor = Cesium.Color.TURQUOISE;
         this.entity.setCartesian(cartesian);
-        this.entity.setDraggable(true);
-        this.entity.setBaseColor(Cesium.Color.TURQUOISE);
+        this.entity.subscribeDragging((cartesian: Cesium.Cartesian3) => {
+            this.entity.setCartesian(cartesian);
+        })
 
         interaction.addInteractable(this.entity);
         interaction.hoverInteractable(this.entity);
@@ -29,11 +31,11 @@ class RulerPoint {
     }
 
     cartesian(): Cesium.Cartesian3 {
-        return this.entity.cartesian();
+        return this.entity.cartesian;
     }
 
     setEnabled(enabled: boolean) {
-        this.entity.setDraggable(enabled);
+        this.entity.draggable = enabled;
     }
 
     private entity: GroundPointEntity
@@ -43,14 +45,14 @@ class RulerPoint {
 export class MapRulerCesium implements MapRuler {
     constructor(cesium: Cesium.Viewer, interaction: MapInteractionCesium) {
         this.cesium = cesium;
-        this._interaction = interaction;
+        this.interaction = interaction;
 
-        this._points = [];
-        this._labeledLines = [];
-        this._enabled = false;
+        this.points = [];
+        this.labeledLines = [];
+        this.enabled = false;
 
         interaction.subscribeClick((geodetic: Geodetic) => {
-            if (this._enabled && geodetic) {
+            if (this.enabled && geodetic) {
                 const cartographic = Cesium.Cartographic.fromDegrees(geodetic.longitude, geodetic.latitude, geodetic.altitude);
                 this.addPoint(Cesium.Cartographic.toCartesian(cartographic));
                 return true;
@@ -60,51 +62,52 @@ export class MapRulerCesium implements MapRuler {
     }
 
     setEnabled(enabled: boolean): void {
-        this._enabled = enabled;
+        this.enabled = enabled;
 
-        if (this._points.length === 1)
+        if (this.points.length === 1)
             this.clear();
         else
-            this._points.forEach(point => { point.setEnabled(enabled); })
+            this.points.forEach(point => { point.setEnabled(enabled); })
     }
 
-    enabled(): boolean {
-        return this._enabled;
+    isEnabled(): boolean {
+        return this.enabled;
     }
 
     clear(): void {
-        for (let i = 0; i < this._labeledLines.length; ++i) {
-            this.cesium.entities.remove(this._labeledLines[i]);
+        for (let i = 0; i < this.labeledLines.length; ++i) {
+            this.cesium.entities.remove(this.labeledLines[i]);
         }
-        this._labeledLines = [];
+        this.labeledLines = [];
 
-        this._points.forEach(point => point.done());
-        this._points = [];
+        this.points.forEach(point => point.done());
+        this.points = [];
     }
 
     distance(): number {
         let distance = 0;
-        for (let i = 0; i < this._points.length - 1; i++) {
-            distance += Cesium.Cartesian3.distance(this._points[i].cartesian(), this._points[i + 1].cartesian());
+        for (let i = 0; i < this.points.length - 1; i++) {
+            distance += Cesium.Cartesian3.distance(this.points[i].cartesian(), this.points[i + 1].cartesian());
         }
         return distance;
     }
 
     addPoint(cartesian: Cesium.Cartesian3) {
-        const previousPoint = this._points.slice(-1).pop();
-        const newPoint = new RulerPoint(this, this.cesium, cartesian, this._interaction);
-        this._points.push(newPoint);
+        const previousPoint = this.points.slice(-1).pop();
+        const newPoint = new RulerPoint(this, this.cesium, cartesian, this.interaction);
+        newPoint.setEnabled(this.enabled);
+        this.points.push(newPoint);
 
         if (previousPoint)
             this.addLabel(previousPoint, newPoint);
     }
 
     removePoint(point: RulerPoint) {
-        const index = this._points.indexOf(point);
+        const index = this.points.indexOf(point);
         if (index < 0)
             return;
 
-        const hasRightBuddy = index + 1 < this._points.length;
+        const hasRightBuddy = index + 1 < this.points.length;
         const hasLeftBuddy = index > 0;
 
         if (hasRightBuddy)
@@ -112,11 +115,11 @@ export class MapRulerCesium implements MapRuler {
         if (hasLeftBuddy)
             this.removeLabel(index - 1);
 
-        this._points[index].done();
-        this._points.splice(index, 1);
+        this.points[index].done();
+        this.points.splice(index, 1);
 
         if (hasRightBuddy && hasLeftBuddy)
-            this.addLabel(this._points[index - 1], this._points[index], index - 1);
+            this.addLabel(this.points[index - 1], this.points[index], index - 1);
     }
 
     addLabel(first: RulerPoint, second: RulerPoint, index = -1) {
@@ -141,20 +144,20 @@ export class MapRulerCesium implements MapRuler {
         });
 
         if (index === -1)
-            this._labeledLines.push(labeledLine);
+            this.labeledLines.push(labeledLine);
         else
-            this._labeledLines.splice(index, 0, labeledLine);
+            this.labeledLines.splice(index, 0, labeledLine);
     }
 
     removeLabel(index: number) {
-        this.cesium.entities.remove(this._labeledLines[index]);
-        this._labeledLines.splice(index, 1);
+        this.cesium.entities.remove(this.labeledLines[index]);
+        this.labeledLines.splice(index, 1);
     }
 
     private cesium: Cesium.Viewer
-    private _interaction: MapInteractionCesium
+    private interaction: MapInteractionCesium
 
-    private _points: Array<RulerPoint>
-    private _labeledLines: Array<Cesium.Entity>
-    private _enabled: boolean
+    private points: Array<RulerPoint>
+    private labeledLines: Array<Cesium.Entity>
+    private enabled: boolean
 }

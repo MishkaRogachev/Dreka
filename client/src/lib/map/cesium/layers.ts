@@ -25,7 +25,7 @@ const defaultLayers = [{
 export class MapLayersCesium implements MapLayers {
     constructor(cesium: Cesium.Viewer) {
         this.cesium = cesium;
-        this._imageryLayers = new Map();
+        this.imageryLayers = new Map();
 
         // Clear default imagery layers
         this.cesium.imageryLayers.removeAll();
@@ -49,34 +49,34 @@ export class MapLayersCesium implements MapLayers {
         const layerItem = this.cesium.imageryLayers.addImageryProvider(provider);
         layerItem.alpha = layer.opacity;
         layerItem.show = layer.visibility;
-        this._imageryLayers.set(layer, layerItem);
+        this.imageryLayers.set(layer, layerItem);
     }
 
     async updateImageryLayer(layer: ImageryLayer) {
-        const layerItem = this._imageryLayers.get(layer)!;
+        const layerItem = this.imageryLayers.get(layer)!;
         layerItem.alpha = layer.opacity;
         layerItem.show = layer.visibility;
     }
 
     async removeImageryLayer(layer: ImageryLayer) {
-        const layerItem = this._imageryLayers.get(layer)!;
+        const layerItem = this.imageryLayers.get(layer)!;
         this.cesium.imageryLayers.remove(layerItem);
-        this._imageryLayers.delete(layer);
+        this.imageryLayers.delete(layer);
     }
 
     async raiseImageryLayer(layer: ImageryLayer) {
-        const layerItem = this._imageryLayers.get(layer)!;
+        const layerItem = this.imageryLayers.get(layer)!;
         this.cesium.imageryLayers.raise(layerItem);
     }
 
     async lowerImageryLayer(layer: ImageryLayer) {
-        const layerItem = this._imageryLayers.get(layer)!;
+        const layerItem = this.imageryLayers.get(layer)!;
         this.cesium.imageryLayers.lower(layerItem);
     }
 
-    imageryLayers(): Array<ImageryLayer> {
+    allImageryLayers(): Array<ImageryLayer> {
         let array: Array<ImageryLayer> = [];
-        this._imageryLayers.forEach((layerItem, layer) => {
+        this.imageryLayers.forEach((layerItem, layer) => {
             layer.index = this.cesium.imageryLayers.indexOf(layerItem);
             array.push(layer);
         })
@@ -86,5 +86,5 @@ export class MapLayersCesium implements MapLayers {
     }
 
     private cesium: Cesium.Viewer
-    private _imageryLayers: Map<ImageryLayer, Cesium.ImageryLayer>
+    private imageryLayers: Map<ImageryLayer, Cesium.ImageryLayer>
 }

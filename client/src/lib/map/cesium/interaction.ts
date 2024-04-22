@@ -115,28 +115,32 @@ export class MapInteractionCesium implements MapInteraction {
         this.clickListeners = this.clickListeners.filter(item => item !== listener);
     }
 
-    onMove(position: Cesium.Cartesian2, modifier: KeyModifier) {
+    onMove(position: Cesium.Cartesian2, modifier: KeyModifier): boolean {
         // If dragging, just do it
         if (this.draggingInteractable) {
             return this.draggingInteractable.drag(position, modifier);
         }
 
         this.hoverInteractable(this.firstMatchPickingInteractable(position));
+        return false;
     }
 
-    onUp(position: Cesium.Cartesian2) {
+    onUp(position: Cesium.Cartesian2): boolean {
         if (this.draggingInteractable) {
             this.setDragging(null);
-            return;
+            this.hoverInteractable(this.firstMatchPickingInteractable(position));
+            return true;
         }
+        return false;
     }
 
-    onDown(position: Cesium.Cartesian2) {
+    onDown(position: Cesium.Cartesian2): boolean {
         const interactable = this.firstMatchPickingInteractable(position);
         if (interactable && interactable.isDraggable()) {
             this.setDragging(interactable);
-            return;
+            return true;
         }
+        return false;
     }
 
     onClick(position: Cesium.Cartesian2) {
@@ -168,8 +172,9 @@ export class MapInteractionCesium implements MapInteraction {
             return null;
 
         for (const interactable of this.interactables) {
-            if (interactable.matchInteraction(objects))
+            if (interactable.matchInteraction(objects)) {
                 return interactable;
+            }
         }
         return null;
     }

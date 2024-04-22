@@ -46,7 +46,7 @@ export interface MapViewport {
 
 export interface MapRuler {
     setEnabled: (enabled: boolean) => void
-    enabled: () => boolean
+    isEnabled: () => boolean
 
     clear: () => void
     distance: () => number
@@ -66,7 +66,7 @@ export interface ImageryLayer {
 }
 
 export interface MapLayers {
-    imageryLayers: () => Array<ImageryLayer>
+    allImageryLayers: () => Array<ImageryLayer>
 
     addImageryLayers: (layers: ImageryLayer[]) => Promise<void>
     addImageryLayer: (layer: ImageryLayer) => Promise<void>
@@ -120,7 +120,6 @@ export interface MapMissionRoute {
 export enum MapMissionsEvent {
     Changed,
     Activated,
-    Drag,
     Removed
 }
 export type MapMissionsEventListener = (missionId: string, item: MissionRouteItem, index: number) => void;
