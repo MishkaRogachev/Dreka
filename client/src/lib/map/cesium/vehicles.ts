@@ -13,6 +13,7 @@ import * as Cesium from 'cesium';
 
 import homeIcon from "$assets/svg/map_home.svg";
 import targetIcon from "$assets/svg/map_target_wpt.svg";
+import wptIcon from "$assets/svg/map_wpt.svg";
 
 // @ts-ignore
 import fixedWing from "$assets/3d/art_v1.glb";
@@ -28,11 +29,11 @@ export class MapVehicleCesium implements MapVehicle {
         this.path = new PathEntity(parent.cesium, 100);
 
         this.target = new MapSign(parent.cesium, parent.interaction);
-        this.target.setIcon(targetIcon);
         this.target.setBillboardColor(Cesium.Color.MAGENTA);
         this.target.setDragCallback((cartesian: Cesium.Cartesian3) => {
             const geodetic = geodeticFromCartesian(cartesian, GeodeticFrame.Wgs84AboveSeaLevel, 0);
             if (geodetic) {
+                this.target.setOrdredColor(Cesium.Color.GOLD); // TODO: indicate ack with color
                 this.parent.invoke(MapVehiclesEvent.TargetChanged, this.vehicleId, geodetic);
             }
         });
@@ -42,6 +43,7 @@ export class MapVehicleCesium implements MapVehicle {
         this.home.setDragCallback((cartesian: Cesium.Cartesian3) => {
             const geodetic = geodeticFromCartesian(cartesian, GeodeticFrame.Wgs84AboveSeaLevel, 0);
             if (geodetic) {
+                this.home.setOrdredColor(Cesium.Color.GOLD); // TODO: indicate ack with color
                 this.parent.invoke(MapVehiclesEvent.HomeChanged, this.vehicleId, geodetic);
             }
         });
@@ -79,8 +81,23 @@ export class MapVehicleCesium implements MapVehicle {
 
     updateFromStatus(status: VehicleStatus | undefined) {
         // TODO: online fading
-        this.target.setVisible(!!status && (status.mode === VehicleMode.Guided || status.mode === VehicleMode.Loiter))
-        this.target.setEnabled(!!status && status.mode === VehicleMode.Guided)
+
+        switch (status?.mode) {
+            case VehicleMode.Guided:
+                this.target.setIcon(targetIcon);
+                this.target.setVisible(true);
+                this.target.setEnabled(true);
+                break;
+            case VehicleMode.Loiter:
+                this.target.setIcon(wptIcon);
+                this.target.setVisible(true);
+                this.target.setEnabled(false);
+                break;
+            default:
+                this.target.setVisible(false);
+                this.target.setEnabled(false);
+                break;
+        }
     }
 
     updateFromFlight(flight: Flight) {
