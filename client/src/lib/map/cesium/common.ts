@@ -14,7 +14,7 @@ export class MapMarker {
         this.billboard.draggable = true;
         this.interaction.addInteractable(this.billboard);
 
-        this.pylon = new PylonEntity(cesium, 4.0);
+        this.pylon = new PylonEntity(cesium);
         this.pylon.baseColor = Cesium.Color.LIGHTSTEELBLUE;
     }
 

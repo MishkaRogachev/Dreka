@@ -233,45 +233,74 @@ export class BillboardEntity extends BasePointEntity {
 }
 
 export class PylonEntity extends BasePointEntity {
-    constructor(cesium: Cesium.Viewer, width: number) {
+    constructor(cesium: Cesium.Viewer) {
         super(cesium);
 
+        this.groundPointSize = 3.0
+        this.width = 1.0
+
         this.terrainCartesian = Cesium.Cartesian3.ZERO;
-        this.terrainListeners = []; // TODO: useless?
+
+        // @ts-ignore
+        this.entity.position = new Cesium.CallbackProperty(() => { return this.terrainCartesian }, false);
 
         this.entity.polyline = new Cesium.PolylineGraphics({
             positions: new Cesium.CallbackProperty(() => {
                 return [this.cartesian, this.terrainCartesian]
             }, false),
             arcType: Cesium.ArcType.NONE,
-            material: new Cesium.PolylineArrowMaterialProperty(
-                new Cesium.CallbackProperty(() => { return this.baseColor.withAlpha(this.opacity) }, false)
+            material: new Cesium.ColorMaterialProperty(
+                new Cesium.CallbackProperty(() => {
+                    return this.baseColor.withAlpha(this.opacity);
+                }, false),
             ),
-            width: width,
-            show: new Cesium.CallbackProperty(() => { return this.hasPosition() && this.visible }, false),
+            width: new Cesium.CallbackProperty(() => { return this.width }, false ),
+            show: new Cesium.CallbackProperty(() => {
+                return this.hasGroundPosition() && this.hasPosition() && this.visible;
+            }, false),
+        });
+        this.entity.point = new Cesium.PointGraphics({
+            pixelSize: new Cesium.CallbackProperty(() => { return this.groundPointSize; }, false),
+            color: new Cesium.CallbackProperty(() => { return this.baseColor.withAlpha(this.opacity) }, false),
+            show: new Cesium.CallbackProperty(() => {
+                return this.hasGroundPosition() && this.hasPosition() && this.visible;
+            }, false),
         });
     }
 
-    subscribeTerrain(listener: Function) { this.terrainListeners.push(listener); }
-    unsubscribeTerrain(listener: Function) { this.terrainListeners = this.terrainListeners.filter(item => item !== listener); }
+    done(): void {
+        super.done();
+        this.cesium.entities.remove(this.entity);
+    }
 
     setCartesian(cartesian: Cesium.Cartesian3) {
         super.setCartesian(cartesian);
 
+        // Use old altitude while waiting for terrain response
+        const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+        const oldTerrainCartographic = Cesium.Cartographic.fromCartesian(this.terrainCartesian);
+        if (!!oldTerrainCartographic && !!cartographic) {
+            this.terrainCartesian = Cesium.Cartesian3.fromRadians(
+                cartographic.longitude, cartographic.latitude, oldTerrainCartographic.height);
+        }
+
         // Sample terrain position from the ground
-        if (this.hasPosition()) {
-            const cartographic = Cesium.Cartographic.fromCartesian(this.cartesian);
+        if (!!cartographic) {
             const promise = Cesium.sampleTerrainMostDetailed(this.cesium.terrainProvider, [cartographic]);
             promise.then(updatedPositions => {
                 this.terrainCartesian = Cesium.Cartographic.toCartesian(cartographic)
-                const terrainAltitude = cartographic.height
-                this.terrainListeners.forEach(listener => listener(terrainAltitude))
             });
         }
     }
 
+    hasGroundPosition(): boolean {
+        return !this.terrainCartesian.equals(Cesium.Cartesian3.ZERO);
+    }
+
+    groundPointSize: number
+    width: number
+
     private terrainCartesian: Cesium.Cartesian3
-    protected terrainListeners: Array<Function>
 }
 
 export class CircleEntity extends BasePointEntity {

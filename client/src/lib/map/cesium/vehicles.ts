@@ -37,7 +37,7 @@ export class MapVehicleCesium implements MapVehicle {
             }
         });
 
-        this.pylon = new PylonEntity(parent.cesium, 4.0);
+        this.pylon = new PylonEntity(parent.cesium);
         this.path = new PathEntity(parent.cesium, 100);
 
         this.target = new MapSign(parent.cesium, parent.interaction);
