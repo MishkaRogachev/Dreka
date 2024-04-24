@@ -28,12 +28,12 @@ export class MapVehicleCesium implements MapVehicle {
         parent.interaction.addInteractable(this.model);
         this.model.subscribe((event: EntityInputEvent) => {
             if (event.Hovered) {
-                this.parent.invoke({ Hovered: { vehicleId: this.vehicleId, hovered: true } });
+                this.parent.invoke({ VehicleHovered: { vehicleId: this.vehicleId, hovered: true } });
             } else if (event.Exited) {
-                this.parent.invoke({ Hovered: { vehicleId: this.vehicleId, hovered: false } });
+                this.parent.invoke({ VehicleHovered: { vehicleId: this.vehicleId, hovered: false } });
             }
             else if (event.Clicked) {
-                this.parent.invoke({ Activated: { vehicleId: this.vehicleId } });
+                this.parent.invoke({ ActivateVehicle: { vehicleId: this.vehicleId } });
             }
         });
 
@@ -49,6 +49,13 @@ export class MapVehicleCesium implements MapVehicle {
                 this.parent.invoke({ TargetPositionOrdered: { vehicleId: this.vehicleId, position: geodetic } });
             }
         });
+        this.target.billboard.subscribe((event: EntityInputEvent) => {
+            if (event.Hovered) {
+                this.parent.invoke({ TargetHovered: { vehicleId: this.vehicleId, hovered: true } });
+            } else if (event.Exited) {
+                this.parent.invoke({ TargetHovered: { vehicleId: this.vehicleId, hovered: false } });
+            }
+        });
 
         this.home = new MapSign(parent.cesium, parent.interaction);
         this.home.setIcon(homeIcon);
@@ -57,6 +64,13 @@ export class MapVehicleCesium implements MapVehicle {
             if (geodetic) {
                 this.home.setOrdredColor(Cesium.Color.GOLD); // TODO: indicate ack with color
                 this.parent.invoke({ HomePositionOrdered: { vehicleId: this.vehicleId, position: geodetic } });
+            }
+        });
+        this.home.billboard.subscribe((event: EntityInputEvent) => {
+            if (event.Hovered) {
+                this.parent.invoke({ HomeHovered: { vehicleId: this.vehicleId, hovered: true } });
+            } else if (event.Exited) {
+                this.parent.invoke({ HomeHovered: { vehicleId: this.vehicleId, hovered: false } });
             }
         });
     }

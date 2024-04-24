@@ -79,7 +79,9 @@ onDestroy(() => {
 });
 
 </script>
-<PointedPopup isPopupOpen={$activeMapPopup === "waypoint_menu"} bind:popupPosition={waypointPosition}>
+<PointedPopup 
+    isPopupOpen={$activeMapPopup === "waypoint_menu"}
+    popupPosition={waypointPosition}>
     <p class="font-bold text-sm text-center">{ formatRouteItem(routeItem.type, index) }</p>
     <ul class="menu p-0">
         {#if $selectedVehicle?.status?.mode == VehicleMode.Mission && $selectedVehicleMission?.status.progress.current !== index}
@@ -107,7 +109,7 @@ onDestroy(() => {
 
 <PointedPopup
     isPopupOpen={$activeMapPopup === "waypoint_tooltip"}
-    bind:popupPosition={waypointPosition}
+    popupPosition={waypointPosition}
     noInput={true}>
     <div class="font-bold text-sm text-center mx-2">
         { formatRouteItem(routeItem.type, index) }

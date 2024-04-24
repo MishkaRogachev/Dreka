@@ -31,7 +31,7 @@ class MapMissionRouteItemCesium extends MapSign {
 
         this.billboard.subscribe((event: EntityInputEvent) => {
             if (event.Clicked && this.item) {
-                this.route.invoke({ Activated: { missionId: route.missionId, item: this.item, index: this.inRouteIndex() } });
+                this.route.invoke({ InvokeWaypointMenu: { missionId: route.missionId, item: this.item, index: this.inRouteIndex() } });
             }
             if (event.Hovered && this.item) {
                 this.route.invoke({ Hovered: { missionId: route.missionId, item: this.item, index: this.inRouteIndex() } });

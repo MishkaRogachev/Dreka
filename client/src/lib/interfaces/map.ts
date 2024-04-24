@@ -88,8 +88,10 @@ export interface MapVehicle {
 }
 
 export interface MapVehiclesEvent {
-    Activated?: { vehicleId: string },
-    Hovered?: { vehicleId: string, hovered: boolean },
+    ActivateVehicle?: { vehicleId: string },
+    VehicleHovered?: { vehicleId: string, hovered: boolean },
+    HomeHovered?: { vehicleId: string, hovered: boolean },
+    TargetHovered?: { vehicleId: string, hovered: boolean },
     HomePositionOrdered?: { vehicleId: string, position: Geodetic },
     TargetPositionOrdered?: { vehicleId: string, position: Geodetic },
 }
@@ -121,7 +123,7 @@ export interface MapMissionRoute {
 // TODO: add map mission type to aggregate route, fence and rally points
 
 export interface MapMissionsEvent {
-    Activated?: { missionId: string, item: MissionRouteItem, index: number },
+    InvokeWaypointMenu?: { missionId: string, item: MissionRouteItem, index: number },
     Hovered?: { missionId: string, item: MissionRouteItem, index: number },
     Exited?: {},
     ChangesOrdered?: { missionId: string, item: MissionRouteItem, index: number },

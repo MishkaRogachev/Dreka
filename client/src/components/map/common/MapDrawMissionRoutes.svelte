@@ -57,8 +57,8 @@ onMount(async () => {
     });
 
     mapMissions.subscribe((event: MapMissionsEvent) => {
-        if (event.Activated) {
-            selectedRouteItem = [event.Activated.item, event.Activated.missionId, event.Activated.index];
+        if (event.InvokeWaypointMenu) {
+            selectedRouteItem = [event.InvokeWaypointMenu.item, event.InvokeWaypointMenu.missionId, event.InvokeWaypointMenu.index];
             $activeMapPopup = "waypoint_menu";
         } else if (event.ChangesOrdered) {
             missions.setRouteItem(event.ChangesOrdered.missionId, event.ChangesOrdered.item, event.ChangesOrdered.index);
@@ -66,8 +66,10 @@ onMount(async () => {
             selectedRouteItem = [event.Hovered.item, event.Hovered.missionId, event.Hovered.index];
             $activeMapPopup = "waypoint_tooltip";
         } else if (event.Exited) {
-            selectedRouteItem = undefined;
-            $activeMapPopup = "";
+            if ($activeMapPopup !== "waypoint_menu") {
+                selectedRouteItem = undefined;
+                $activeMapPopup = "";
+            }
         }
     });
 })
