@@ -255,7 +255,7 @@ export class MapMissionRouteCesium implements MapMissionRoute {
     missionId: string
     root: MapMissionsCesium
 
-    homeAltitude: number
+    homeAltitude: number // TODO: move to Misson
 
     private items: Array<MapMissionRouteItemCesium>
     private tracks: Array<Cesium.Entity>

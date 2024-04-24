@@ -66,6 +66,7 @@ function closeMenu() {
 }
 
 function recalcPopupPosition() {
+    // FIXME: home altitude
     if (overridedPosition) {
         popupPosition = map.viewport.geodeticToScreenXY(overridedPosition);
     } else if (routeItem.position) {
@@ -94,7 +95,7 @@ onDestroy(() => {
     isPopupOpen={$activeMapPopup === "waypoint_menu"}
     popupPosition={popupPosition}>
     <p class="font-bold text-sm text-center">{ formatRouteItem(routeItem.type, index) }</p>
-    <ul class="menu p-0">
+    <ul class="menu menu-sm p-0">
         {#if $selectedVehicle?.status?.mode == VehicleMode.Mission && $selectedVehicleMission?.status.progress.current !== index}
         <li class="flex" on:click={gotoItem}>
             <div class="flex gap-x-2 items-center grow">
