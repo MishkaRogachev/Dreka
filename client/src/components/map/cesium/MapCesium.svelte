@@ -47,7 +47,7 @@ onDestroy(async () => { clearInterval(interval); ready = false; });
 <div id="cesiumContainer" class="absolute" style={ready && visible ? "" : "display: none"}>
 {#if ready && visible}
     <MapMenu interaction={map.interaction} viewport={map.viewport}/>
-    <MapDrawVehicles mapVehicles={map.vehicles}/>
+    <MapDrawVehicles mapVehicles={map.vehicles} viewport={map.viewport}/>
     <MapDrawMissionRoutes mapMissions={map.missions} viewport={map.viewport}/>
 {/if}
 </div>

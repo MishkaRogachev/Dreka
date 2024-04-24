@@ -87,16 +87,19 @@ export interface MapVehicle {
     updateFromNavigation: (navigation: Navigation) => void
 }
 
-export enum MapVehiclesEvent {
-    Activated,
-    HomeChanged,
-    TargetChanged,
+export interface MapVehiclesEvent {
+    Activated?: { vehicleId: string },
+    Hovered?: { vehicleId: string, hovered: boolean },
+    HomePositionOrdered?: { vehicleId: string, position: Geodetic },
+    TargetPositionOrdered?: { vehicleId: string, position: Geodetic },
 }
-export type MapVehiclesEventListener = (vehicleId: string, position: Geodetic) => void;
+export type MapVehiclesEventListener = (event: MapVehiclesEvent) => void;
 
 export interface MapVehicles {
     done: () => void
-    subscribe: (event: MapVehiclesEvent, listener: MapVehiclesEventListener) => void
+
+    subscribe: (listener: MapVehiclesEventListener) => void
+    unsubscribe: (listener: MapVehiclesEventListener) => void
 
     setSelectedVehicle: (vehicleId: string) => void
     addVehicle: (vehicleId: string) => MapVehicle

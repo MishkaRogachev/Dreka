@@ -2,7 +2,7 @@ import type { MapRuler } from '$lib/interfaces/map';
 import type { MapInteractionCesium } from '$lib/map/cesium/interaction';
 import type { Geodetic } from "$bindings/spatial"
 
-import { GroundPointEntity } from "./base-entities"
+import { GroundPointEntity, type EntityInputEvent } from "./base-entities"
 import * as Utils from "./utils"
 
 import * as Cesium from 'cesium'
@@ -14,16 +14,18 @@ class RulerPoint {
         this.entity = new GroundPointEntity(cesium, 8);
         this.entity.baseColor = Cesium.Color.TURQUOISE;
         this.entity.setCartesian(cartesian);
-        this.entity.subscribeDragging((cartesian: Cesium.Cartesian3) => {
-            this.entity.setCartesian(cartesian);
-        })
+
+        this.entity.subscribe((event: EntityInputEvent) => {
+            if (event.DraggedPosition) {
+                this.entity.setCartesian(event.DraggedPosition.cartesian);
+            }
+            if (event.Clicked) {
+                this.ruler.removePoint(this);
+            }
+        });
 
         interaction.addInteractable(this.entity);
         interaction.hoverInteractable(this.entity);
-
-        this.entity.subscribeClick(() => {
-            this.ruler.removePoint(this);
-        })
     }
 
     done() {

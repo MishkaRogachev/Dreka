@@ -3,13 +3,21 @@ import { onMount, onDestroy } from 'svelte';
 
 import type { Geodetic } from '$bindings/spatial';
 
-import { MapVehiclesEvent, type MapVehicles } from '$lib/interfaces/map';
+import { type MapVehiclesEvent, type MapVehicles, type MapViewport } from '$lib/interfaces/map';
 
 import { Vehicle, vehicles, selectedVehicleId } from "$stores/vehicles";
 import { type VehicleTelemetry, vehiclesTelemetry } from "$stores/telemetry";
 import { commandExecutions } from '$stores/commands';
 
+import PointedPopup from '$components/common/PointedPopup.svelte';
+
 export let mapVehicles: MapVehicles;
+export let viewport: MapViewport;
+
+let tipVehicleId: string | undefined = undefined;
+
+$: vehicleTipGeodetic = tipVehicleId ? $vehiclesTelemetry.get(tipVehicleId)?.navigation?.position : undefined;
+$: vehicleTipPosition = vehicleTipGeodetic ? viewport.geodeticToScreenXY(vehicleTipGeodetic) : { x: 0, y: 0 };
 
 // TODO: group all commands in a single file
 async function setTarget(vehicleId: string, position: Geodetic) {
@@ -65,11 +73,16 @@ onMount(async () => {
         mapVehicles.setSelectedVehicle(selectedVehicleId);
     });
 
-    mapVehicles.subscribe(MapVehiclesEvent.TargetChanged, (vehicleId, position: Geodetic) => {
-        setTarget(vehicleId, position);
-    });
-    mapVehicles.subscribe(MapVehiclesEvent.HomeChanged, (vehicleId, position: Geodetic) => {
-        setHome(vehicleId, position);
+    mapVehicles.subscribe((event: MapVehiclesEvent) => {
+        if (event.Activated) {
+            selectedVehicleId.set(event.Activated.vehicleId);
+        } else if (event.TargetPositionOrdered) {
+            setTarget(event.TargetPositionOrdered.vehicleId, event.TargetPositionOrdered.position);
+        } else if (event.HomePositionOrdered) {
+            setHome(event.HomePositionOrdered.vehicleId, event.HomePositionOrdered.position);
+        } else if (event.Hovered) {
+            tipVehicleId = event.Hovered.hovered ? event.Hovered.vehicleId : undefined;
+        }
     });
 })
 
@@ -78,3 +91,9 @@ onDestroy(async () => {
 })
 
 </script>
+
+<PointedPopup isPopupOpen={!!tipVehicleId} bind:popupPosition={vehicleTipPosition}>
+    <div class="font-bold text-sm text-center m-2">
+        { tipVehicleId ? $vehicles.get(tipVehicleId)?.description.name : "" }
+    </div>
+</PointedPopup>

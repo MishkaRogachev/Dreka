@@ -22,6 +22,7 @@ export interface Interactable {
     click: () => boolean
 
     isDraggable: () => boolean
+    isHoverable: () => boolean
 }
 
 export class MapInteractionCesium implements MapInteraction {
@@ -97,7 +98,7 @@ export class MapInteractionCesium implements MapInteraction {
             this.hoveredInteractable.setHovered(false);
 
         // Hover newone
-        if (interactable && interactable.isDraggable()) {
+        if (interactable && (interactable.isHoverable() || interactable.isDraggable())) {
             interactable.setHovered(true);
             this.hoveredInteractable = interactable;
             return;

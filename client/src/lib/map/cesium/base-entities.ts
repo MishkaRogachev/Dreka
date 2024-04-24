@@ -8,9 +8,21 @@ import * as Utils from "$lib/map/cesium/utils";
 const HOVER_SCALE_MULTIPLIER = 1.35;
 const MAX_ELEVATION_DEFAULT = -15;
 
+export interface EntityInputEvent {
+    Hovered?: {}
+    Exited?: {}
+    DragStarted?: {}
+    DraggedPosition?: { cartesian: Cesium.Cartesian3 }
+    DraggedRadius?: { radius: number }
+    DragCompleted?: {}
+    Clicked?: {}
+}
+export type EntityInputEventListener = (event: EntityInputEvent) => void;
+
 export class BaseEntity {
     constructor(cesium: Cesium.Viewer) {
         this.cesium = cesium;
+        this.listeners = [];
 
         this.baseColor = Cesium.Color.WHITE;
         this.opacity = 1.0;
@@ -19,11 +31,20 @@ export class BaseEntity {
 
     done() {}
 
+    subscribe(listener: EntityInputEventListener) {
+        this.listeners.push(listener);
+    }
+
+    unsubscribe(listener: EntityInputEventListener) {
+        this.listeners = this.listeners.filter(item => item !== listener);
+    }
+
     baseColor: Cesium.Color
     opacity: number
     visible: boolean
 
     protected cesium: Cesium.Viewer
+    protected listeners: Array<EntityInputEventListener>
 }
 
 export class BasePointEntity extends BaseEntity implements Interactable {
@@ -32,12 +53,11 @@ export class BasePointEntity extends BaseEntity implements Interactable {
 
         this.draggable = false;
         this.dragging = false;
+
         this.hovered = false;
+        this.hoverable = true;
 
         this.cartesian = Cesium.Cartesian3.ZERO;
-        this.draggingListeners = [];
-        this.draggedListeners = [];
-        this.clickListeners = [];
 
         this.entity = this.cesium.entities.add({
             // @ts-ignore
@@ -77,17 +97,12 @@ export class BasePointEntity extends BaseEntity implements Interactable {
         // this.cesium.trackedEntity = tracking ? this.entity : undefined;
     }
 
-    // TODO: enum for subscribitions
-    subscribeDragging(listener: (cartesian: Cesium.Cartesian3) => void) { this.draggingListeners.push(listener); }
-    subscribeDragged(listener: () => void) { this.draggedListeners.push(listener); }
-    subscribeClick(listener: Function) { this.clickListeners.push(listener); }
-    unsubscribeDragging(listener: Function) { this.draggingListeners = this.draggingListeners.filter(item => item !== listener); }
-    unsubscribeDragged(listener: Function) { this.draggedListeners = this.draggedListeners.filter(item => item !== listener); }
-    unsubscribeClick(listener: Function) { this.clickListeners = this.clickListeners.filter(item => item !== listener); }
+    drag(screenXY: Cartesian, modifier: KeyModifier): boolean {
+        return false;
+    }
 
-    drag(screenXY: Cartesian, modifier: KeyModifier): boolean { return false; }
     click(): boolean {
-        this.clickListeners.forEach(listener => listener(this.cartesian));
+        this.listeners.forEach(listener => listener({ Clicked: {} }));
         return true;
     }
 
@@ -98,15 +113,22 @@ export class BasePointEntity extends BaseEntity implements Interactable {
         }
     }
 
-    setHovered(hovered: boolean) { this.hovered = hovered; }
+    setHovered(hovered: boolean) {
+        if (this.hovered === hovered)
+            return;
+
+        this.hovered = hovered;
+        const event = this.hovered ? { Hovered: {} } : { Exited: {} }
+        this.listeners.forEach(listener => listener(event));
+    }
+
     setDragging(dragging: boolean) {
         if (this.dragging === dragging)
             return;
 
         this.dragging = dragging;
-        if (!this.dragging) {
-            this.draggedListeners.forEach(listener => listener());
-        }
+        const event = this.dragging ? { DragStarted: {} } : { DragCompleted: {} }
+        this.listeners.forEach(listener => listener(event));
     }
 
     matchInteraction(objects: Array<any>): boolean {
@@ -115,18 +137,15 @@ export class BasePointEntity extends BaseEntity implements Interactable {
 
     hasPosition(): boolean { return !this.cartesian.equals(Cesium.Cartesian3.ZERO); }
     isDraggable(): boolean { return this.draggable; }
-    isDragging(): boolean { return this.dragging; }
+    isHoverable(): boolean { return this.hoverable; }
 
     protected entity: Cesium.Entity
     cartesian: Cesium.Cartesian3
     draggable: boolean
+    hoverable: boolean
 
     protected dragging: boolean
     protected hovered: boolean
-
-    protected draggingListeners: Array<Function>
-    protected draggedListeners: Array<Function>
-    protected clickListeners: Array<Function>
 
     private static trackingEnity: BasePointEntity | undefined
 }
@@ -152,7 +171,7 @@ export class GroundPointEntity extends BasePointEntity {
             return false;
 
         const cartesian = this.cesium.scene.globe.pick(ray, this.cesium.scene) || this.cartesian;
-        this.draggingListeners.forEach(listener => listener(cartesian));
+        this.listeners.forEach(listener => listener({ DraggedPosition: { cartesian: cartesian} }));
         return true;
     }
 }
@@ -205,7 +224,7 @@ export class BillboardEntity extends BasePointEntity {
         }
 
         const newCartesian = scene.globe.ellipsoid.cartographicToCartesian(newGeodetic);
-        this.draggingListeners.forEach(listener => listener(newCartesian));
+        this.listeners.forEach(listener => listener({ DraggedPosition: { cartesian: newCartesian} }));
         return true;
     }
 
@@ -294,18 +313,8 @@ export class CircleEntity extends BasePointEntity {
         const cartesian = Cesium.IntersectionTests.rayPlane(ray!, plane);
 
         const radius = Cesium.Cartesian3.distance(cartesian, this.cartesian);
-        this.draggingListeners.forEach(listener => listener(radius));
+        this.listeners.forEach(listener => listener({ DraggedRadius: { radius: radius} }));
         return true;
-    }
-
-    setDragging(dragging: boolean) {
-        if (this.dragging === dragging)
-            return;
-
-        this.dragging = dragging;
-        if (!dragging) {
-            this.draggedListeners.forEach(listener => listener(this.radius));
-        }
     }
 
     width: number
@@ -333,7 +342,7 @@ export class ModelEntity extends BasePointEntity {
             minimumPixelSize: 196,
             maximumScale: 80000,
             colorBlendMode: Cesium.ColorBlendMode.REPLACE,
-            silhouetteSize: 2.0
+            silhouetteSize: new Cesium.CallbackProperty(() => { return this.hovered ? 3.0 : 2.0 }, false)
         });
     }
 

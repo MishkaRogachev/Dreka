@@ -3,7 +3,7 @@ import { type MissionRoute, type MissionRouteItem, MissionRouteItemType, type Mi
 import { MapMissionsEvent, type MapMissionRoute } from '$lib/interfaces/map';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
 import { MapMissionsCesium } from '$lib/map/cesium/missions';
-import { CircleEntity } from "$lib/map/cesium/base-entities"
+import { CircleEntity, type EntityInputEvent } from "$lib/map/cesium/base-entities"
 import { cartesianFromGeodetic, geodeticFromCartesian } from '$lib/map/cesium/utils';
 import { MapSign } from '$lib/map/cesium/common';
 
@@ -29,8 +29,8 @@ class MapMissionRouteItemCesium extends MapSign {
             }
         });
 
-        this.billboard.subscribeClick(() => {
-            if (this.item) {
+        this.billboard.subscribe((event: EntityInputEvent) => {
+            if (event.Clicked && this.item) {
                 this.route.invoke(MapMissionsEvent.Activated, this.item, this.inRouteIndex());
             }
         });
@@ -191,9 +191,19 @@ export class MapMissionRouteCesium implements MapMissionRoute {
         const line = this.root.cesium.entities.add({
             polyline: {
                 positions: new Cesium.CallbackProperty(() => {
-                    if (first.isPositionValid() && second.isPositionValid())
-                        return [first.cartesian(), second.cartesian()]
-                    return []
+                    let list = []
+                    if (first.ordered.isVisibleAndPositionValid()) {
+                        list.push(first.ordered.cartesian())
+                    } else if (first.isVisibleAndPositionValid()) {
+                        list.push(first.cartesian())
+                    }
+
+                    if (second.ordered.isVisibleAndPositionValid()) {
+                        list.push(second.ordered.cartesian())
+                    } else if (second.isVisibleAndPositionValid()) {
+                        list.push(second.cartesian())
+                    }
+                    return list
                 }, false),
                 arcType: Cesium.ArcType.GEODESIC,
                 //@ts-ignore

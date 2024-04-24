@@ -4,9 +4,9 @@ import type { Flight, Navigation } from '$bindings/telemetry';
 import { toColorCode } from '$bindings/colors';
 
 import { cartesianFromGeodetic, geodeticFromCartesian } from '$lib/map/cesium/utils';
-import { MapVehiclesEvent, type MapVehicle, type MapVehicles, type MapVehiclesEventListener } from '$lib/interfaces/map';
+import { type MapVehiclesEvent, type MapVehicle, type MapVehicles, type MapVehiclesEventListener } from '$lib/interfaces/map';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
-import { ModelEntity, PylonEntity, PathEntity } from "$lib/map/cesium/base-entities"
+import { ModelEntity, PylonEntity, PathEntity, type EntityInputEvent } from "$lib/map/cesium/base-entities"
 import { MapSign } from '$lib/map/cesium/common';
 
 import * as Cesium from 'cesium';
@@ -23,8 +23,20 @@ export class MapVehicleCesium implements MapVehicle {
         this.vehicleId = vehicleId;
         this.parent = parent;
 
-        // TODO: click listener to activate vehicle's tooltip
         this.model = new ModelEntity(parent.cesium);
+        this.model.hoverable = true;
+        parent.interaction.addInteractable(this.model);
+        this.model.subscribe((event: EntityInputEvent) => {
+            if (event.Hovered) {
+                this.parent.invoke({ Hovered: { vehicleId: this.vehicleId, hovered: true } });
+            } else if (event.Exited) {
+                this.parent.invoke({ Hovered: { vehicleId: this.vehicleId, hovered: false } });
+            }
+            else if (event.Clicked) {
+                this.parent.invoke({ Activated: { vehicleId: this.vehicleId } });
+            }
+        });
+
         this.pylon = new PylonEntity(parent.cesium, 4.0);
         this.path = new PathEntity(parent.cesium, 100);
 
@@ -34,7 +46,7 @@ export class MapVehicleCesium implements MapVehicle {
             const geodetic = geodeticFromCartesian(cartesian, GeodeticFrame.Wgs84AboveSeaLevel, 0);
             if (geodetic) {
                 this.target.setOrdredColor(Cesium.Color.GOLD); // TODO: indicate ack with color
-                this.parent.invoke(MapVehiclesEvent.TargetChanged, this.vehicleId, geodetic);
+                this.parent.invoke({ TargetPositionOrdered: { vehicleId: this.vehicleId, position: geodetic } });
             }
         });
 
@@ -44,7 +56,7 @@ export class MapVehicleCesium implements MapVehicle {
             const geodetic = geodeticFromCartesian(cartesian, GeodeticFrame.Wgs84AboveSeaLevel, 0);
             if (geodetic) {
                 this.home.setOrdredColor(Cesium.Color.GOLD); // TODO: indicate ack with color
-                this.parent.invoke(MapVehiclesEvent.HomeChanged, this.vehicleId, geodetic);
+                this.parent.invoke({ HomePositionOrdered: { vehicleId: this.vehicleId, position: geodetic } });
             }
         });
     }
@@ -55,6 +67,8 @@ export class MapVehicleCesium implements MapVehicle {
 
         this.path.done();
         this.pylon.done();
+
+        this.parent.interaction.removeInteractable(this.model);
         this.model.done();
     }
 
@@ -149,7 +163,7 @@ export class MapVehiclesCesium implements MapVehicles {
 
         this.selectedVehicleId = "";
         this.vehicles = new Map();
-        this.listeners = new Map();
+        this.listeners = [];
     }
 
     done() {
@@ -157,13 +171,16 @@ export class MapVehiclesCesium implements MapVehicles {
         this.vehicles.clear();
     }
 
-    subscribe(event: MapVehiclesEvent, listener: MapVehiclesEventListener) {
-        this.listeners.set(event, listener);
+    subscribe(listener: MapVehiclesEventListener) {
+        this.listeners.push(listener);
     }
 
-    invoke(event: MapVehiclesEvent, vehicleId: string, position: Geodetic) {
-        let cb = this.listeners.get(event);
-        if (cb) cb(vehicleId, position);
+    unsubscribe(listener: MapVehiclesEventListener) {
+        this.listeners = this.listeners.filter(l => l !== listener);
+    }
+
+    invoke(event: MapVehiclesEvent) {
+        this.listeners.forEach(listener => listener(event));
     }
 
     setSelectedVehicle(vehicleId: string) {
@@ -202,5 +219,5 @@ export class MapVehiclesCesium implements MapVehicles {
 
     private selectedVehicleId: string;
     private vehicles: Map<string, MapVehicleCesium>
-    private listeners: Map<MapVehiclesEvent, MapVehiclesEventListener>
+    private listeners: Array<MapVehiclesEventListener>
 }
