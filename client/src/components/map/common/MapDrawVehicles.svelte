@@ -94,11 +94,7 @@ onMount(async () => {
             $activeMapPopup = "vehicle_home_tooltip";
         }
     });
-})
-
-onDestroy(async () => {
-    mapVehicles.done();
-})
+});
 
 </script>
 

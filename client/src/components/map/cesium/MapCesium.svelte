@@ -48,7 +48,7 @@ onDestroy(async () => { clearInterval(interval); ready = false; });
 {#if ready && visible}
     <MapMenu interaction={map.interaction} viewport={map.viewport}/>
     <MapDrawVehicles mapVehicles={map.vehicles} viewport={map.viewport}/>
-    <MapDrawMissionRoutes mapMissions={map.missions} viewport={map.viewport}/>
+    <MapDrawMissionRoutes map={map}/>
 {/if}
 </div>
 {#if ready && visible}

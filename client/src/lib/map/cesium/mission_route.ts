@@ -38,6 +38,17 @@ class MapMissionRouteItemCesium extends MapSign {
             } else if (event.Exited) {
                 this.route.invoke({ Exited: { missionId: route.missionId, index: this.inRouteIndex() } });
             }
+            if (event.DraggedPosition) {
+                const geodetic = geodeticFromCartesian(event.DraggedPosition.cartesian, this.item!.position!.frame, this.route.homeAltitude);
+                if (geodetic && this.item) {
+                    this.route.invoke({ WaypointDragged: {
+                        missionId: route.missionId,
+                        item: this.item,
+                        index: this.inRouteIndex(),
+                        position: geodetic
+                    } });
+                }
+            }
         });
 
         this.circle = new CircleEntity(cesium, 4.0);

@@ -127,6 +127,7 @@ export interface MapMissionsEvent {
     Hovered?: { missionId: string, item: MissionRouteItem, index: number },
     Exited?: {},
     ChangesOrdered?: { missionId: string, item: MissionRouteItem, index: number },
+    WaypointDragged?: { missionId: string, item: MissionRouteItem, index: number, position: Geodetic },
 }
 export type MapMissionsEventListener = (event: MapMissionsEvent) => void;
 

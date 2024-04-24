@@ -1,6 +1,7 @@
 <script lang="ts">
 import { onMount, onDestroy } from 'svelte';
 
+import type { Geodetic } from '$bindings/spatial';
 import { VehicleMode } from '$bindings/vehicles';
 import type { Mission, MissionRouteItem } from '$bindings/mission';
 
@@ -9,14 +10,14 @@ import { missions } from '$stores/mission';
 import { activeMapPopup } from '$stores/app';
 import { VehicleTelemetry, vehiclesTelemetry } from '$stores/telemetry';
 
-import { type MapMissionsEvent, type MapMissions, type MapViewport } from '$lib/interfaces/map';
+import { type MapMissionsEvent, type MapFacade } from '$lib/interfaces/map';
 
 import WaypointMenu from '$components/map/common/WaypointPopup.svelte';
 
-export let viewport: MapViewport;
-export let mapMissions: MapMissions;
+export let map: MapFacade;
 
 let selectedRouteItem: [MissionRouteItem, string, number] | undefined;
+let overridedPosition: Geodetic | undefined;
 
 onMount(async () => {
     missions.subscribe((allMissions: Map<string, Mission>) => {
@@ -25,9 +26,9 @@ onMount(async () => {
         // Add and update existing missions on map
         allMissions.forEach((mission: Mission, missionId: string) => {
             usedIds.push(missionId);
-            let mapMission = mapMissions.mission(missionId);
+            let mapMission = map.missions.mission(missionId);
             if (!mapMission) {
-                mapMission = mapMissions.addMission(missionId);
+                mapMission = map.missions.addMission(missionId);
             }
             mapMission.updateFromRoute(mission.route);
 
@@ -36,9 +37,9 @@ onMount(async () => {
         });
 
         // Delete missions removed in store
-        for (const missionId of mapMissions.missionIds()) {
+        for (const missionId of map.missions.missionIds()) {
             if (!usedIds.includes(missionId)) {
-                mapMissions.removeMission(missionId)
+                map.missions.removeMission(missionId)
             }
         }
     })
@@ -47,7 +48,7 @@ onMount(async () => {
         tmi.forEach((tmi: VehicleTelemetry, vehicleId: string) => {
             for (const [missionId, mission] of $missions) {
                 if (mission.vehicle_id === vehicleId) {
-                    let mission = mapMissions.mission(missionId);
+                    let mission = map.missions.mission(missionId);
                     if (mission && tmi.navigation) {
                         mission.setHomeAltitude(tmi.navigation.home_position.altitude);
                     }
@@ -56,31 +57,40 @@ onMount(async () => {
         });
     });
 
-    mapMissions.subscribe((event: MapMissionsEvent) => {
+    map.missions.subscribe((event: MapMissionsEvent) => {
         if (event.InvokeWaypointMenu) {
             selectedRouteItem = [event.InvokeWaypointMenu.item, event.InvokeWaypointMenu.missionId, event.InvokeWaypointMenu.index];
+            overridedPosition = undefined;
             $activeMapPopup = "waypoint_menu";
         } else if (event.ChangesOrdered) {
             missions.setRouteItem(event.ChangesOrdered.missionId, event.ChangesOrdered.item, event.ChangesOrdered.index);
+            overridedPosition = undefined;
         } else if (event.Hovered && $activeMapPopup !== "waypoint_menu") {
             selectedRouteItem = [event.Hovered.item, event.Hovered.missionId, event.Hovered.index];
+            overridedPosition = undefined;
             $activeMapPopup = "waypoint_tooltip";
         } else if (event.Exited) {
             if ($activeMapPopup !== "waypoint_menu") {
                 selectedRouteItem = undefined;
                 $activeMapPopup = "";
             }
+            overridedPosition = undefined;
+        } else if (event.WaypointDragged) {
+            selectedRouteItem = [event.WaypointDragged.item, event.WaypointDragged.missionId, event.WaypointDragged.index];
+            overridedPosition = event.WaypointDragged.position;
+            $activeMapPopup = "waypoint_tooltip"
         }
     });
-})
-
-onDestroy(async () => {
-    mapMissions.done();
 })
 
 </script>
 
 {#if selectedRouteItem}
-    <WaypointMenu viewport={viewport} routeItem={selectedRouteItem[0]} missionId={selectedRouteItem[1]} index={selectedRouteItem[2]}
-    on:close={() => { selectedRouteItem = undefined; $activeMapPopup = "" }}/>
+    <WaypointMenu
+        map={map}
+        routeItem={selectedRouteItem[0]}
+        missionId={selectedRouteItem[1]}
+        index={selectedRouteItem[2]}
+        overridedPosition={overridedPosition}
+        on:close={() => { selectedRouteItem = undefined; $activeMapPopup = "" }}/>
 {/if}
