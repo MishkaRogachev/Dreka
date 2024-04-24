@@ -2,6 +2,7 @@
 
 export let isPopupOpen = false;
 export let popupPosition = { x: 0, y: 0 };
+export let noInput = false
 
 let popupWidth: number
 let popupHeight: number
@@ -13,7 +14,6 @@ const pointerSize: number = 10
 <style>
 #popup {
     position: absolute;
-    min-width: 128px
 }
 #pointer {
     position: absolute;
@@ -28,11 +28,11 @@ const pointerSize: number = 10
 {#if isPopupOpen}
 <div
     id="popup"
-    class="border bg-base-300 rounded-md"
+    class={"border bg-base-300 rounded-md " + (noInput ? "pointer-events-none" : "")}
     style="top: {popupPosition.y - popupHeight - pointerSize}px; left: {popupPosition.x - popupWidth / 2}px;"
     bind:clientWidth={popupWidth}
     bind:clientHeight={popupHeight}>
     <slot></slot>
 </div>
-<div id="pointer" style="top: {popupPosition.y - pointerSize}px; left: {popupPosition.x - pointerSize / 2}px;"></div>
+<div id="pointer" class="pointer-events-none" style="top: {popupPosition.y - pointerSize}px; left: {popupPosition.x - pointerSize / 2}px;"></div>
 {/if}

@@ -22,6 +22,7 @@ export interface Interactable {
     click: () => boolean
 
     isDraggable: () => boolean
+    isDragging: () => boolean
     isHoverable: () => boolean
 }
 
@@ -119,6 +120,9 @@ export class MapInteractionCesium implements MapInteraction {
     onMove(position: Cesium.Cartesian2, modifier: KeyModifier): boolean {
         // If dragging, just do it
         if (this.draggingInteractable) {
+            if (!this.draggingInteractable.isDragging()) {
+                this.draggingInteractable.setDragging(true);
+            }
             return this.draggingInteractable.drag(position, modifier);
         }
 
@@ -185,11 +189,6 @@ export class MapInteractionCesium implements MapInteraction {
             this.draggingInteractable.setDragging(false);
 
         this.draggingInteractable = interactable;
-
-        if (interactable) {
-            interactable.setDragging(true);
-        }
-
         this.cesium.scene.screenSpaceCameraController.enableInputs = interactable === null;
     }
 

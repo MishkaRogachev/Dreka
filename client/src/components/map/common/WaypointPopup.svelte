@@ -8,6 +8,7 @@ import { i18n } from '$stores/i18n';
 import { commandExecutions } from '$stores/commands';
 import { selectedVehicleId, selectedVehicle } from '$stores/vehicles';
 import { formatRouteItem, missions, selectedVehicleMission } from '$stores/mission';
+import { activeMapPopup } from '$stores/app';
 
 import type { MapViewport } from '$lib/interfaces/map';
 
@@ -26,7 +27,7 @@ export let index: number;
 const dispatch = createEventDispatcher()
 
 let gotoToken: string | null = null
-let menuPosition = { x: 0, y: 0 };
+let waypointPosition = { x: 0, y: 0 };
 
 $: routeItem, recalcPopupPosition()
 $: gotoExecution = gotoToken ? $commandExecutions.get(gotoToken) : undefined
@@ -59,7 +60,7 @@ function closeMenu() {
 
 function recalcPopupPosition() {
     if (routeItem.position) {
-        menuPosition = viewport.geodeticToScreenXY(routeItem.position);
+        waypointPosition = viewport.geodeticToScreenXY(routeItem.position);
     }
 }
 
@@ -78,7 +79,7 @@ onDestroy(() => {
 });
 
 </script>
-<PointedPopup isPopupOpen={true} bind:popupPosition={menuPosition}>
+<PointedPopup isPopupOpen={$activeMapPopup === "waypoint_menu"} bind:popupPosition={waypointPosition}>
     <p class="font-bold text-sm text-center">{ formatRouteItem(routeItem.type, index) }</p>
     <ul class="menu p-0">
         {#if $selectedVehicle?.status?.mode == VehicleMode.Mission && $selectedVehicleMission?.status.progress.current !== index}
@@ -102,4 +103,13 @@ onDestroy(() => {
             </div>
         </li>
     </ul>
+</PointedPopup>
+
+<PointedPopup
+    isPopupOpen={$activeMapPopup === "waypoint_tooltip"}
+    bind:popupPosition={waypointPosition}
+    noInput={true}>
+    <div class="font-bold text-sm text-center mx-2">
+        { formatRouteItem(routeItem.type, index) }
+    </div>
 </PointedPopup>

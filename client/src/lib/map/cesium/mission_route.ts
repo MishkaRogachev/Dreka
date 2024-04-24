@@ -1,6 +1,6 @@
 import { type MissionRoute, type MissionRouteItem, MissionRouteItemType, type MissionProgress } from '$bindings/mission';
 
-import { MapMissionsEvent, type MapMissionRoute } from '$lib/interfaces/map';
+import { type MapMissionsEvent, type MapMissionRoute } from '$lib/interfaces/map';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
 import { MapMissionsCesium } from '$lib/map/cesium/missions';
 import { CircleEntity, type EntityInputEvent } from "$lib/map/cesium/base-entities"
@@ -25,13 +25,18 @@ class MapMissionRouteItemCesium extends MapSign {
             const geodetic = geodeticFromCartesian(cartesian, this.item!.position!.frame, this.route.homeAltitude);
             if (geodetic) {
                 this.item.position = geodetic;
-                this.route.invoke(MapMissionsEvent.Changed, this.item, this.inRouteIndex());
+                this.route.invoke({ ChangesOrdered: { missionId: route.missionId, item: this.item, index: this.inRouteIndex() } });
             }
         });
 
         this.billboard.subscribe((event: EntityInputEvent) => {
             if (event.Clicked && this.item) {
-                this.route.invoke(MapMissionsEvent.Activated, this.item, this.inRouteIndex());
+                this.route.invoke({ Activated: { missionId: route.missionId, item: this.item, index: this.inRouteIndex() } });
+            }
+            if (event.Hovered && this.item) {
+                this.route.invoke({ Hovered: { missionId: route.missionId, item: this.item, index: this.inRouteIndex() } });
+            } else if (event.Exited) {
+                this.route.invoke({ Exited: { missionId: route.missionId, index: this.inRouteIndex() } });
             }
         });
 
@@ -45,7 +50,6 @@ class MapMissionRouteItemCesium extends MapSign {
     done() {
         //this.interaction.removeInteractable(this.circle)
         this.circle.done();
-        this.route.invoke(MapMissionsEvent.Removed, this.item!, this.inRouteIndex());
         super.done();
     }
 
@@ -122,8 +126,8 @@ export class MapMissionRouteCesium implements MapMissionRoute {
         this.items = [];
     }
 
-    invoke(event: MapMissionsEvent, item: MissionRouteItem, index: number) {
-        this.root.invoke(event, this.missionId, item, index);
+    invoke(event: MapMissionsEvent) {
+        this.root.invoke(event);
     }
 
     fitOnMap() {

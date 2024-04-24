@@ -93,7 +93,7 @@ onDestroy(async () => {
 </script>
 
 <PointedPopup isPopupOpen={!!tipVehicleId} bind:popupPosition={vehicleTipPosition}>
-    <div class="font-bold text-sm text-center m-2">
+    <div class="font-bold text-sm text-center mx-2">
         { tipVehicleId ? $vehicles.get(tipVehicleId)?.description.name : "" }
     </div>
 </PointedPopup>

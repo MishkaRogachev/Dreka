@@ -1,6 +1,6 @@
 import type { MissionRouteItem } from '$bindings/mission';
 
-import { type MapMissions, MapMissionsEvent, type MapMissionsEventListener } from '$lib/interfaces/map';
+import { type MapMissions, type MapMissionsEvent, type MapMissionsEventListener } from '$lib/interfaces/map';
 import { MapInteractionCesium } from '$lib/map/cesium/interaction';
 import { MapMissionRouteCesium } from '$lib/map/cesium/mission_route';
 
@@ -13,20 +13,24 @@ export class MapMissionsCesium implements MapMissions {
 
         this.selectedMissionId = "";
         this.missions = new Map();
-        this.listeners = new Map();
+        this.listeners = [];
     }
 
     done() {
-        this.listeners.clear();
+        this.missions.forEach(mission => mission.done());
+        this.missions.clear();
     }
 
-    subscribe(event: MapMissionsEvent, listener: MapMissionsEventListener) {
-        this.listeners.set(event, listener);
+    subscribe(listener: MapMissionsEventListener) {
+        this.listeners.push(listener);
     }
 
-    invoke(event: MapMissionsEvent, missionId: string, item: MissionRouteItem, index: number) {
-        let cb = this.listeners.get(event);
-        if (cb) cb(missionId, item, index);
+    unsubscribe(listener: MapMissionsEventListener) {
+        this.listeners = this.listeners.filter(l => l !== listener);
+    }
+
+    invoke(event: MapMissionsEvent) {
+        this.listeners.forEach(listener => listener(event));
     }
 
     setSelectedMission(missionId: string) {
@@ -62,5 +66,5 @@ export class MapMissionsCesium implements MapMissions {
 
     selectedMissionId: string;
     private missions: Map<string, MapMissionRouteCesium>
-    private listeners: Map<MapMissionsEvent, MapMissionsEventListener>
+    private listeners: Array<MapMissionsEventListener>
 }

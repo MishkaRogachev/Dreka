@@ -9,14 +9,14 @@ import { missions } from '$stores/mission';
 import { activeMapPopup } from '$stores/app';
 import { VehicleTelemetry, vehiclesTelemetry } from '$stores/telemetry';
 
-import { MapMissionsEvent, type MapMissions, type MapViewport } from '$lib/interfaces/map';
+import { type MapMissionsEvent, type MapMissions, type MapViewport } from '$lib/interfaces/map';
 
 import WaypointMenu from '$components/map/common/WaypointPopup.svelte';
 
 export let viewport: MapViewport;
 export let mapMissions: MapMissions;
 
-let activatedItem: [MissionRouteItem, string, number] | undefined;
+let selectedRouteItem: [MissionRouteItem, string, number] | undefined;
 
 onMount(async () => {
     missions.subscribe((allMissions: Map<string, Mission>) => {
@@ -56,16 +56,18 @@ onMount(async () => {
         });
     });
 
-    mapMissions.subscribe(MapMissionsEvent.Changed, (missionId: string, item: MissionRouteItem, index: number) => {
-        missions.setRouteItem(missionId, item, index);
-    });
-    mapMissions.subscribe(MapMissionsEvent.Activated, (missionId: string, item: MissionRouteItem, index: number) => {
-        activatedItem = [item, missionId, index];
-        $activeMapPopup = "waypoint";
-    });
-    mapMissions.subscribe(MapMissionsEvent.Removed, (missionId: string, _item: MissionRouteItem, index: number) => {
-        if (activatedItem && activatedItem[1] === missionId && activatedItem[2] === index) {
-            activatedItem = undefined;
+    mapMissions.subscribe((event: MapMissionsEvent) => {
+        if (event.Activated) {
+            selectedRouteItem = [event.Activated.item, event.Activated.missionId, event.Activated.index];
+            $activeMapPopup = "waypoint_menu";
+        } else if (event.ChangesOrdered) {
+            missions.setRouteItem(event.ChangesOrdered.missionId, event.ChangesOrdered.item, event.ChangesOrdered.index);
+        } else if (event.Hovered && $activeMapPopup !== "waypoint_menu") {
+            selectedRouteItem = [event.Hovered.item, event.Hovered.missionId, event.Hovered.index];
+            $activeMapPopup = "waypoint_tooltip";
+        } else if (event.Exited) {
+            selectedRouteItem = undefined;
+            $activeMapPopup = "";
         }
     });
 })
@@ -76,7 +78,7 @@ onDestroy(async () => {
 
 </script>
 
-{#if activatedItem && $activeMapPopup === "waypoint" }
-    <WaypointMenu viewport={viewport} routeItem={activatedItem[0]} missionId={activatedItem[1]} index={activatedItem[2]}
-    on:close={() => { activatedItem = undefined; $activeMapPopup = "" }}/>
+{#if selectedRouteItem}
+    <WaypointMenu viewport={viewport} routeItem={selectedRouteItem[0]} missionId={selectedRouteItem[1]} index={selectedRouteItem[2]}
+    on:close={() => { selectedRouteItem = undefined; $activeMapPopup = "" }}/>
 {/if}

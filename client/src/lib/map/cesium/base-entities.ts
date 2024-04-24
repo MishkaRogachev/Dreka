@@ -137,6 +137,7 @@ export class BasePointEntity extends BaseEntity implements Interactable {
 
     hasPosition(): boolean { return !this.cartesian.equals(Cesium.Cartesian3.ZERO); }
     isDraggable(): boolean { return this.draggable; }
+    isDragging(): boolean { return this.dragging; }
     isHoverable(): boolean { return this.hoverable; }
 
     protected entity: Cesium.Entity

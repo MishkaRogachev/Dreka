@@ -76,6 +76,8 @@ export class MapSign extends MapMarker {
                 this.ordered.setCartesian(event.DraggedPosition.cartesian);
             }
             if (event.DragCompleted) {
+                this.billboard.opacity = 1.0;
+                this.pylon.opacity = 1.0;
                 if (this.dragCallBack) this.dragCallBack(this.ordered.cartesian());
             }
         });

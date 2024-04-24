@@ -120,16 +120,19 @@ export interface MapMissionRoute {
 
 // TODO: add map mission type to aggregate route, fence and rally points
 
-export enum MapMissionsEvent {
-    Changed,
-    Activated,
-    Removed
+export interface MapMissionsEvent {
+    Activated?: { missionId: string, item: MissionRouteItem, index: number },
+    Hovered?: { missionId: string, item: MissionRouteItem, index: number },
+    Exited?: {},
+    ChangesOrdered?: { missionId: string, item: MissionRouteItem, index: number },
 }
-export type MapMissionsEventListener = (missionId: string, item: MissionRouteItem, index: number) => void;
+export type MapMissionsEventListener = (event: MapMissionsEvent) => void;
 
 export interface MapMissions {
     done: () => void
-    subscribe: (event: MapMissionsEvent, listener: MapMissionsEventListener) => void
+
+    subscribe: (listener: MapMissionsEventListener) => void
+    unsubscribe: (listener: MapMissionsEventListener) => void
 
     setSelectedMission: (missionId: string) => void
 
