@@ -5,14 +5,16 @@ export let pitch: number = 0
 export let roll: number = 0
 export let online: boolean = false
 
+export let canvas_class: string = ""
+
 // @ts-ignore
 $: horizon = ({ context, width, height }) => {
     const x = width / 2
     const y = height / 2
     const radius = height * 0.5
 
-    let sky = context.createLinearGradient(0, 0, 0, -width)
-    sky.addColorStop(1.0, online ? "#1565c0" : "#6b6b6b")
+    let sky = context.createLinearGradient(0, 0, 0, -radius)
+    sky.addColorStop(1.0, online ? "#1590c0" : "#6b6b6b")
     sky.addColorStop(0.0, online ? "#80deea" : "#b5b5b5")
 
     let grd = context.createLinearGradient(0, 0, 0, radius)
@@ -74,6 +76,6 @@ $: horizon = ({ context, width, height }) => {
 
 </script>
 
-<Canvas width={96} height={128}>
+<Canvas width={96} height={128} class={canvas_class}>
     <Layer render={horizon} />
 </Canvas>

@@ -20,6 +20,7 @@ export class VehicleTelemetry {
             true_airspeed: 0,
             ground_speed: 0,
             throttle: 0,
+            rpm: 0,
             altitude_amsl: 0,
             climb: 0
         };

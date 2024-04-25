@@ -37,6 +37,7 @@ pub struct Flight {
     pub ground_speed: f32,
 
     pub throttle: u16,
+    pub rpm: i32,
 
     pub altitude_amsl: f32,
     pub climb: f32,
@@ -113,6 +114,7 @@ impl Flight {
             true_airspeed: 0.0,
             ground_speed: 0.0,
             throttle: 0,
+            rpm: 0,
             altitude_amsl: 0.0,
             climb: 0.0
         }

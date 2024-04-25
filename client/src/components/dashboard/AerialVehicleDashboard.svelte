@@ -1,6 +1,6 @@
 <script lang="ts">
-import Ai from "$components/dashboard/indicators/AI.svelte";
-import Hsi from "$components/dashboard/indicators/HSI.svelte";
+import FD from "$components/dashboard/indicators/FD.svelte";
+import HSI from "$components/dashboard/indicators/HSI.svelte";
 import Parameter from "$components/dashboard/indicators/Parameter.svelte";
 import VehicleTypeIcon from "$components/common/VehicleTypeIcon.svelte";
 
@@ -15,6 +15,7 @@ import { formatHeading } from "$lib/common/formats";
 import centerIcon from "$assets/svg/center.svg?raw";
 import hideIcon from "$assets/svg/hide_dashboard.svg?raw";
 import showIcon from "$assets/svg/show_dashboard.svg?raw";
+    import Bars from "$components/dashboard/indicators/Bars.svelte";
 
 $: telemetry = $selectedVehicleTelemetry
 $: online = $selectedVehicle?.is_online
@@ -74,31 +75,35 @@ function coordsToClipboard() {
     </div>
 
     {#if $dashboardVisible}
-    <div class = "grid grid-cols-4 gap-2 w-50 text-center items-center justify-items-stretch p-2">
+    <div class = "grid grid-cols-4 gap-2 w-50 text-center items-center justify-items-center p-2">
 
-    <!-- FLIGHT DATA DISPLAY -->
+    <!-- FLIGHT -->
         <Parameter name={ $i18n.t("GS") } tooltip={ $i18n.t("Ground (GPS) Speed") }
             value={ telemetry.flight.ground_speed}/>
-        <div class="row-span-3 col-span-2 flex items-center justify-center">
-            <Ai online={online}
-                pitch={telemetry.flight.pitch}
-                roll={telemetry.flight.roll}
-            />
-        </div>
+        <FD online={online} pitch={telemetry.flight.pitch} roll={telemetry.flight.roll}
+            canvas_class="row-span-3 col-span-2"/>
         <Parameter name={ $i18n.t("ASNS") } tooltip={ $i18n.t("Satellite (GPS) Altitude") }
-            value={ telemetry.navigation.position.altitude}/>
+            value={ telemetry.navigation.position.altitude }/>
         <Parameter name={ $i18n.t("IAS") } tooltip={ $i18n.t("Indicated Air Speed") }
-            value={ telemetry.flight.indicated_airspeed}/>
+            value={ telemetry.flight.indicated_airspeed }/>
         <Parameter name={ $i18n.t("AMSL") } tooltip={ $i18n.t("Altitude Above Mean Sea Level") }
             value={ telemetry.flight.altitude_amsl}/>
         <a href={null} class="text-sm">{ $i18n.t("m/s") }</a>
         <a href={null} class="text-sm">{ $i18n.t("m") }</a>
 
-    <!-- NAVIGATION DATA DISPLAY -->
+    <!-- ENGINE -->
+    <Parameter name={ $i18n.t("THR") } tooltip={ $i18n.t("Throttle") }
+        value={ telemetry.flight.throttle }/>
+        <Bars canvas_class="col-span-2" value={telemetry.flight.throttle} maxValue={100} steps={6}/>
+        <!-- TODO: RPM Indicator -->
+        <Parameter name={ $i18n.t("RPM") } tooltip={ $i18n.t("Engine RPM") }
+            value={ telemetry.flight.rpm }/>
+
+    <!-- NAVIGATION -->
         <Parameter name={ $i18n.t("HDG") } tooltip={ $i18n.t("Heading") }
             value={ formatHeading(telemetry.flight.yaw) }/>
         <div class="row-span-3 col-span-2 flex items-center justify-center">
-            <Hsi
+            <HSI
                 heading={telemetry.flight.yaw}
                 course={telemetry.rawSns.course}
                 courseEnabled={telemetry.rawSns.ground_speed > 1}

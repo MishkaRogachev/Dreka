@@ -13,6 +13,7 @@ export interface Flight {
     ground_speed: number,
 
     throttle: number,
+    rpm: number,
 
     altitude_amsl: number,
     climb: number,
