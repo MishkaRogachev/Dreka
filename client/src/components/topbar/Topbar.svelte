@@ -10,8 +10,9 @@ import MissionControl from "$components/topbar/MissionControl.svelte";
 
 import VehicleBattery from "./VehicleBattery.svelte";
 import VehicleGps from "$components/topbar/VehicleGps.svelte";
+import VehicleRadioCtrl from "$components/topbar/VehicleRadioCtrl.svelte";
 import VehicleStateIndicator from "./VehicleStateIndicator.svelte";
-    import VehicleRadioCtrl from "$components/topbar/VehicleRadioCtrl.svelte";
+import VehicleArmIndicator from "$components/topbar/VehicleArmIndicator.svelte";
 
 </script>
 
@@ -30,6 +31,7 @@ import VehicleStateIndicator from "./VehicleStateIndicator.svelte";
         <VehicleBattery system={$selectedVehicleTelemetry.system}/>
         <VehicleGps sns={$selectedVehicleTelemetry.rawSns}/>
         <VehicleRadioCtrl system={$selectedVehicleTelemetry.system}/>
-        <VehicleStateIndicator/>
+        <VehicleStateIndicator vehicleStatus={$selectedVehicle?.status}/>
+        <VehicleArmIndicator/>
     </div>
 </div>

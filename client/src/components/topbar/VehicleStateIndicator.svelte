@@ -1,9 +1,7 @@
 <script lang="ts">
-import { VehicleState } from "$bindings/vehicles";
+import { VehicleState, type VehicleStatus } from "$bindings/vehicles";
 
 import { i18n } from "$stores/i18n";
-import { selectedVehicle } from "$stores/vehicles";
-import { selectedVehicleTelemetry } from "$stores/telemetry";
 
 import playIcon from "$assets/svg/play.svg?raw";
 import pauseIcon from "$assets/svg/pause.svg?raw";
@@ -13,12 +11,9 @@ import emergencyIcon from "$assets/svg/emergency.svg?raw";
 import criticalIcon from "$assets/svg/critical.svg?raw";
 import unknownIcon from "$assets/svg/unknown.svg?raw";
 
-$: is_online = $selectedVehicle?.is_online || false
-$: vehicleState = $selectedVehicle?.status?.state || VehicleState.Unknown
-$: armed = $selectedVehicle?.status?.armed || false
-$: readyToArm = $selectedVehicleTelemetry.system?.arm_ready || false
+export let vehicleStatus: VehicleStatus | undefined;
 
-function toStateIcon(state: VehicleState) {
+function toStateIcon(state: VehicleState | undefined) {
     switch (state) {
         case VehicleState.Boot:
             return loadingIcon;
@@ -38,29 +33,34 @@ function toStateIcon(state: VehicleState) {
     }
 }
 
-function toArmColorCode(is_online: boolean, armed: boolean, readyToArm: boolean) {
-    if (!is_online) {
-        return "btn-neutral"
+function toStateClass(state: VehicleState | undefined) {
+    switch (state) {
+        case VehicleState.Boot:
+            return "text-secondary";
+        case VehicleState.Calibrating:
+            return "text-info";
+        case VehicleState.Emergency:
+            return "text-warning";
+        case VehicleState.Critical:
+            return "text-error";
+        case VehicleState.Active:
+        case VehicleState.Standby:
+            return "text-base";
+        case VehicleState.Unknown: // no break
+        default:
+            return "text-neutral";
     }
-    return armed ? "btn-success" : readyToArm ? "btn-warning" : "btmn-error"
 }
-
-function toArmText(armed: boolean, readyToArm: boolean) {
-    return armed ? $i18n.t("ARMED") : readyToArm ? $i18n.t("DISARMED") : $i18n.t("NOT READY")
-}
-
 </script>
 
-<div class="tooltip tooltip-bottom" data-tip={ $i18n.t("State") + ": " + $i18n.t(vehicleState) }>
-    { @html toStateIcon(vehicleState) }
-</div>
-<!-- TODO: separate arm indicator -->
-<div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Open systems") }>
-    <button class={ "w-22 btn btn-xs " + toArmColorCode(is_online, armed, readyToArm)}
-    on:click={() => {
-        // @ts-ignore
-        document.getElementById("systems_modal")?.showModal();
-    }}>
-        { toArmText(armed, readyToArm) }
-    </button>
+<div class="dropdown dropdown-hover dropdown-bottom dropdown-end">
+    <div tabindex="0" role="button" class={"btn-xs fill-current " + toStateClass(vehicleStatus?.state)}>
+        { @html toStateIcon(vehicleStatus?.state) }
+    </div>
+    <div tabindex="0" class="dropdown-content z-[1] p-2 w-36 shadow badge-neutral rounded-md flex flex-col align-middle">
+        <div class="flex justify-between">
+            <div class="text-left">{ $i18n.t("State") + ":" }</div>
+            <div class="text-right">{ vehicleStatus ? $i18n.t(vehicleStatus.state) : "-" }</div>
+        </div>
+    </div>
 </div>

@@ -18,6 +18,6 @@ function toTextColor(value: number | undefined) {
 <div class="tooltip tooltip-left" data-tip={tooltip}>
     <div class={"flex flex-col items-center w-12 " + toTextColor(value)}>
         <a href={null} class="text-sm">{name}</a>
-        <span class="countdown font-mono font-bold text-lg">{parsedValue}</span>
+        <span class="font-mono font-bold text-lg">{parsedValue}</span>
     </div>
 </div>
