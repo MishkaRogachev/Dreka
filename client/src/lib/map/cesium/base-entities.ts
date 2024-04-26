@@ -240,6 +240,7 @@ export class PylonEntity extends BasePointEntity {
         this.width = 1.0
 
         this.terrainCartesian = Cesium.Cartesian3.ZERO;
+        this.lastTerrainToken = 0;
 
         // @ts-ignore
         this.entity.position = new Cesium.CallbackProperty(() => { return this.terrainCartesian }, false);
@@ -286,9 +287,15 @@ export class PylonEntity extends BasePointEntity {
 
         // Sample terrain position from the ground
         if (!!cartographic) {
+            this.lastTerrainToken += 1;
+            if (this.lastTerrainToken == Number.MAX_SAFE_INTEGER)
+                this.lastTerrainToken = 0;
+            let token = this.lastTerrainToken;
             const promise = Cesium.sampleTerrainMostDetailed(this.cesium.terrainProvider, [cartographic]);
             promise.then(updatedPositions => {
-                this.terrainCartesian = Cesium.Cartographic.toCartesian(cartographic)
+                if (this.lastTerrainToken != token)
+                    return;
+                this.terrainCartesian = Cesium.Cartographic.toCartesian(cartographic);
             });
         }
     }
@@ -301,6 +308,7 @@ export class PylonEntity extends BasePointEntity {
     width: number
 
     private terrainCartesian: Cesium.Cartesian3
+    private lastTerrainToken: number
 }
 
 export class CircleEntity extends BasePointEntity {
