@@ -10,13 +10,11 @@ import battery60Icon from "$assets/svg/battery-60.svg?raw";
 import battery80Icon from "$assets/svg/battery-80.svg?raw";
 import battery100Icon from "$assets/svg/battery-100.svg?raw";
 
-export let system: System
+export let system: System | undefined
 // TODO: export let sensor: Sensor
 
-$: percentage = Math.max(0, Math.min(100, system.battery_remaining))
-$: voltage = system.battery_voltage
-$: current = system.battery_current
-$: batteryAvailable = system.battery_voltage > 0
+$: percentage = system ? Math.max(0, Math.min(100, system.battery_remaining)) : 0
+$: batteryAvailable = !!system && system.battery_voltage > 0
 
 function toBatteryIcon(percentage: number) {
     if (percentage <= 10) {
@@ -59,11 +57,11 @@ function toBatteryClass(percentage: number, batteryAvailable: boolean) {
         </div>
         <div class="flex justify-between">
             <div class="text-left">{ $i18n.t("Volatage") + ":" }</div>
-            <div class="text-right">{ voltage.toFixed(2) + " V" }</div>
+            <div class="text-right">{ system ? system.battery_voltage.toFixed(2) + " V" : "-" }</div>
         </div>
         <div class="flex justify-between">
             <div class="text-left">{ $i18n.t("Current") + ":" }</div>
-            <div class="text-right">{ current.toFixed(2) + " A" }</div>
+            <div class="text-right">{ system ? system.battery_current.toFixed(2) + " A" : "-" }</div>
         </div>
     </div>
 </div>

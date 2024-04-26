@@ -9,66 +9,10 @@ import { selectedVehicleId } from "$stores/vehicles";
 import { nullGeodetic } from "$bindings/spatial";
 
 export class VehicleTelemetry {
-    constructor() {
-        this.flight = {
-            id: "",
-            timestamp: 0,
-            pitch: 0,
-            roll: 0,
-            yaw: 0,
-            indicated_airspeed: 0,
-            true_airspeed: 0,
-            ground_speed: 0,
-            throttle: 0,
-            rpm: 0,
-            altitude_amsl: 0,
-            climb: 0
-        };
-        this.navigation = {
-            id: "",
-            timestamp: 0,
-            position: nullGeodetic,
-            target_position: nullGeodetic,
-            home_position: nullGeodetic,
-            desired_pitch: 0,
-            desired_roll: 0,
-            desired_bearing: 0,
-            target_bearing: 0,
-            altitiude_error: 0,
-            airspeed_error: 0,
-            xtrack_error: 0,
-            wp_distance: 0,
-        };
-        this.rawSns = {
-            id: "",
-            timestamp: 0,
-            position: nullGeodetic,
-            course: 0,
-            ground_speed: 0,
-            fix: 0,
-            eph: 0,
-            epv: 0,
-            satellites_visible: 0
-        };
-        this.system = {
-            id: "",
-            timestamp: 0,
-            sensors: [],
-            arm_ready: false,
-
-            battery_current: 0,
-            battery_voltage: 0,
-            battery_remaining: 0,
-
-            radio_rssi: 0,
-            radio_remote_rssi: 0
-        };
-    }
-
-    flight: Flight;
-    navigation: Navigation;
-    rawSns: RawSns;
-    system: System;
+    flight?: Flight;
+    navigation?: Navigation;
+    rawSns?: RawSns;
+    system?: System;
 }
 
 export const vehiclesTelemetry = function () {

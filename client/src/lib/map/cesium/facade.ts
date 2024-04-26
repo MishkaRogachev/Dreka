@@ -50,8 +50,8 @@ export class MapFacadeCesium implements MapFacade {
         this.missions.done();
     }
 
-    calcDistance(from: Geodetic, to: Geodetic): number {
-        if (from === to || !from || !to) return 0;
+    calcDistance(from?: Geodetic, to?: Geodetic): number | undefined {
+        if (from === to || !from || !to) return undefined;
         return Cesium.Cartesian3.distance(
             Cesium.Cartesian3.fromDegrees(from.longitude, from.latitude, from.altitude),
             Cesium.Cartesian3.fromDegrees(to.longitude, to.latitude, to.altitude)

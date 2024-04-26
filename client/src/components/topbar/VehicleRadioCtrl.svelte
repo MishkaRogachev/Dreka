@@ -5,11 +5,11 @@ import { i18n } from "$stores/i18n";
 
 import radioIcon from "$assets/svg/radio.svg?raw";
 
-export let system: System
+export let system: System | undefined
 // TODO: export let sensor: Sensor
 
-function toRadioClass(system: System) {
-    if (system.radio_rssi == 0) {
+function toRadioClass(system?: System) {
+    if (!system || system.radio_rssi == 0) {
         return "text-neutral"
     } else {
         return ""
@@ -26,11 +26,11 @@ function toRadioClass(system: System) {
         <p class="text-center font-bold">{ $i18n.t("Radio Control") }</p>
         <div class="flex justify-between">
             <div class="text-left">{ $i18n.t("Local RSSI") + ":" }</div>
-            <div class="text-right">{ system.radio_rssi.toFixed(0) }</div>
+            <div class="text-right">{ system ? system.radio_rssi.toFixed(0) : "-" }</div>
         </div>
         <div class="flex justify-between">
             <div class="text-left">{ $i18n.t("Remote RRSI") + ":" }</div>
-            <div class="text-right">{ system.radio_remote_rssi.toFixed(0) }</div>
+            <div class="text-right">{ system ? system.radio_remote_rssi.toFixed(0) : "-" }</div>
         </div>
     </div>
 </div>

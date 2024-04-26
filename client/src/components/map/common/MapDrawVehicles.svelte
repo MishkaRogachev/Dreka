@@ -66,8 +66,12 @@ onMount(async () => {
         tmi.forEach((tmi: VehicleTelemetry, vehicleId: string) => {
             let vehicle = mapVehicles.vehicle(vehicleId);
             if (vehicle) {
-                vehicle.updateFromFlight(tmi.flight);
-                vehicle.updateFromNavigation(tmi.navigation);
+                if (tmi.flight) {
+                    vehicle.updateFromFlight(tmi.flight);
+                }
+                if (tmi.navigation) {
+                    vehicle.updateFromNavigation(tmi.navigation);
+                }
             }
         });
     })

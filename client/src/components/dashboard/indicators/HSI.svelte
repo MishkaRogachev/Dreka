@@ -2,6 +2,7 @@
 import { cssColorToHex } from "$lib/common/formats";
 import { Canvas, Layer } from "svelte-canvas"
 
+export let enabled: boolean = true
 export let heading: number = 0
 export let course: number = 0
 export let courseEnabled: boolean = false
@@ -14,7 +15,7 @@ export let canvas_class: string = ""
 // @ts-ignore
 $: compas = ({ context, width, height }) => {
     const computedStyles = getComputedStyle(document.querySelector(':root')!);
-    const currentColor = cssColorToHex(computedStyles.getPropertyValue('--bc'));
+    const currentColor = cssColorToHex(computedStyles.getPropertyValue(enabled ? '--bc' : '--n'));
 
     const x = width / 2;
     const y = height / 2;

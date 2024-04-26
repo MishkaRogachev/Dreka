@@ -10,26 +10,23 @@ export let steps = 5
 export let stepMargin = 2
 
 // @ts-ignore
-$: compas = ({ context, width, height }) => {
+$: stairs = ({ context, width, height }) => {
     const computedStyles = getComputedStyle(document.querySelector(':root')!);
-    const currentColor = cssColorToHex(computedStyles.getPropertyValue('--n'));
+    const bgColor = cssColorToHex(computedStyles.getPropertyValue('--n'));
     const activeColor = cssColorToHex(computedStyles.getPropertyValue('--ac'));
 
     const stepSizeX = width / steps - stepMargin;
     const stepSizeY = height / steps;
     const stepValue = Math.floor(value / maxValue * steps)
 
-    context.save();
-
     for (let i = 0; i < steps; i += 1) {
-        context.fillStyle = i >= stepValue ? currentColor : activeColor;
+        context.fillStyle = i >= stepValue ? bgColor : activeColor;
         context.fillRect((stepSizeX + stepMargin) * i, (steps - i - 1) * stepSizeY, stepSizeX, height);
     }
-    context.restore();
 }
 </script>
 
 <Canvas width={64} height={24} class={canvas_class}>
-    <Layer render={compas} />
+    <Layer render={stairs} />
 </Canvas>
 

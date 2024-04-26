@@ -156,5 +156,5 @@ export interface MapFacade {
     vehicles: MapVehicles
     missions: MapMissions
 
-    calcDistance: (from: Geodetic, to: Geodetic) => number
+    calcDistance: (from?: Geodetic, to?: Geodetic) => number | undefined
 }

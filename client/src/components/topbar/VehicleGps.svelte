@@ -5,13 +5,13 @@ import { formatGeodeticCoordinates, i18n } from "$stores/i18n";
 
 import gpsIcon from "$assets/svg/gps.svg?raw";
 
-export let sns: RawSns
+export let sns: RawSns | undefined
 // TODO: export let sensor: Sensor
 
-$: snsCoordinates = formatGeodeticCoordinates(sns.position)
+$: snsCoordinates = sns ? formatGeodeticCoordinates(sns.position) : ["-", "-"]
 
-function toSnsClass(fix: number) {
-    if (fix == 0) {
+function toSnsClass(fix?: number) {
+    if (!fix) {
         return "text-neutral"
     } else if (fix == 1) {
         return "text-error"
@@ -22,8 +22,8 @@ function toSnsClass(fix: number) {
     }
 }
 
-function toSnsText(fix: number) {
-    if (fix == 0) {
+function toSnsText(fix?: number) {
+    if (!fix) {
         return $i18n.t("No GPS connected")
     } else if (fix == 1) {
         return $i18n.t("No position information")
@@ -49,22 +49,22 @@ function toSnsText(fix: number) {
 </script>
 
 <div class="dropdown dropdown-hover dropdown-bottom dropdown-end">
-    <div tabindex="0" role="button" class={"btn-xs fill-current " + toSnsClass(sns.fix) }>
+    <div tabindex="0" role="button" class={"btn-xs fill-current " + toSnsClass(sns?.fix) }>
         { @html gpsIcon }
     </div>
     <div tabindex="0" class="dropdown-content z-[1] p-2 w-48 shadow badge-neutral rounded-md flex flex-col align-middle">
-        <p class="text-center font-bold">{ toSnsText(sns.fix) }</p>
+        <p class="text-center font-bold">{ toSnsText(sns?.fix) }</p>
         <div class="flex justify-between">
             <div class="text-left">{ $i18n.t("Satellites count") + ":" }</div>
-            <div class="text-right">{ sns.satellites_visible }</div>
+            <div class="text-right">{ sns?.satellites_visible || "-" }</div>
         </div>
         <div class="flex justify-between">
             <div class="text-left">{ $i18n.t("HDOP") + ":" }</div>
-            <div class="text-right">{ sns.eph }</div>
+            <div class="text-right">{ sns?.eph || "-" }</div>
         </div>
         <div class="flex justify-between">
             <div class="text-left">{ $i18n.t("VDOP") + ":" }</div>
-            <div class="text-right">{ sns.epv }</div>
+            <div class="text-right">{ sns?.epv || "-" }</div>
         </div>
         <div class="flex justify-between">
             <div class="text-left">{ $i18n.t("Lat") + ":" }</div>
@@ -76,7 +76,7 @@ function toSnsText(fix: number) {
         </div>
         <div class="flex justify-between">
             <div class="text-left">{ $i18n.t("Alt") + ":" }</div>
-            <div class="text-right">{ sns.position.altitude + " m" }</div>
+            <div class="text-right">{ sns ? sns.position.altitude + " m" : "-" }</div>
         </div>
     </div>
 </div>
