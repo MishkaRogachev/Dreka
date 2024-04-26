@@ -2,7 +2,6 @@ import { readable, writable, get, type Writable } from 'svelte/store';
 
 import type { MapFacade } from '$lib/interfaces/map';
 
-import { AppService } from '$services/app';
 import { userPreferences } from '$stores/preferences';
 
 export enum Theme { Light = "light", Dark = "dark" }
@@ -53,14 +52,3 @@ scale.subscribe(scaleValue => {
     applyScale(scaleValue)
     get(userPreferences).set("ui/scale", scaleValue.toString());
 });
-
-// TODO: replace with a web socket state check
-export const isServerOnline = readable(false, (set) => {
-    const pingInterval = setInterval(() => {
-        AppService.pingServer().then((onlineStatus: any) => {
-            set(onlineStatus as boolean);
-        });
-    }, 1000);
-
-    return () => clearInterval(pingInterval);
-})
