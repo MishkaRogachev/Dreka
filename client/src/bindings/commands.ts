@@ -25,6 +25,7 @@ export interface Command {
     OverrideServos?: { servos: { [channel: number]: number } };
 
     Takeoff?: { altitude: number };
+    Land?: { position: Geodetic, abort_altitude?: number },
     GoAround?: {};
 }
 

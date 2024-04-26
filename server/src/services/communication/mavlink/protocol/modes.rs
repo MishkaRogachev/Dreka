@@ -90,7 +90,7 @@ pub fn available_apm_modes(mav_type: MavType) -> Vec<VehicleMode> {
                 VehicleMode::Loiter,
                 VehicleMode::Circle,
                 VehicleMode::Guided,
-                VehicleMode::Takeoff
+                VehicleMode::Takeoff,
             ),
         MavType::MAV_TYPE_VTOL_TAILSITTER_DUOROTOR | MavType::MAV_TYPE_VTOL_TILTROTOR | MavType::MAV_TYPE_VTOL_FIXEDROTOR |
         MavType::MAV_TYPE_VTOL_TAILSITTER | MavType::MAV_TYPE_VTOL_TILTWING | MavType::MAV_TYPE_VTOL_RESERVED5 =>

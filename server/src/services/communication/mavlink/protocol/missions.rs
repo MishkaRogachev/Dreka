@@ -1,7 +1,6 @@
 use mavlink::common::*;
 
 use crate::models::{missions::*, spatial::*};
-use super::telemetry::*;
 
 pub fn mission_request_list(mav_id: &u8) -> MavMessage {
     log::info!("Request mission items count from MAVLink {}", mav_id);
@@ -43,7 +42,7 @@ pub fn send_mission_count(mav_id: &u8, count: u16) -> MavMessage {
 
 pub fn send_mission_home_item(mav_id: &u8, position: &Geodetic) -> MavMessage {
     log::info!("Send home position to MAVLink {}", mav_id);
-    let (frame, x, y, z) = position_to_fxyz(&position);
+    let (frame, x, y, z) = position.to_mavlink();
     return MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
         command: MavCmd::MAV_CMD_NAV_WAYPOINT,
         frame,
@@ -71,7 +70,7 @@ pub fn send_mission_item(mav_id: &u8, item: &MissionRouteItem, seq: u16) -> Opti
             return Option::None;
         },
         MissionRouteItem::Waypoint { position, hold, pass_radius, accept_radius, yaw } => {
-            let (frame, x, y, z) = position_to_fxyz(&position);
+            let (frame, x, y, z) = position.to_mavlink();
             return Option::Some(MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
                 command: MavCmd::MAV_CMD_NAV_WAYPOINT,
                 frame,
@@ -91,7 +90,7 @@ pub fn send_mission_item(mav_id: &u8, item: &MissionRouteItem, seq: u16) -> Opti
             }));
         },
         MissionRouteItem::Takeoff { position, pitch, yaw } => {
-            let (frame, x, y, z) = position_to_fxyz(&position);
+            let (frame, x, y, z) = position.to_mavlink();
             return Option::Some(MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
                 command: MavCmd::MAV_CMD_NAV_TAKEOFF,
                 frame,
@@ -130,7 +129,7 @@ pub fn send_mission_item(mav_id: &u8, item: &MissionRouteItem, seq: u16) -> Opti
             }));
         },
         MissionRouteItem::Landing { position, abort_altitude, yaw } => {
-            let (frame, x, y, z) = position_to_fxyz(&position);
+            let (frame, x, y, z) = position.to_mavlink();
             return Option::Some(MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
                 command: MavCmd::MAV_CMD_NAV_LAND,
                 frame,
@@ -155,7 +154,7 @@ pub fn send_mission_item(mav_id: &u8, item: &MissionRouteItem, seq: u16) -> Opti
             }));
         },
         MissionRouteItem::LoiterTrn { position, heading_required, radius, turns, clockwise } => {
-            let (frame, x, y, z) = position_to_fxyz(&position);
+            let (frame, x, y, z) = position.to_mavlink();
             return Option::Some(MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
                 command: MavCmd::MAV_CMD_NAV_LOITER_TURNS,
                 frame,
@@ -175,7 +174,7 @@ pub fn send_mission_item(mav_id: &u8, item: &MissionRouteItem, seq: u16) -> Opti
             }));
         },
         MissionRouteItem::LoiterAlt { position, heading_required, radius, clockwise } => {
-            let (frame, x, y, z) = position_to_fxyz(&position);
+            let (frame, x, y, z) = position.to_mavlink();
             return Option::Some(MavMessage::MISSION_ITEM_INT(MISSION_ITEM_INT_DATA {
                 command: MavCmd::MAV_CMD_NAV_LOITER_TO_ALT,
                 frame,
@@ -220,7 +219,7 @@ pub fn mission_route_item_from_mavlink(item_data: &MISSION_ITEM_INT_DATA) -> Mis
     match item_data.command {
         MavCmd::MAV_CMD_NAV_WAYPOINT => {
             return MissionRouteItem::Waypoint {
-                position: position_from_mavlink(item_data),
+                position: Geodetic::from_mavlink(item_data.x, item_data.y, item_data.z, item_data.frame),
                 hold: item_data.param1 as u16,
                 pass_radius: item_data.param2,
                 accept_radius: item_data.param3,
@@ -229,7 +228,7 @@ pub fn mission_route_item_from_mavlink(item_data: &MISSION_ITEM_INT_DATA) -> Mis
         },
         MavCmd::MAV_CMD_NAV_LOITER_TURNS => {
             return MissionRouteItem::LoiterTrn {
-                position: position_from_mavlink(item_data),
+                position: Geodetic::from_mavlink(item_data.x, item_data.y, item_data.z, item_data.frame),
                 turns: item_data.param1 as u16, 
                 heading_required: item_data.param2 != 0.0,
                 radius: item_data.param3.abs(),
@@ -238,7 +237,7 @@ pub fn mission_route_item_from_mavlink(item_data: &MISSION_ITEM_INT_DATA) -> Mis
         },
         MavCmd::MAV_CMD_NAV_LOITER_TO_ALT => {
             return MissionRouteItem::LoiterAlt {
-                position: position_from_mavlink(item_data),
+                position: Geodetic::from_mavlink(item_data.x, item_data.y, item_data.z, item_data.frame),
                 heading_required: item_data.param1 != 0.0,
                 radius: item_data.param2.abs(),
                 clockwise: item_data.param2 > 0.0
@@ -249,14 +248,14 @@ pub fn mission_route_item_from_mavlink(item_data: &MISSION_ITEM_INT_DATA) -> Mis
         },
         MavCmd::MAV_CMD_NAV_LAND => {
             return MissionRouteItem::Landing {
-                position: position_from_mavlink(item_data),
+                position: Geodetic::from_mavlink(item_data.x, item_data.y, item_data.z, item_data.frame),
                 abort_altitude: if item_data.param1 == 0.0 { Option::None } else { Option::Some(item_data.param1) }, 
                 yaw: yaw_from_param(item_data.param4)
             }
         },
         MavCmd::MAV_CMD_NAV_TAKEOFF => {
             return MissionRouteItem::Takeoff {
-                position: position_from_mavlink(item_data),
+                position: Geodetic::from_mavlink(item_data.x, item_data.y, item_data.z, item_data.frame),
                 pitch: item_data.param1,
                 yaw: yaw_from_param(item_data.param4)
             }
@@ -276,37 +275,7 @@ pub fn mission_route_item_from_mavlink(item_data: &MISSION_ITEM_INT_DATA) -> Mis
 }
 
 pub fn mission_home_item_from_mavlink(item_data: &MISSION_ITEM_INT_DATA) -> Geodetic {
-    return position_from_mavlink(item_data);
-}
-
-fn position_to_fxyz(position: &Geodetic) -> (MavFrame, i32, i32, f32) {
-    return (
-        match position.frame {
-            GeodeticFrame::None => MavFrame::MAV_FRAME_GLOBAL, // Default
-            GeodeticFrame::Wgs84RelativeHome => MavFrame::MAV_FRAME_GLOBAL_RELATIVE_ALT,
-            GeodeticFrame::Wgs84AboveSeaLevel => MavFrame::MAV_FRAME_GLOBAL,
-            GeodeticFrame::Wgs84AboveTerrain => MavFrame::MAV_FRAME_GLOBAL_TERRAIN_ALT,
-        },
-        encode_lat_lon(position.latitude),
-        encode_lat_lon(position.longitude),
-        position.altitude
-    );
-}
-
-fn position_from_mavlink(item_data: &mavlink::common::MISSION_ITEM_INT_DATA) -> Geodetic {
-    return Geodetic {
-        latitude: decode_lat_lon(item_data.x),
-        longitude: decode_lat_lon(item_data.y),
-        altitude: item_data.z,
-        frame: {
-            match item_data.frame {
-                MavFrame::MAV_FRAME_GLOBAL => GeodeticFrame::Wgs84AboveSeaLevel,
-                MavFrame::MAV_FRAME_GLOBAL_RELATIVE_ALT => GeodeticFrame::Wgs84RelativeHome,
-                MavFrame::MAV_FRAME_GLOBAL_TERRAIN_ALT => GeodeticFrame::Wgs84AboveTerrain,
-                _ => GeodeticFrame::None,
-            }
-        }
-    }
+    return Geodetic::from_mavlink(item_data.x, item_data.y, item_data.z, item_data.frame);
 }
 
 fn yaw_to_param(yaw: Option<u16>) -> f32 {

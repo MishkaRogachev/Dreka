@@ -2,7 +2,6 @@ use mavlink::common::*;
 
 use crate::models::commands::Command;
 use crate::models::spatial::Geodetic;
-use super::telemetry::encode_lat_lon;
 
 fn arm_disarm(mav_id: u8, arm: bool, attempt: u8) -> MavMessage {
     log::info!("Mav: {} Arm/Disarm: {}", mav_id, arm);
@@ -23,18 +22,19 @@ fn arm_disarm(mav_id: u8, arm: bool, attempt: u8) -> MavMessage {
 
 fn set_home(mav_id: u8, position: &Geodetic) -> MavMessage {
     log::info!("Mav: {} SetHome: {:?}", mav_id, position);
+    let (frame, x, y, z) = position.to_mavlink();
     MavMessage::COMMAND_INT(COMMAND_INT_DATA{
         param1: 0.0,
         param2: 0.0,
         param3: 0.0,
         param4: 0.0,
         command: MavCmd::MAV_CMD_DO_SET_HOME,
-        frame: mavlink::common::MavFrame::MAV_FRAME_GLOBAL_INT,
         current: 0,
         autocontinue: 0,
-        x: encode_lat_lon(position.latitude),
-        y: encode_lat_lon(position.longitude),
-        z: position.altitude,
+        x,
+        y,
+        z,
+        frame,
         target_system: mav_id,
         target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
     })
@@ -76,21 +76,21 @@ pub fn set_waypoint(mav_id: u8, wp: u16, attempt: u8) -> MavMessage {
 
 fn nav_to(mav_id: u8, position: &Geodetic) -> MavMessage {
     log::info!("Mav: {} Nav to: {:?}", mav_id, position);
-    MavMessage::MISSION_ITEM(MISSION_ITEM_DATA{ // TODO: try COMMAND_INT
-        param1: 0.0,
-        param2: 0.0,
-        param3: 0.0,
-        param4: 0.0,
-        command: mavlink::common::MavCmd::MAV_CMD_NAV_WAYPOINT,
-        frame: mavlink::common::MavFrame::MAV_FRAME_GLOBAL_INT,
+    let (frame, x, y, z) = position.to_mavlink();
+    MavMessage::COMMAND_INT(COMMAND_INT_DATA{
+        param1: -1.0, // Ground speed in m/s
+        param2: 0.0, // TODO: MAV_DO_REPOSITION_FLAGS_CHANGE_MODE
+        param3: 0.0, // TODO: MAV_DO_REPOSITION_FLAGS_CONTINUE
+        param4: 0.0, // TODO: Yaw heading. NaN to use the current system yaw heading mode (e.g. yaw towards next waypoint, yaw to home, etc.). For planes indicates loiter direction (0: clockwise, 1: counter clockwise)
+        command: mavlink::common::MavCmd::MAV_CMD_DO_REPOSITION,
         current: 2, // guided
-        seq: 0,
         autocontinue: 0,
-        x: position.latitude as f32,
-        y: position.longitude as f32,
-        z: position.altitude,
+        x,
+        y,
+        z,
+        frame,
         target_system: mav_id,
-        target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8
+        target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
     })
 }
 
@@ -108,6 +108,26 @@ fn takeoff(mav_id: u8, altitude: f32, attempt: u8) -> MavMessage {
         target_system: mav_id,
         target_component: mavlink::common::MavComponent::MAV_COMP_ID_ALL as u8,
         confirmation: attempt,
+    })
+}
+
+fn land(mav_id: u8, position: &Geodetic, abort_altitude: f32) -> MavMessage {
+    log::info!("Mav: {} Land", mav_id);
+    let (frame, x, y, z) = position.to_mavlink();
+    MavMessage::COMMAND_INT(COMMAND_INT_DATA{
+        param1: abort_altitude,
+        param2: 0.0, // TODO: precision landing
+        param3: 0.0,
+        param4: f32::NAN, // Desired yaw angle. NaN to use the current system yaw heading mode (e.g. yaw towards next waypoint, yaw to home, etc.).
+        command: MavCmd::MAV_CMD_NAV_LAND,
+        current: 0,
+        autocontinue: 0,
+        x,
+        y,
+        z,
+        frame,
+        target_system: mav_id,
+        target_component: mavlink::common::MavComponent::MAV_COMP_ID_MISSIONPLANNER as u8,
     })
 }
 
@@ -194,6 +214,10 @@ pub fn encode_command(command: &Command, mav_id: u8, attempt: u8) -> Option<Enco
         Command::Takeoff { altitude } => Some(EncodedCommand {
             message: takeoff(mav_id, *altitude, attempt),
             ack_cmd: Some(MavCmd::MAV_CMD_NAV_TAKEOFF),
+        }),
+        Command::Land { position, abort_altitude } => Some(EncodedCommand {
+            message: land(mav_id, position, abort_altitude.unwrap_or(0.0)),
+            ack_cmd: Some(MavCmd::MAV_CMD_NAV_LAND),
         }),
         Command::GoAround {} => Some(EncodedCommand {
             message: go_around(mav_id, attempt),

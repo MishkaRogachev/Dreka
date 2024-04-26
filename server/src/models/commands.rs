@@ -30,6 +30,7 @@ pub enum Command {
     OverrideServos { servos: std::collections::BTreeMap<u16, u16> },
 
     Takeoff { altitude: f32 },
+    Land { position: Geodetic, abort_altitude: Option<f32> },
     GoAround {}
 }
 
