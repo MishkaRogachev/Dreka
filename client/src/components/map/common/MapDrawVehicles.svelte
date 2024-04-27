@@ -88,14 +88,29 @@ onMount(async () => {
         } else if (event.HomePositionOrdered) {
             setHome(event.HomePositionOrdered.vehicleId, event.HomePositionOrdered.position);
         } else if (event.VehicleHovered) {
-            tipVehicleId = event.VehicleHovered.hovered ? event.VehicleHovered.vehicleId : undefined;
-            $activeMapPopup = "vehicle_tooltip";
+            if (event.VehicleHovered.hovered && $activeMapPopup === "") {
+                tipVehicleId = event.VehicleHovered.vehicleId
+                $activeMapPopup = "vehicle_tooltip";
+            } else if (!event.VehicleHovered.hovered && $activeMapPopup === "vehicle_tooltip") {
+                tipVehicleId = undefined;
+                $activeMapPopup = "";
+            }
         } else if (event.TargetHovered) {
-            tipVehicleId = event.TargetHovered.hovered ? event.TargetHovered.vehicleId : undefined;
-            $activeMapPopup = "vehicle_target_tooltip";
+            if (event.TargetHovered.hovered && $activeMapPopup === "") {
+                tipVehicleId = event.TargetHovered.vehicleId
+                $activeMapPopup = "vehicle_target_tooltip";
+            } else if (!event.TargetHovered.hovered && $activeMapPopup === "vehicle_target_tooltip") {
+                tipVehicleId = undefined;
+                $activeMapPopup = "";
+            }
         } else if (event.HomeHovered) {
-            tipVehicleId = event.HomeHovered.hovered ? event.HomeHovered.vehicleId : undefined;
-            $activeMapPopup = "vehicle_home_tooltip";
+            if (event.HomeHovered.hovered && $activeMapPopup === "") {
+                tipVehicleId = event.HomeHovered.vehicleId
+                $activeMapPopup = "vehicle_home_tooltip";
+            } else if (!event.HomeHovered.hovered && $activeMapPopup === "vehicle_home_tooltip") {
+                tipVehicleId = undefined;
+                $activeMapPopup = "";
+            }
         }
     });
 });

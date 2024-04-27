@@ -65,16 +65,14 @@ onMount(async () => {
         } else if (event.ChangesOrdered) {
             missions.setRouteItem(event.ChangesOrdered.missionId, event.ChangesOrdered.item, event.ChangesOrdered.index);
             overridedPosition = undefined;
-        } else if (event.Hovered && $activeMapPopup !== "waypoint_menu") {
+        } else if (event.Hovered && $activeMapPopup === "") {
             selectedRouteItem = [event.Hovered.item, event.Hovered.missionId, event.Hovered.index];
             overridedPosition = undefined;
             $activeMapPopup = "waypoint_tooltip";
-        } else if (event.Exited) {
-            if ($activeMapPopup !== "waypoint_menu") {
-                selectedRouteItem = undefined;
-                $activeMapPopup = "";
-            }
+        } else if (event.Exited && $activeMapPopup === "waypoint_tooltip") {
+            selectedRouteItem = undefined;
             overridedPosition = undefined;
+            $activeMapPopup = "";
         } else if (event.WaypointDragged) {
             selectedRouteItem = [event.WaypointDragged.item, event.WaypointDragged.missionId, event.WaypointDragged.index];
             overridedPosition = event.WaypointDragged.position;
