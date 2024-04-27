@@ -2,6 +2,8 @@
 import { onMount, onDestroy } from 'svelte';
 import { clickOutside } from '$lib/common/click-outside';
 
+import { activeMapPopup } from '$stores/app';
+
 export let tip: string;
 
 const uuid = window.crypto.randomUUID()
@@ -24,6 +26,9 @@ onMount(async () => {
     let details = document.getElementById(uuid)!;
     details.addEventListener("toggle", function() {
         isOpen = details.hasAttribute("open");
+        if (isOpen) {
+            $activeMapPopup = "";
+        }
     });
 });
 

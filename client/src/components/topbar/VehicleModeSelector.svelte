@@ -22,35 +22,23 @@ async function setVehicleMode(mode: VehicleMode) {
         { SetMode: { mode: mode } },
         { Vehicle: { vehicle_id: vehicle.description.id }
     });
-}
-
-async function cancelSetVehicleMode() {
-    if (modeToken) {
-        await commandExecutions.cancelCommand(modeToken);
-    }
+    closeDropdown();
 }
 
 </script>
 
 <Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Set mode") }>
-    <div slot="summary" class="flex gap-x-2 items-center text-sm w-20">
-        <span class="uppercase">{ formatMode(currentMode) }</span>
+    <div slot="summary" class="flex w-24 gap-x-2 items-center">
+        <CommandBadge state={modeExecution?.state}/>
+        <span class = "uppercase text-sm">{ formatMode(currentMode) }</span>
     </div>
     <ul slot="details" class="menu p-0">
     {#each availableModes as mode}
-        <li class="w-32 flex" on:click = {() => {
-            if (modeExecution?.command.SetMode?.mode === mode) {
-                cancelSetVehicleMode();
-            } else {
-                setVehicleMode(mode);
-            }
-        }}>
-            <div class="flex gap-x-2 items-center grow">
-                <a href={null} class={"grow uppercase " + (mode === currentMode ? "font-black" : "font-normal")}>
+        <li class="flex" on:click = {() => { setVehicleMode(mode); }}>
+            <div class="flex w-32 gap-x-2 uppercase items-center">
+                <span class={"uppercase " + (mode === currentMode ? "font-black" : "font-normal")}>
                     { formatMode(mode) }
-                </a>
-                <CommandBadge state={modeExecution?.command.SetMode?.mode === mode ? modeExecution?.state : undefined}>
-                </CommandBadge>
+                </span>
             </div>
         </li>
     {/each}

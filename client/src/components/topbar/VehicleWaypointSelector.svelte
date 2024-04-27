@@ -24,35 +24,40 @@ async function setWaypoint(wpt: number) {
     });
 }
 
-async function cancelSetWaypoint() {
-    if (wptToken) {
-        await commandExecutions.cancelCommand(wptToken);
-    }
-}
 </script>
 
 <Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Set waypoint") }>
-    <div slot="summary" class="flex gap-x-2 items-center text-sm w-16">
-        <span>{ formatRouteItem(currentWptType, currentWptIndex) }</span>
+    <div slot="summary" class="flex w-20 gap-x-2 items-center">
+        <CommandBadge state={wptExecution?.state}/>
+        <span class = "uppercase text-sm">{ formatRouteItem(currentWptType, currentWptIndex) }</span>
     </div>
     <ul slot="details" class="menu p-0">
     {#each availableWayponts as waypoint, wpt}
-        <li class="w-28 flex" on:click = {() => {
-            if (wptExecution?.command.SetWaypoint?.wpt === wpt + 1) {
-                cancelSetWaypoint();
-            } else {
-                setWaypoint(wpt);
-            }
-        }}>
-            <div class="flex gap-x-2 items-center grow">
-                <a href={null} class={"grow " + (wpt === currentWptIndex ? "font-black" : "font-normal")}>
+        <li class="flex" on:click = {() => { setWaypoint(wpt); }}>
+            <div class="flex w-28 gap-x-2 items-center">
+                <span class={"grow " + (wpt === currentWptIndex ? "font-black" : "font-normal")}>
                     { formatRouteItem(waypoint, wpt) }
-                </a>
-                <CommandBadge state={wptExecution?.command.SetWaypoint?.wpt === wpt + 1 ? wptExecution?.state : undefined}>
-                </CommandBadge>
+                </span>
             </div>
         </li>
     {/each}
     </ul>
 </Dropdown>
 
+<!-- <Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Set mode") }>
+    <div slot="summary" class="flex w-24 gap-x-2 items-center">
+        <CommandBadge state={modeExecution?.state}/>
+        <span class = "uppercase text-sm">{ formatMode(currentMode) }</span>
+    </div>
+    <ul slot="details" class="menu p-0">
+    {#each availableModes as mode}
+        <li class="flex" on:click = {() => { setVehicleMode(mode); }}>
+            <div class="flex w-32 gap-x-2 uppercase items-center">
+                <a href={null} class={"uppercase " + (mode === currentMode ? "font-black" : "font-normal")}>
+                    { formatMode(mode) }
+                </a>
+            </div>
+        </li>
+    {/each}
+    </ul>
+</Dropdown> -->
