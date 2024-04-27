@@ -1,9 +1,11 @@
 <script lang="ts">
 import type { Vehicle } from "$stores/vehicles";
-import type { Mission, MissionUpdateState } from "$bindings/mission";
+import type { Mission } from "$bindings/mission";
 
 import { i18n } from "$stores/i18n";
 import { missions, selectedVehicleMission } from "$stores/mission";
+
+import Dropdown from '$components/map/common/Dropdown.svelte';
 
 import missionIcon from "$assets/svg/mission.svg?raw";
 import downloadIcon from "$assets/svg/download.svg?raw";
@@ -18,6 +20,8 @@ let progressValue = 0;
 let progressMax = 0;
 let progressClass = "";
 let missionStateText = "";
+
+let closeDropdown: () => void;
 
 $: missionId = $selectedVehicleMission?.id;
 $: updateFromMissionState($selectedVehicleMission);
@@ -104,57 +108,55 @@ function updateFromMissionState(mission: Mission | undefined) {
 
 </script>
 
-<div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Mission") }>
-    <div class="dropdown dropdown-start">
-        <div tabindex="0" role="button" class="select select-ghost select-sm m-1 items-center">
-            { @html missionIcon }
-        </div>
-        <div tabindex="0" class="w-64 dropdown-content z-[1] p-2 shadow bg-base-300 rounded-md my-0">
-            <div class="font-bold">{ missionStateText }</div>
-            <progress class={"progress grow " + progressClass}
-                value={progressValue} max={progressMax}></progress>
-            <ul class="menu p-0">
-            {#if $selectedVehicleMission &&
-                ($selectedVehicleMission.status.state.Actual || $selectedVehicleMission.status.state.NotActual)}
-            <li class="flex" on:click={downloadMission}>
-                <div class="flex gap-x-2 items-center grow">
-                    { @html downloadIcon }
-                    <a href={null} class="grow">{ $i18n.t("Download mission") }</a>
-                </div>
-            </li>
-            <li class="flex" on:click={uploadMission}>
-                <div class="flex gap-x-2 items-center grow">
-                    { @html uploadIcon }
-                    <a href={null} class="grow">{ $i18n.t("Upload mission") }</a>
-                </div>
-            </li>
-            <li class="flex" on:click={clearMission}>
-                <div class="flex gap-x-2 items-center grow">
-                    { @html removeIcon }
-                    <a href={null} class="grow">{ $i18n.t("Clear mission") }</a>
-                </div>
-            </li>
-            {/if}
-            {#if $selectedVehicleMission &&
-                ($selectedVehicleMission.status.state.PrepareUpload || $selectedVehicleMission.status.state.Upload ||
-                $selectedVehicleMission.status.state.Download || $selectedVehicleMission.status.state.PrepareDownload ||
-                $selectedVehicleMission.status.state.Clearing)}
-            <li class="flex" on:click={cancelState}>
-                <div class="flex gap-x-2 items-center grow">
-                    { @html cancelIcon }
-                    <a href={null} class="grow">{ $i18n.t("Cancel operation") }</a>
-                </div>
-            </li>
-            {/if}
-            {#if !$selectedVehicleMission}
-            <li class="flex" on:click={createMission}>
-                <div class="flex gap-x-2 items-center grow">
-                    { @html addIcon }
-                    <a href={null} class="grow">{ $i18n.t("Create new mission") }</a>
-                </div>
-            </li>
-            {/if}
-            </ul>
-        </div>
+<Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Mission operations") }>
+    <div slot="summary" class="flex gap-x-2 items-center">
+        <span>{ @html missionIcon }</span>
     </div>
-</div>
+    <div slot="details" class="menu p-2 gap-2 w-64 ">
+        <div class="font-bold">{ missionStateText }</div>
+        <progress class={"progress grow " + progressClass}
+            value={progressValue} max={progressMax}></progress>
+        <ul class="menu p-0">
+        {#if $selectedVehicleMission &&
+            ($selectedVehicleMission.status.state.Actual || $selectedVehicleMission.status.state.NotActual)}
+        <li class="flex" on:click={downloadMission}>
+            <div class="flex gap-x-2 items-center grow">
+                { @html downloadIcon }
+                <a href={null} class="grow">{ $i18n.t("Download mission") }</a>
+            </div>
+        </li>
+        <li class="flex" on:click={uploadMission}>
+            <div class="flex gap-x-2 items-center grow">
+                { @html uploadIcon }
+                <a href={null} class="grow">{ $i18n.t("Upload mission") }</a>
+            </div>
+        </li>
+        <li class="flex" on:click={clearMission}>
+            <div class="flex gap-x-2 items-center grow">
+                { @html removeIcon }
+                <a href={null} class="grow">{ $i18n.t("Clear mission") }</a>
+            </div>
+        </li>
+        {/if}
+        {#if $selectedVehicleMission &&
+            ($selectedVehicleMission.status.state.PrepareUpload || $selectedVehicleMission.status.state.Upload ||
+            $selectedVehicleMission.status.state.Download || $selectedVehicleMission.status.state.PrepareDownload ||
+            $selectedVehicleMission.status.state.Clearing)}
+        <li class="flex" on:click={cancelState}>
+            <div class="flex gap-x-2 items-center grow">
+                { @html cancelIcon }
+                <a href={null} class="grow">{ $i18n.t("Cancel operation") }</a>
+            </div>
+        </li>
+        {/if}
+        {#if !$selectedVehicleMission}
+        <li class="flex" on:click={createMission}>
+            <div class="flex gap-x-2 items-center grow">
+                { @html addIcon }
+                <a href={null} class="grow">{ $i18n.t("Create new mission") }</a>
+            </div>
+        </li>
+        {/if}
+        </ul>
+    </div>
+</Dropdown>

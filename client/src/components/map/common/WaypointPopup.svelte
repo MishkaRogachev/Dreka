@@ -31,13 +31,13 @@ const dispatch = createEventDispatcher()
 let gotoToken: string | null = null
 let popupPosition = { x: 0, y: 0 };
 
-$: routeItem, recalcPopupPosition()
-$: gotoExecution = gotoToken ? $commandExecutions.get(gotoToken) : undefined
+$: routeItem, recalcPopupPosition();
+$: gotoExecution = gotoToken ? $commandExecutions.get(gotoToken) : undefined;
 
 $: overridedAltitude = overridedPosition &&
     Math.round(overridedPosition.altitude) !== Math.round(routeItem.position?.altitude || 0) ?
-    overridedPosition.altitude : undefined
-$: overridedDistance = overridedPosition && routeItem.position ? map.calcDistance(overridedPosition, routeItem.position) : 0
+    overridedPosition.altitude : undefined;
+$: overridedDistance = map.calcDistance(overridedPosition, routeItem.position) || 0;
 
 async function gotoItem() {
     gotoToken = await commandExecutions.executeCommand(
@@ -76,18 +76,20 @@ function recalcPopupPosition() {
     }
 }
 
+function keyListener(event: KeyboardEvent) {
+    if (event.key === "Escape") {
+        closeMenu();
+    }
+}
+
 onMount(async () => {
     map.viewport.subscribe(recalcPopupPosition);
-
-    document.addEventListener("keydown", (event: any) => {
-        if (event.key === "Escape") {
-            closeMenu();
-        }
-    });
+    document.addEventListener("keydown", keyListener);
 });
 
 onDestroy(() => {
     map.viewport.unsubscribe(recalcPopupPosition);
+    document.removeEventListener("keydown", keyListener);
 });
 
 </script>

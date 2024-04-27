@@ -71,12 +71,11 @@ async function setTarget() {
     }
 
     const prevPosition = $selectedVehicleTelemetry?.navigation?.target_position || undefined;
-
     const position = {
         latitude: clickGeodetic.latitude,
         longitude: clickGeodetic.longitude,
-        altitude: prevPosition?.altitude | MIN_SAFE_ALTITUDE,
-        frame: prevPosition?.frame || GeodeticFrame.Wgs84RelativeHome
+        altitude: prevPosition ? prevPosition.altitude : MIN_SAFE_ALTITUDE,
+        frame: prevPosition ? prevPosition.frame : GeodeticFrame.Wgs84RelativeHome
     };
 
     await commandExecutions.executeCommand(
@@ -161,20 +160,24 @@ function copyCoordinates() {
     closeMenu();
 }
 
+function keyListener(event: KeyboardEvent) {
+    if (event.key === "Escape") {
+        closeMenu();
+    }
+}
+
 onMount(async () => {
     interaction.subscribeClick(clickListener);
     viewport.subscribe(viewportListener);
 
-    document.addEventListener("keydown", (event: any) => {
-        if (event.key === "Escape") {
-            closeMenu();
-        }
-    });
+    document.addEventListener("keydown", keyListener);
 });
 
 onDestroy(() => {
     interaction.unsubscribeClick(clickListener);
     viewport.unsubscribe(viewportListener);
+
+    document.removeEventListener("keydown", keyListener);
 });
 
 </script>

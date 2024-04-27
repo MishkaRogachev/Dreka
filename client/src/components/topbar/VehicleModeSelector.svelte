@@ -6,9 +6,11 @@ import { commandExecutions } from '$stores/commands';
 import { type Vehicle, formatMode } from '$stores/vehicles';
 
 import CommandBadge from '$components/common/CommandBadge.svelte';
+import Dropdown from '$components/map/common/Dropdown.svelte';
 
 export let vehicle: Vehicle;
 
+let closeDropdown: () => void;
 let modeToken: string | null = null
 
 $: currentMode = vehicle.status?.mode;
@@ -30,29 +32,27 @@ async function cancelSetVehicleMode() {
 
 </script>
 
-<div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Set mode") }>
-    <div class="dropdown dropdown-end">
-        <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-28">
-            <a href={null} class="grow">{ formatMode(currentMode) }</a>
-        </div>
-        <ul tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
-        {#each availableModes as mode}
-            <li class="w-28 flex" on:click = {() => {
-                if (modeExecution?.command.SetMode?.mode === mode) {
-                    cancelSetVehicleMode();
-                } else {
-                    setVehicleMode(mode);
-                }
-            }}>
-                <div class="flex gap-x-2 items-center grow">
-                    <a href={null} class={"grow " + (mode === currentMode ? "font-black" : "font-normal")}>
-                        { formatMode(mode) }
-                    </a>
-                    <CommandBadge state={modeExecution?.command.SetMode?.mode === mode ? modeExecution?.state : undefined}>
-                    </CommandBadge>
-                </div>
-            </li>
-        {/each}
-        </ul>
+<Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Set mode") }>
+    <div slot="summary" class="flex gap-x-2 items-center text-sm w-20">
+        <span class="uppercase">{ formatMode(currentMode) }</span>
     </div>
-</div>
+    <ul slot="details" class="menu p-0">
+    {#each availableModes as mode}
+        <li class="w-32 flex" on:click = {() => {
+            if (modeExecution?.command.SetMode?.mode === mode) {
+                cancelSetVehicleMode();
+            } else {
+                setVehicleMode(mode);
+            }
+        }}>
+            <div class="flex gap-x-2 items-center grow">
+                <a href={null} class={"grow uppercase " + (mode === currentMode ? "font-black" : "font-normal")}>
+                    { formatMode(mode) }
+                </a>
+                <CommandBadge state={modeExecution?.command.SetMode?.mode === mode ? modeExecution?.state : undefined}>
+                </CommandBadge>
+            </div>
+        </li>
+    {/each}
+    </ul>
+</Dropdown>

@@ -6,30 +6,30 @@ import { i18n } from '$stores/i18n';
 import { selectedVehicleId, selectedVehicle, vehicles } from "$stores/vehicles";
 
 import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
+import Dropdown from '$components/map/common/Dropdown.svelte';
+
+let closeDropdown: () => void;
 
 </script>
 
-<div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Select vehicle") }>
-    <div class="dropdown dropdown-end">
-        <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-64">
-            <VehicleTypeIcon
-                vehicleType={$selectedVehicle?.description.vehicle_type || VehicleType.Unknown}
-                color={$selectedVehicle?.description.color || EntityColor.Slate}
-            />
-            <a href={null} class="grow">{$selectedVehicle ? $selectedVehicle?.description.name || "" : $i18n.t("No vehicle") }</a>
-        </div>
-        <ul tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300 rounded-md my-0">
-        {#each $vehicles.values() as vehicle}
-            <li class="w-64 flex" on:click = {() => { selectedVehicleId.set(vehicle.description.id || ""); }}>
-                <div class="flex gap-x-2 items-center grow">
-                    <VehicleTypeIcon vehicleType={vehicle.description.vehicle_type} color={vehicle.description.color}/>
-                    <a href={null} class={"grow " + (vehicle.description.id === $selectedVehicleId ? "font-black" : "font-normal")}>
-                        {vehicle.description.name}
-                    </a>
-                    <span class={"badge badge-xs " + (vehicle.is_online ? "bg-success" : "bg-neutral-content")} ></span>
-                </div>
-            </li>
-        {/each}
-        </ul>
+<Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Command vehicle") }>
+    <div slot="summary" class="flex gap-x-2 items-center text-sm font-mono">
+        <VehicleTypeIcon
+            vehicleType={$selectedVehicle?.description.vehicle_type || VehicleType.Unknown}
+            color={$selectedVehicle?.description.color || EntityColor.Slate} />
+        <span>{$selectedVehicle ? $selectedVehicle?.description.name || "" : $i18n.t("No vehicle") }</span>
     </div>
-</div>
+    <ul slot="details" class="menu p-0">
+    {#each $vehicles.values() as vehicle}
+        <li on:click={() => { selectedVehicleId.set(vehicle.description.id || ""); closeDropdown(); }}>
+            <div class="flex gap-x-2 items-center grow font-mono">
+                <VehicleTypeIcon vehicleType={vehicle.description.vehicle_type} color={vehicle.description.color}/>
+                <a href={null} class={"grow " + (vehicle.description.id === $selectedVehicleId ? "font-black" : "font-normal")}>
+                    {vehicle.description.name}
+                </a>
+                <span class={"badge badge-xs " + (vehicle.is_online ? "bg-success" : "bg-neutral-content")} ></span>
+            </div>
+        </li>
+    {/each}
+    </ul>
+</Dropdown>

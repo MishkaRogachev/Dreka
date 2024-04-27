@@ -132,7 +132,7 @@ function clearRuler() { map.ruler.clear(); }
 
 </style>
 
-<img id=cross-aim hidden={!crossMode} src={crossImg} />
+<img id=cross-aim hidden={!crossMode} src={crossImg} class="pointer-events-none"/>
 
 <div id="mapControlPanel">
     <!-- Compass -->

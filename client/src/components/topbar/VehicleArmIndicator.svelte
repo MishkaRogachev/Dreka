@@ -19,7 +19,7 @@ function toArmText(armed: boolean, readyToArm: boolean) {
 }
 </script>
 
-<div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Open systems") }>
+<div class="tooltip tooltip-bottom" data-tip={ armed ? $i18n.t("DISARM") : $i18n.t("ARM") }>
     <button class={ "w-22 btn btn-xs " + toArmColorCode(is_online, armed, readyToArm)}
     on:click={() => {
         // @ts-ignore

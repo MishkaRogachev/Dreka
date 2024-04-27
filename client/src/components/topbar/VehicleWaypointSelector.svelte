@@ -1,15 +1,15 @@
 <script lang="ts">
-import { MissionRouteItemType } from '$bindings/mission';
-
 import { i18n } from '$stores/i18n';
 import { commandExecutions } from '$stores/commands';
 import type { Vehicle } from '$stores/vehicles';
 import { formatRouteItem, selectedVehicleMission } from '$stores/mission';
 
 import CommandBadge from '$components/common/CommandBadge.svelte';
+import Dropdown from '$components/map/common/Dropdown.svelte';
 
 export let vehicle: Vehicle;
 
+let closeDropdown: () => void;
 let wptToken: string | null = null;
 
 $: availableWayponts = $selectedVehicleMission?.route.items.map(item => item.type) || [];
@@ -29,35 +29,30 @@ async function cancelSetWaypoint() {
         await commandExecutions.cancelCommand(wptToken);
     }
 }
-
 </script>
 
-<div class="tooltip tooltip-bottom" data-tip={ $i18n.t("Set waypoint") }>
-    <div class="dropdown dropdown-end">
-        <div tabindex="0" class="select select-ghost select-sm m-1 gap-x-2 items-center w-28">
-            <a href={null} class="grow">{ formatRouteItem(currentWptType, currentWptIndex) }</a>
-        </div>
-        <div tabindex="0" class="dropdown-content menu z-[1] p-0 shadow bg-base-300
-            rounded-md max-scroll-area-height overflow-y-auto max-h-96">
-            <ul class="my-0">
-            {#each availableWayponts as waypoint, wpt}
-                <li class="w-28 flex" on:click = {() => {
-                    if (wptExecution?.command.SetWaypoint?.wpt === wpt + 1) {
-                        cancelSetWaypoint();
-                    } else {
-                        setWaypoint(wpt);
-                    }
-                }}>
-                    <div class="flex gap-x-2 items-center grow">
-                        <a href={null} class={"grow " + (wpt === currentWptIndex ? "font-black" : "font-normal")}>
-                            { formatRouteItem(waypoint, wpt) }
-                        </a>
-                        <CommandBadge state={wptExecution?.command.SetWaypoint?.wpt === wpt + 1 ? wptExecution?.state : undefined}>
-                        </CommandBadge>
-                    </div>
-                </li>
-            {/each}
-            </ul>
-        </div>
+<Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Set waypoint") }>
+    <div slot="summary" class="flex gap-x-2 items-center text-sm w-16">
+        <span>{ formatRouteItem(currentWptType, currentWptIndex) }</span>
     </div>
-</div>
+    <ul slot="details" class="menu p-0">
+    {#each availableWayponts as waypoint, wpt}
+        <li class="w-28 flex" on:click = {() => {
+            if (wptExecution?.command.SetWaypoint?.wpt === wpt + 1) {
+                cancelSetWaypoint();
+            } else {
+                setWaypoint(wpt);
+            }
+        }}>
+            <div class="flex gap-x-2 items-center grow">
+                <a href={null} class={"grow " + (wpt === currentWptIndex ? "font-black" : "font-normal")}>
+                    { formatRouteItem(waypoint, wpt) }
+                </a>
+                <CommandBadge state={wptExecution?.command.SetWaypoint?.wpt === wpt + 1 ? wptExecution?.state : undefined}>
+                </CommandBadge>
+            </div>
+        </li>
+    {/each}
+    </ul>
+</Dropdown>
+
