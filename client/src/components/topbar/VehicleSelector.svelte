@@ -13,7 +13,7 @@ let closeDropdown: () => void;
 </script>
 
 <Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Command vehicle") }>
-    <div slot="summary" class="flex gap-x-2 items-center text-sm font-mono">
+    <div slot="summary" class="flex gap-x-2 items-center text-sm font-mono text-nowrap">
         <VehicleTypeIcon
             vehicleType={$selectedVehicle?.description.vehicle_type || VehicleType.Unknown}
             color={$selectedVehicle?.description.color || EntityColor.Slate} />
@@ -22,7 +22,7 @@ let closeDropdown: () => void;
     <ul slot="details" class="menu p-0">
     {#each $vehicles.values() as vehicle}
         <li on:click={() => { selectedVehicleId.set(vehicle.description.id || ""); closeDropdown(); }}>
-            <div class="flex gap-x-2 items-center grow font-mono">
+            <div class="flex gap-x-2 items-center grow font-mono text-nowrap">
                 <VehicleTypeIcon vehicleType={vehicle.description.vehicle_type} color={vehicle.description.color}/>
                 <a href={null} class={"grow " + (vehicle.description.id === $selectedVehicleId ? "font-black" : "font-normal")}>
                     {vehicle.description.name}

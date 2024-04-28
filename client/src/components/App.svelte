@@ -2,6 +2,7 @@
 import { onMount } from 'svelte';
 
 import { ClientSideEvents, EventsService } from "$services/events";
+import { activeDialog } from '$stores/app';
 
 import Topbar from '$components/topbar/Topbar.svelte';
 
@@ -27,16 +28,18 @@ onMount(() => {
 
 <Topbar/>
 
-<!-- Flight -->
+<!-- STATIC -->
 <MapCesium visible={true} />
 <AerialVehicleDashboard />
 <SystemsModal />
 
-<!-- Modals -->
+<!-- DIALOGS -->
+<svelte:component this={$activeDialog}/>
+
+<!-- MODALS -->
 <CommunicationModal />
 <VehiclesListModal />
 <AboutModal />
-
 {#if !isServerOnline}
-<NoServerConnection />
+    <NoServerConnection />
 {/if}

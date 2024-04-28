@@ -4,6 +4,7 @@ export interface LongpressConfig {
     repeat: boolean;
     onLongPress: () => void;
     onIdleClick?: () => void;
+    onDropped?: () => void;
 }
 
 export function longpress(node: any, config: LongpressConfig) {
@@ -28,6 +29,9 @@ export function longpress(node: any, config: LongpressConfig) {
         config.repeat ? clearInterval(timer) : clearTimeout(timer);
         timer = undefined;
         fired = false;
+        if (config.onDropped) {
+            config.onDropped();
+        }
     };
 
     node.addEventListener('mousedown', onMouseDown);

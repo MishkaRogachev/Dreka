@@ -1,6 +1,8 @@
 <script lang="ts">
-import type { VehicleStatus } from '$bindings/vehicles';
+//import type { VehicleStatus } from '$bindings/vehicles';
+
 import { i18n } from '$stores/i18n';
+import { activeDialog } from '$stores/app';
 
 import Dropdown from '$components/map/common/Dropdown.svelte';
 
@@ -14,8 +16,8 @@ import goAroundIcon from "$assets/svg/go_around.svg?raw";
 
 let closeDropdown: () => void;
 
-function armDisarm() {
-    console.log("Arm/Disarm");
+async function armDisarm() {
+    $activeDialog = (await import('$components/dialogs/ArmDisarm.svelte')).default;
     closeDropdown();
 }
 

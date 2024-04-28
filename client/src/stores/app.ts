@@ -1,4 +1,4 @@
-import { readable, writable, get, type Writable } from 'svelte/store';
+import { writable, get, type Writable } from 'svelte/store';
 
 import type { MapFacade } from '$lib/interfaces/map';
 
@@ -15,6 +15,7 @@ export const mainMap: Writable<MapFacade | null> = writable(null);
 
 export const dashboardVisible = writable(true);
 export const activeMapPopup = writable("");
+export const activeDialog: Writable<any> = writable(undefined);
 
 function getTheme(): Theme {
     let themeValue = get(userPreferences).get("ui/theme");

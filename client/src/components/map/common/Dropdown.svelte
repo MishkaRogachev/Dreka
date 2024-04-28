@@ -2,7 +2,7 @@
 import { onMount, onDestroy } from 'svelte';
 import { clickOutside } from '$lib/common/click-outside';
 
-import { activeMapPopup } from '$stores/app';
+import { activeDialog, activeMapPopup } from '$stores/app';
 
 export let tip: string;
 
@@ -28,6 +28,7 @@ onMount(async () => {
         isOpen = details.hasAttribute("open");
         if (isOpen) {
             $activeMapPopup = "";
+            $activeDialog = undefined;
         }
     });
 });
