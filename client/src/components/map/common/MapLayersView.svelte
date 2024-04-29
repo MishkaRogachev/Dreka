@@ -46,7 +46,7 @@ function lowerLayer(imageryLayer: ImageryLayer) {
 }
 </script>
 
-<table class="table" style="width: 600px">
+<table class="table" style="width: 418px">
     <thead>
         <tr>
             <td>Visible</td>

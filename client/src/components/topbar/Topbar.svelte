@@ -13,7 +13,6 @@ import VehicleGps from "$components/topbar/VehicleGps.svelte";
 import VehicleRadioCtrl from "$components/topbar/VehicleRadioCtrl.svelte";
 import VehicleStateIndicator from "./VehicleStateIndicator.svelte";
 import VehicleArmIndicator from "$components/topbar/VehicleArmIndicator.svelte";
-import VehicleCommands from "$components/topbar/VehicleCommands.svelte";
 
 </script>
 
@@ -25,15 +24,14 @@ import VehicleCommands from "$components/topbar/VehicleCommands.svelte";
             <VehicleModeSelector vehicle={ $selectedVehicle }/>
             <VehicleWaypointSelector vehicle={ $selectedVehicle }/>
             <MissionControl vehicle={ $selectedVehicle }/>
-            <VehicleCommands/>
         {/if}
     </div>
 
     <div class="navbar-end">
+        <VehicleStateIndicator vehicleStatus={$selectedVehicle?.status}/>
         <VehicleBattery system={$selectedVehicleTelemetry.system}/>
         <VehicleGps sns={$selectedVehicleTelemetry.rawSns}/>
         <VehicleRadioCtrl system={$selectedVehicleTelemetry.system}/>
-        <VehicleStateIndicator vehicleStatus={$selectedVehicle?.status}/>
         <VehicleArmIndicator/>
     </div>
 </div>

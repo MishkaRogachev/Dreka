@@ -97,7 +97,7 @@ function clearRuler() { map.ruler.clear(); }
 #mapControlPanel {
     position: absolute;
     width: 60%;
-    bottom: 8px;
+    bottom: 42px;
     left: 12px;
     gap: 4px;
     background: transparent;
@@ -207,12 +207,13 @@ function clearRuler() { map.ruler.clear(); }
     </div>
 
     <!-- Map Layers -->
+    <!-- TODO: dropdown button -->
     <div class="join btn-sm p-0">
         <div class="tooltip" data-tip={ $i18n.t("Map layers") }>
             <div tabindex="0" class="dropdown dropdown-top dropdown-end">
                 <label tabindex="0" class="btn btn-sm px-2">{@html layersIcon}</label>
                 <ul class="dropdown-content z-[1] menu p-2 my-2 shadow bg-base-100 rounded-box">
-                    <MapLayersView layers={map.layers} />
+                    <MapLayersView layers={map.layers}/>
                 </ul>
             </div>
         </div>

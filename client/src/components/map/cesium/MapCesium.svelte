@@ -42,15 +42,21 @@ onDestroy(async () => { clearInterval(interval); ready = false; });
 
 </script>
 
-<span class="loading loading-ring loading-lg" style={visible && !ready ? "" : "display: none"}></span>
+<style>
+#spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+}
+</style>
+
+<span id="spinner" class="loading loading-ring loading-lg" style={visible && !ready ? "" : "display: none"}></span>
 
 <div id="cesiumContainer" class="absolute" style={ready && visible ? "" : "display: none"}>
 {#if ready && visible}
     <MapMenu interaction={map.interaction} viewport={map.viewport}/>
     <MapDrawVehicles mapVehicles={map.vehicles} viewport={map.viewport}/>
     <MapDrawMissionRoutes map={map}/>
-{/if}
-</div>
-{#if ready && visible}
     <MapControl map={map}/>
 {/if}
+</div>

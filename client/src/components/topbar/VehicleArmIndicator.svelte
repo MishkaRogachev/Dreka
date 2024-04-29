@@ -4,29 +4,30 @@ import { activeDialog } from "$stores/app";
 import { selectedVehicle } from "$stores/vehicles";
 import { selectedVehicleTelemetry } from "$stores/telemetry";
 
-$: is_online = $selectedVehicle?.is_online || false
+import ArmDisarm from "$components/dialogs/ArmDisarm.svelte";
+
+$: isOnline = $selectedVehicle?.is_online || false
 $: armed = $selectedVehicle?.status?.armed || false
 $: readyToArm = $selectedVehicleTelemetry.system?.arm_ready || false
+$: isArmDialogOpen = $activeDialog === ArmDisarm
 
-function toArmColorCode(is_online: boolean, armed: boolean, readyToArm: boolean) {
-    if (!is_online) {
-        return "btn-neutral"
-    }
-    return armed ? "btn-success" : readyToArm ? "btn-warning" : "btmn-error"
+function toArmColorCode(isOnline: boolean, armed: boolean, readyToArm: boolean) {
+    return !isOnline ? "btn-active btn-neutral" : armed ? "btn-success" : readyToArm ? "btn-warning" : "btmn-error"
 }
 
 function toArmText(armed: boolean, readyToArm: boolean) {
-    return armed ? $i18n.t("ARMED") : readyToArm ? $i18n.t("DISARMED") : $i18n.t("NOT READY")
+    return !isOnline ? $i18n.t("OFFLINE") : armed ? $i18n.t("ARMED") : readyToArm ? $i18n.t("DISARMED") : $i18n.t("NOT READY")
 }
 
-async function openArmDisarm() {
-    $activeDialog = (await import('$components/dialogs/ArmDisarm.svelte')).default;
+async function openCloseArmDisarm() {
+    $activeDialog = isArmDialogOpen ? undefined : ArmDisarm;
 }
 </script>
 
-<div class="tooltip tooltip-bottom" data-tip={ armed ? $i18n.t("DISARM") : $i18n.t("ARM") }>
-    <button class={ "w-22 btn btn-xs " + toArmColorCode(is_online, armed, readyToArm)}
-        on:click={openArmDisarm}>
+<div class="tooltip tooltip-left" data-tip={
+    (isArmDialogOpen ? $i18n.t("Close") : $i18n.t("Open")) + " " + $i18n.t("ARM/DISARM dialog")}>
+    <button class={ "w-22 btn btn-xs " + toArmColorCode(isOnline, armed, readyToArm)}
+        on:click={openCloseArmDisarm}>
         { toArmText(armed, readyToArm) }
     </button>
 </div>
