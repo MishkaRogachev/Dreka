@@ -8,10 +8,11 @@ import VehicleModeSelector from "$components/topbar/VehicleModeSelector.svelte";
 import VehicleWaypointSelector from "$components/topbar/VehicleWaypointSelector.svelte";
 import MissionControl from "$components/topbar/MissionControl.svelte";
 
-import VehicleBattery from "./VehicleBattery.svelte";
-import VehicleGps from "$components/topbar/VehicleGps.svelte";
-import VehicleRadioCtrl from "$components/topbar/VehicleRadioCtrl.svelte";
 import VehicleStateIndicator from "./VehicleStateIndicator.svelte";
+import VehicleSensors from "$components/topbar/VehicleSensors.svelte";
+import VehicleGps from "$components/topbar/VehicleGps.svelte";
+import VehicleBattery from "./VehicleBattery.svelte";
+import VehicleRadioCtrl from "$components/topbar/VehicleRadioCtrl.svelte";
 import VehicleArmIndicator from "$components/topbar/VehicleArmIndicator.svelte";
 
 </script>
@@ -29,8 +30,9 @@ import VehicleArmIndicator from "$components/topbar/VehicleArmIndicator.svelte";
 
     <div class="navbar-end">
         <VehicleStateIndicator vehicleStatus={$selectedVehicle?.status}/>
-        <VehicleBattery system={$selectedVehicleTelemetry.system}/>
+        <VehicleSensors system={$selectedVehicleTelemetry.system}/>
         <VehicleGps sns={$selectedVehicleTelemetry.rawSns}/>
+        <VehicleBattery system={$selectedVehicleTelemetry.system}/>
         <VehicleRadioCtrl system={$selectedVehicleTelemetry.system}/>
         <VehicleArmIndicator/>
     </div>

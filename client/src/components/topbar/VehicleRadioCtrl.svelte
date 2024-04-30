@@ -22,7 +22,7 @@ function toRadioClass(system?: System) {
     <div tabindex="0" role="button" class={"btn-xs fill-current " + toRadioClass(system)}>
         { @html radioIcon }
     </div>
-    <div tabindex="0" class="dropdown-content z-[1] p-2 w-36 shadow badge-neutral rounded-md flex flex-col align-middle">
+    <div tabindex="0" class="dropdown-content z-[1] p-2 gap-2 w-36 shadow-lg bg-base-100 rounded-md flex flex-col align-middle">
         <p class="text-center font-bold">{ $i18n.t("Radio Control") }</p>
         <div class="flex justify-between">
             <div class="text-left">{ $i18n.t("Local RSSI") + ":" }</div>

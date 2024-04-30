@@ -57,10 +57,11 @@ function toStateClass(state: VehicleState | undefined) {
     <div tabindex="0" role="button" class={"btn-xs fill-current " + toStateClass(vehicleStatus?.state)}>
         { @html toStateIcon(vehicleStatus?.state) }
     </div>
-    <div tabindex="0" class="dropdown-content z-[1] p-2 w-36 shadow badge-neutral rounded-md flex flex-col align-middle">
+    <div tabindex="0" class="dropdown-content z-[1] p-2 gap-2 w-36 shadow-lg bg-base-100 rounded-md flex flex-col align-middle">
         <div class="flex justify-between">
             <div class="text-left">{ $i18n.t("State") + ":" }</div>
             <div class="text-right">{ vehicleStatus ? $i18n.t(vehicleStatus.state) : "-" }</div>
         </div>
+        <!-- TODO: flight time, current flight -->
     </div>
 </div>

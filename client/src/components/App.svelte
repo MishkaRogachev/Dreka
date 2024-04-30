@@ -9,7 +9,6 @@ import Topbar from '$components/topbar/Topbar.svelte';
 import MapCesium from '$components/map/cesium/MapCesium.svelte';
 import AerialVehicleDashboard from '$components/dashboard/AerialVehicleDashboard.svelte';
 
-import SystemsModal from '$components/modals/systems/SystemsModal.svelte';
 import CommunicationModal from '$components/modals/communication/CommunicationModal.svelte'
 import VehiclesListModal from '$components/modals/vehicles/VehiclesListModal.svelte';
 import AboutModal from '$components/modals/about/AboutModal.svelte';
@@ -31,7 +30,6 @@ onMount(() => {
 <!-- STATIC -->
 <MapCesium visible={true} />
 <AerialVehicleDashboard />
-<SystemsModal />
 
 <!-- DIALOGS -->
 <svelte:component this={$activeDialog}/>

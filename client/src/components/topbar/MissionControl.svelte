@@ -5,7 +5,7 @@ import type { Mission } from "$bindings/mission";
 import { i18n } from "$stores/i18n";
 import { missions, selectedVehicleMission } from "$stores/mission";
 
-import Dropdown from '$components/map/common/Dropdown.svelte';
+import Dropdown from '$components/common/Dropdown.svelte';
 
 import missionIcon from "$assets/svg/mission.svg?raw";
 import downloadIcon from "$assets/svg/download.svg?raw";

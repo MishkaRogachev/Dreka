@@ -52,7 +52,7 @@ function toSnsText(fix?: number) {
     <div tabindex="0" role="button" class={"btn-xs fill-current " + toSnsClass(sns?.fix) }>
         { @html gpsIcon }
     </div>
-    <div tabindex="0" class="dropdown-content z-[1] p-2 w-48 shadow badge-neutral rounded-md flex flex-col align-middle">
+    <div tabindex="0" class="dropdown-content z-[1] p-2 gap-2 w-48 shadow-lg bg-base-100 rounded-md flex flex-col align-middle">
         <p class="text-center font-bold">{ toSnsText(sns?.fix) }</p>
         <div class="flex justify-between">
             <div class="text-left">{ $i18n.t("Satellites count") + ":" }</div>

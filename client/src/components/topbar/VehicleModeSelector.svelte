@@ -6,7 +6,7 @@ import { commandExecutions } from '$stores/commands';
 import { type Vehicle, formatMode } from '$stores/vehicles';
 
 import CommandBadge from '$components/common/CommandBadge.svelte';
-import Dropdown from '$components/map/common/Dropdown.svelte';
+import Dropdown from '$components/common/Dropdown.svelte';
 
 export let vehicle: Vehicle;
 

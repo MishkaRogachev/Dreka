@@ -6,7 +6,7 @@ import { i18n } from '$stores/i18n';
 import { selectedVehicleId, selectedVehicle, vehicles } from "$stores/vehicles";
 
 import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
-import Dropdown from '$components/map/common/Dropdown.svelte';
+import Dropdown from '$components/common/Dropdown.svelte';
 
 let closeDropdown: () => void;
 

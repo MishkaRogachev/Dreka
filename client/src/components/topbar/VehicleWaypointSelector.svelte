@@ -5,7 +5,7 @@ import type { Vehicle } from '$stores/vehicles';
 import { formatRouteItem, selectedVehicleMission } from '$stores/mission';
 
 import CommandBadge from '$components/common/CommandBadge.svelte';
-import Dropdown from '$components/map/common/Dropdown.svelte';
+import Dropdown from '$components/common/Dropdown.svelte';
 
 export let vehicle: Vehicle;
 
