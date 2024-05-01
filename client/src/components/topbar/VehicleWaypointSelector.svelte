@@ -26,8 +26,8 @@ async function setWaypoint(wpt: number) {
 
 </script>
 
-<Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Set waypoint") }>
-    <div slot="summary" class="flex w-20 gap-x-2 items-center">
+<Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Set waypoint") } empty={availableWayponts.length === 0}>
+    <div slot="summary" class="flex w-20 gap-x-2 font-mono items-center">
         <CommandBadge state={wptExecution?.state}/>
         <span class = "uppercase text-sm">{ formatRouteItem(currentWptType, currentWptIndex) }</span>
     </div>

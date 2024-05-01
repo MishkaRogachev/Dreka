@@ -1,6 +1,6 @@
 use mavlink::common::*;
 
-use crate::models::commands::Command;
+use crate::models::commands::{Calibration, Command};
 use crate::models::spatial::Geodetic;
 
 fn arm_disarm(mav_id: u8, arm: bool, attempt: u8) -> MavMessage {
@@ -20,7 +20,44 @@ fn arm_disarm(mav_id: u8, arm: bool, attempt: u8) -> MavMessage {
     })
 }
 
-fn set_home(mav_id: u8, position: &Geodetic) -> MavMessage {
+fn calibrate(mav_id: u8, calibration: Calibration, attempt: u8) -> MavMessage {
+    log::info!("Mav: {} Calibrate: {:?}", mav_id, calibration);
+    MavMessage::COMMAND_LONG(COMMAND_LONG_DATA{
+        param1: if calibration == Calibration::Temperature {
+            3.0
+        } else {
+            0.0
+        },
+        param2: 0.0,
+        param3: if calibration == Calibration::GroundPressure {
+            1.0
+        } else {
+            0.0
+        },
+        param4: 0.0,
+        param5: if calibration == Calibration::Temperature {
+            3.0
+        } else {
+            0.0
+        },
+        param6: if calibration == Calibration::Airspeed {
+            2.0
+        } else {
+            0.0
+        },
+        param7: if calibration == Calibration::Temperature {
+            3.0
+        } else {
+            0.0
+        },
+        command: MavCmd::MAV_CMD_PREFLIGHT_CALIBRATION,
+        target_system: mav_id,
+        target_component: mavlink::common::MavComponent::MAV_COMP_ID_ALL as u8,
+        confirmation: attempt,
+    })
+}
+
+fn set_home(mav_id: u8, position: Geodetic) -> MavMessage {
     log::info!("Mav: {} SetHome: {:?}", mav_id, position);
     let (frame, x, y, z) = position.to_mavlink();
     MavMessage::COMMAND_INT(COMMAND_INT_DATA{
@@ -74,7 +111,7 @@ pub fn set_waypoint(mav_id: u8, wp: u16, attempt: u8) -> MavMessage {
     })
 }
 
-fn nav_to(mav_id: u8, position: &Geodetic) -> MavMessage {
+fn nav_to(mav_id: u8, position: Geodetic) -> MavMessage {
     log::info!("Mav: {} Nav to: {:?}", mav_id, position);
     let (frame, x, y, z) = position.to_mavlink();
     MavMessage::COMMAND_INT(COMMAND_INT_DATA{
@@ -111,7 +148,7 @@ fn takeoff(mav_id: u8, altitude: f32, attempt: u8) -> MavMessage {
     })
 }
 
-fn land(mav_id: u8, position: &Geodetic, abort_altitude: f32) -> MavMessage {
+fn land(mav_id: u8, position: Geodetic, abort_altitude: f32) -> MavMessage {
     log::info!("Mav: {} Land", mav_id);
     let (frame, x, y, z) = position.to_mavlink();
     MavMessage::COMMAND_INT(COMMAND_INT_DATA{
@@ -165,7 +202,7 @@ fn set_servo(mav_id: u8, channel: u16, value: u16, attempt: u8) -> MavMessage {
     })
 }
 
-fn override_servos(mav_id: u8, servos: &std::collections::BTreeMap<u16, u16>) -> MavMessage {
+fn override_servos(mav_id: u8, servos: std::collections::BTreeMap<u16, u16>) -> MavMessage {
     log::info!("Mav: {} Override Servos: {:?}", mav_id, servos);
     MavMessage::RC_CHANNELS_OVERRIDE(RC_CHANNELS_OVERRIDE_DATA{
         target_system: mav_id,
@@ -193,18 +230,22 @@ pub fn encode_set_mode(mode: u32, mav_id: u8, attempt: u8) -> EncodedCommand {
     }
 }
 
-pub fn encode_command(command: &Command, mav_id: u8, attempt: u8) -> Option<EncodedCommand> {
+pub fn encode_command(command: Command, mav_id: u8, attempt: u8) -> Option<EncodedCommand> {
     match command {
         Command::ArmDisarm { arm } => Some(EncodedCommand {
-            message: arm_disarm(mav_id, *arm, attempt),
+            message: arm_disarm(mav_id, arm, attempt),
             ack_cmd: Some(MavCmd::MAV_CMD_COMPONENT_ARM_DISARM),
+        }),
+        Command::Calibrate { calibration } => Some(EncodedCommand {
+            message: calibrate(mav_id, calibration, attempt),
+            ack_cmd: Some(MavCmd::MAV_CMD_PREFLIGHT_CALIBRATION),
         }),
         Command::SetHome { position } => Some(EncodedCommand {
             message: set_home(mav_id, position),
             ack_cmd: Some(MavCmd::MAV_CMD_DO_SET_HOME),
         }),
         Command::SetWaypoint { wpt } => Some(EncodedCommand {
-            message: set_waypoint(mav_id, *wpt, attempt),
+            message: set_waypoint(mav_id, wpt, attempt),
             ack_cmd: Some(MavCmd::MAV_CMD_DO_SET_MISSION_CURRENT),
         }),
         Command::NavTo { position } => Some(EncodedCommand {
@@ -212,7 +253,7 @@ pub fn encode_command(command: &Command, mav_id: u8, attempt: u8) -> Option<Enco
             ack_cmd: Some(MavCmd::MAV_CMD_NAV_WAYPOINT),
         }),
         Command::Takeoff { altitude } => Some(EncodedCommand {
-            message: takeoff(mav_id, *altitude, attempt),
+            message: takeoff(mav_id, altitude, attempt),
             ack_cmd: Some(MavCmd::MAV_CMD_NAV_TAKEOFF),
         }),
         Command::Land { position, abort_altitude } => Some(EncodedCommand {
@@ -224,11 +265,11 @@ pub fn encode_command(command: &Command, mav_id: u8, attempt: u8) -> Option<Enco
             ack_cmd: Some(MavCmd::MAV_CMD_DO_GO_AROUND),
         }),
         Command::SetServo { channel, value } => Some(EncodedCommand {
-            message: set_servo(mav_id, *channel, *value, attempt),
+            message: set_servo(mav_id, channel, value, attempt),
             ack_cmd: Some(MavCmd::MAV_CMD_DO_SET_SERVO),
         }),
         Command::OverrideServos { servos } => Some(EncodedCommand {
-            message: override_servos(mav_id, &servos),
+            message: override_servos(mav_id, servos),
             ack_cmd: None,
         }),
         _ => None

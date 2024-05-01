@@ -130,7 +130,7 @@ impl handler::Handler {
                 }
                 encoded = Some(protocol::encode_set_mode(mode_code.unwrap(), mav_id, attempt - 1));
             } else {
-                encoded = protocol::encode_command(&execution.command, mav_id, attempt - 1);
+                encoded = protocol::encode_command(execution.command.clone(), mav_id, attempt - 1);
             }
 
             if let Some(encoded) = encoded {

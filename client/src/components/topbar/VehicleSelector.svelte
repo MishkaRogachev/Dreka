@@ -8,11 +8,13 @@ import { selectedVehicleId, selectedVehicle, vehicles } from "$stores/vehicles";
 import VehicleTypeIcon from '$components/common/VehicleTypeIcon.svelte';
 import Dropdown from '$components/common/Dropdown.svelte';
 
+$: availableVehicles = [...$vehicles.values()];
+
 let closeDropdown: () => void;
 
 </script>
 
-<Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Command vehicle") }>
+<Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Select vehicle") } empty={availableVehicles.length === 0}>
     <div slot="summary" class="flex gap-x-2 items-center text-sm font-mono text-nowrap">
         <VehicleTypeIcon
             vehicleType={$selectedVehicle?.description.vehicle_type || VehicleType.Unknown}
@@ -20,7 +22,7 @@ let closeDropdown: () => void;
         <span>{$selectedVehicle ? $selectedVehicle?.description.name || "" : $i18n.t("No vehicle") }</span>
     </div>
     <ul slot="details" class="menu p-0">
-    {#each $vehicles.values() as vehicle}
+    {#each availableVehicles as vehicle}
         <li on:click={() => { selectedVehicleId.set(vehicle.description.id || ""); closeDropdown(); }}>
             <div class="flex gap-x-2 items-center grow font-mono text-nowrap">
                 <VehicleTypeIcon vehicleType={vehicle.description.vehicle_type} color={vehicle.description.color}/>

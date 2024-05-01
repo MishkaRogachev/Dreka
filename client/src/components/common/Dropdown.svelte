@@ -2,9 +2,12 @@
 import { onMount, onDestroy } from 'svelte';
 import { clickOutside } from '$lib/common/click-outside';
 
-import { activeDialog, activeMapPopup } from '$stores/app';
+import { closeAllPopups } from '$stores/app';
 
-export let tip: string;
+export let tip: string = "";
+export let empty: boolean = false;
+
+let contentHeight: number = 0;
 
 const uuid = window.crypto.randomUUID()
 
@@ -27,8 +30,7 @@ onMount(async () => {
     details.addEventListener("toggle", function() {
         isOpen = details.hasAttribute("open");
         if (isOpen) {
-            $activeMapPopup = "";
-            $activeDialog = undefined;
+            closeAllPopups()
         }
     });
 });
@@ -40,12 +42,13 @@ onDestroy(() => {
 </script>
 
 <details id={uuid} class="dropdown dropdown-start" use:clickOutside={closeDropdown}>
-    <summary class="select select-ghost select-xs my-2 items-center">
-        <div class={isOpen ? "" : "tooltip tooltip-bottom"} data-tip={tip}>
+    <summary class={"btn btn-sm my-1 items-center rounded-none " + (!empty ? "btn-ghost" : "btn-active btn-neutral cursor-not-allowed" )} >
+        <div class={isOpen || empty ? "" : "tooltip tooltip-bottom"} data-tip={tip}>
             <slot name="summary"></slot>
         </div>
     </summary>
-    <div class="dropdown-content z-[1] p-0 shadow bg-base-300 rounded-md my-0 font-normal max-scroll-area-height overflow-y-auto max-h-96">
+    <div class="dropdown-content z-[1] p-0 shadow bg-base-300 rounded-md my-0 font-normal max-scroll-area-height overflow-y-auto max-h-96"
+        bind:clientHeight={contentHeight}>
         <slot name="details"></slot>
     </div>
 </details>

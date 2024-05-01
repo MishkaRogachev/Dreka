@@ -31,6 +31,7 @@ onDestroy(() => {
 }
 </style>
 
+<!-- TODO: movable -->
 <div id="commandDialog" class="absolute top-10 bg-base-300 p-2 rounded-md shadow-lg">
     <div class="flex grow">
         <h3 class="font-bold text-lg text-center grow mb-4"><slot name="title"/></h3>

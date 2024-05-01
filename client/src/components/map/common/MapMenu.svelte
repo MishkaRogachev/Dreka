@@ -10,7 +10,7 @@ import { selectedVehicle, selectedVehicleId } from '$stores/vehicles';
 import { selectedVehicleTelemetry } from '$stores/telemetry';
 import { commandExecutions } from '$stores/commands';
 import { missions, selectedVehicleMission } from '$stores/mission';
-import { activeMapPopup } from '$stores/app';
+import { activateMapPopup, activeMapPopup } from '$stores/app';
 
 import type { MapInteraction, MapViewport } from '$lib/interfaces/map';
 
@@ -48,7 +48,7 @@ let clickListener = (geodetic: Geodetic, position: Cartesian) => {
     if (position && geodetic) {
         menuPosition = position;
         clickGeodetic = geodetic;
-        $activeMapPopup = "map-global"
+        activateMapPopup("map-global", true);
         return true;
     }
     return false;

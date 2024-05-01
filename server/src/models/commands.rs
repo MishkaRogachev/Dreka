@@ -6,6 +6,16 @@ use super::{spatial::Geodetic, vehicles::{PayloadId, VehicleId, VehicleMode}};
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[derive(Clone)]
+pub enum Calibration {
+    GroundPressure,
+    BoardLevel,
+    Airspeed,
+    Temperature,
+}
+
+#[serde_as]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Clone)]
 pub enum Command {
     ArmDisarm { arm: bool },
     SetMode { mode: VehicleMode },
@@ -18,9 +28,7 @@ pub enum Command {
     SetAltitude { altitide: f32},
     SetLoiterRadius { radius: f32},
 
-    CalibrateAirspeed {},
-    CalibrateReferencePressure {},
-    CalibrateTemperature {},
+    Calibrate { calibration: Calibration },
 
     SetAirSpeed { value: f32 },
     SetGroundSpeed { value: f32 },

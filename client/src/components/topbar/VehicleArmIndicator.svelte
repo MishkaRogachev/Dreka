@@ -1,6 +1,6 @@
 <script lang="ts">
 import { i18n } from "$stores/i18n";
-import { activeDialog } from "$stores/app";
+import { activeDialog, activateDialog } from "$stores/app";
 import { selectedVehicle } from "$stores/vehicles";
 import { selectedVehicleTelemetry } from "$stores/telemetry";
 
@@ -20,7 +20,7 @@ function toArmText(armed: boolean, readyToArm: boolean) {
 }
 
 async function openCloseArmDisarm() {
-    $activeDialog = isArmDialogOpen ? undefined : ArmDisarm;
+    activateDialog(isArmDialogOpen ? undefined : ArmDisarm);
 }
 </script>
 

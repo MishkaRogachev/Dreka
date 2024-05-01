@@ -27,15 +27,15 @@ async function setVehicleMode(mode: VehicleMode) {
 
 </script>
 
-<Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Set mode") }>
-    <div slot="summary" class="flex w-24 gap-x-2 items-center">
+<Dropdown bind:closeDropdown={closeDropdown} tip={ $i18n.t("Set mode") } empty={availableModes.length === 0}>
+    <div slot="summary" class="flex w-20 gap-x-2 items-center">
         <CommandBadge state={modeExecution?.state}/>
-        <span class = "uppercase text-sm">{ formatMode(currentMode) }</span>
+        <span class = "uppercase text-sm font-mono">{ formatMode(currentMode) }</span>
     </div>
     <ul slot="details" class="menu p-0">
     {#each availableModes as mode}
         <li class="flex" on:click = {() => { setVehicleMode(mode); }}>
-            <div class="flex w-32 gap-x-2 uppercase items-center">
+            <div class="flex w-28 gap-x-2 uppercase items-center">
                 <span class={"uppercase " + (mode === currentMode ? "font-black" : "font-normal")}>
                     { formatMode(mode) }
                 </span>

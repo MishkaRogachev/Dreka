@@ -7,7 +7,7 @@ import type { Mission, MissionRouteItem } from '$bindings/mission';
 
 import { vehicles } from '$stores/vehicles';
 import { missions } from '$stores/mission';
-import { activeMapPopup } from '$stores/app';
+import { activeMapPopup, activateMapPopup } from '$stores/app';
 import { VehicleTelemetry, vehiclesTelemetry } from '$stores/telemetry';
 
 import { type MapMissionsEvent, type MapFacade } from '$lib/interfaces/map';
@@ -61,22 +61,22 @@ onMount(async () => {
         if (event.InvokeWaypointMenu) {
             selectedRouteItem = [event.InvokeWaypointMenu.item, event.InvokeWaypointMenu.missionId, event.InvokeWaypointMenu.index];
             overridedPosition = undefined;
-            $activeMapPopup = "waypoint_menu";
+            activateMapPopup("waypoint_menu", true);
         } else if (event.ChangesOrdered) {
             missions.setRouteItem(event.ChangesOrdered.missionId, event.ChangesOrdered.item, event.ChangesOrdered.index);
             overridedPosition = undefined;
         } else if (event.Hovered && $activeMapPopup === "") {
             selectedRouteItem = [event.Hovered.item, event.Hovered.missionId, event.Hovered.index];
             overridedPosition = undefined;
-            $activeMapPopup = "waypoint_tooltip";
+            activateMapPopup("waypoint_tooltip", false);
         } else if (event.Exited && $activeMapPopup === "waypoint_tooltip") {
             selectedRouteItem = undefined;
             overridedPosition = undefined;
-            $activeMapPopup = "";
+            activateMapPopup("", false);
         } else if (event.WaypointDragged) {
             selectedRouteItem = [event.WaypointDragged.item, event.WaypointDragged.missionId, event.WaypointDragged.index];
             overridedPosition = event.WaypointDragged.position;
-            $activeMapPopup = "waypoint_tooltip"
+            activateMapPopup("waypoint_tooltip", false)
         }
     });
 })
@@ -90,5 +90,5 @@ onMount(async () => {
         missionId={selectedRouteItem[1]}
         index={selectedRouteItem[2]}
         overridedPosition={overridedPosition}
-        on:close={() => { selectedRouteItem = undefined; $activeMapPopup = "" }}/>
+        on:close={() => { selectedRouteItem = undefined; activateMapPopup("", false); }}/>
 {/if}

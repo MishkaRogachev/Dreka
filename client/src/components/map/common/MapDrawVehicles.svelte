@@ -6,7 +6,7 @@ import type { Geodetic } from '$bindings/spatial';
 import { type MapVehiclesEvent, type MapVehicles, type MapViewport } from '$lib/interfaces/map';
 
 import { i18n } from '$stores/i18n';
-import { activeMapPopup } from '$stores/app';
+import { activeMapPopup, activateMapPopup } from '$stores/app';
 import { Vehicle, vehicles, selectedVehicleId } from "$stores/vehicles";
 import { type VehicleTelemetry, vehiclesTelemetry } from "$stores/telemetry";
 import { commandExecutions } from '$stores/commands';
@@ -89,27 +89,27 @@ onMount(async () => {
             setHome(event.HomePositionOrdered.vehicleId, event.HomePositionOrdered.position);
         } else if (event.VehicleHovered) {
             if (event.VehicleHovered.hovered && $activeMapPopup === "") {
-                tipVehicleId = event.VehicleHovered.vehicleId
-                $activeMapPopup = "vehicle_tooltip";
+                tipVehicleId = event.VehicleHovered.vehicleId;
+                activateMapPopup("vehicle_tooltip", false);
             } else if (!event.VehicleHovered.hovered && $activeMapPopup === "vehicle_tooltip") {
                 tipVehicleId = undefined;
-                $activeMapPopup = "";
+                activateMapPopup("", false);
             }
         } else if (event.TargetHovered) {
             if (event.TargetHovered.hovered && $activeMapPopup === "") {
                 tipVehicleId = event.TargetHovered.vehicleId
-                $activeMapPopup = "vehicle_target_tooltip";
+                activateMapPopup("vehicle_target_tooltip", false);
             } else if (!event.TargetHovered.hovered && $activeMapPopup === "vehicle_target_tooltip") {
                 tipVehicleId = undefined;
-                $activeMapPopup = "";
+                activateMapPopup("", false);
             }
         } else if (event.HomeHovered) {
             if (event.HomeHovered.hovered && $activeMapPopup === "") {
                 tipVehicleId = event.HomeHovered.vehicleId
-                $activeMapPopup = "vehicle_home_tooltip";
+                activateMapPopup("vehicle_home_tooltip", false);
             } else if (!event.HomeHovered.hovered && $activeMapPopup === "vehicle_home_tooltip") {
                 tipVehicleId = undefined;
-                $activeMapPopup = "";
+                activateMapPopup("", false);
             }
         }
     });

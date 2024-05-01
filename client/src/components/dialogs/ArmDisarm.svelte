@@ -1,6 +1,4 @@
 <script lang="ts">
-import type { CommandExecution } from "$bindings/commands";
-
 import { i18n } from "$stores/i18n";
 import { selectedVehicle, selectedVehicleId } from "$stores/vehicles";
 import { selectedVehicleTelemetry } from "$stores/telemetry";
@@ -20,6 +18,7 @@ $: armExecution = armToken ? $commandExecutions.get(armToken) : undefined
 let armToken: string | null = null
 let dalayProgress = 0;
 let sent: boolean = false;
+let closeDialog: () => void;
 
 async function armDisarmVehicle(arm: boolean) {
     armToken = await commandExecutions.executeCommand(
@@ -46,9 +45,11 @@ function dropLongpress() {
     sent = false;
 }
 
+// TODO: autoclose then arm state changed
+
 </script>
 
-<CommandDialog>
+<CommandDialog bind:closeDialog={closeDialog}>
     <h1 slot="title">{ $i18n.t("ARM/DISARM") }</h1>
     <div slot="content" class="flex gap-x-2 items-center">
         <CommandBadge state={armExecution?.state}/>

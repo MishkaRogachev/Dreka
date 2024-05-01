@@ -7,6 +7,7 @@ import VehicleSelector from "./VehicleSelector.svelte";
 import VehicleModeSelector from "$components/topbar/VehicleModeSelector.svelte";
 import VehicleWaypointSelector from "$components/topbar/VehicleWaypointSelector.svelte";
 import MissionControl from "$components/topbar/MissionControl.svelte";
+import VehicleCommands from "$components/topbar/VehicleCommands.svelte";
 
 import VehicleStateIndicator from "./VehicleStateIndicator.svelte";
 import VehicleSensors from "$components/topbar/VehicleSensors.svelte";
@@ -25,6 +26,7 @@ import VehicleArmIndicator from "$components/topbar/VehicleArmIndicator.svelte";
             <VehicleModeSelector vehicle={ $selectedVehicle }/>
             <VehicleWaypointSelector vehicle={ $selectedVehicle }/>
             <MissionControl vehicle={ $selectedVehicle }/>
+            <VehicleCommands/>
         {/if}
     </div>
 

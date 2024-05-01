@@ -1,6 +1,13 @@
 import { type Geodetic } from "$bindings/spatial";
 import type { VehicleMode } from "$bindings/vehicles";
 
+export enum Calibration {
+    GroundPressure = "GroundPressure",
+    BoardLevel = "BoardLevel",
+    Airspeed = "Airspeed",
+    Temperature = "Temperature",
+}
+
 export interface Command {
     ArmDisarm?: { arm: boolean };
     SetMode?: { mode: VehicleMode };
@@ -13,9 +20,7 @@ export interface Command {
     SetAltitude?: { altitude: number };
     SetLoiterRadius?: { radius: number };
 
-    CalibrateAirspeed?: {};
-    CalibrateReferencePressure?: {};
-    CalibrateTemperature?: {};
+    Calibrate?: { calibration: Calibration };
 
     SetAirSpeed?: { value: number };
     SetGroundSpeed?: { value: number };

@@ -15,7 +15,7 @@ export let color: string | undefined = undefined;
 $: bar = ({ context, width, height }) => {
     const computedStyles = getComputedStyle(document.querySelector(':root')!);
     const bgColor = cssColorToHex(computedStyles.getPropertyValue('--n'));
-    const activeColor = color ? color : cssColorToHex(computedStyles.getPropertyValue('--bc'));
+    const activeColor = color ? color : cssColorToHex(computedStyles.getPropertyValue('--su'));
 
     const start = height / (maxValue - minValue) * minValue;
     const end = -height / (maxValue - minValue) * value;

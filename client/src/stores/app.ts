@@ -17,6 +17,23 @@ export const dashboardVisible = writable(true);
 export const activeMapPopup = writable("");
 export const activeDialog: Writable<any> = writable(undefined);
 
+export function closeAllPopups() {
+    activeMapPopup.set("");
+    activeDialog.set(undefined);
+}
+
+export function activateDialog(dialog: any) {
+    activeMapPopup.set("");
+    activeDialog.set(dialog);
+}
+
+export function activateMapPopup(idd: string, closeDialog: boolean) {
+    if (closeDialog) {
+        activeDialog.set(undefined);
+    }
+    activeMapPopup.set(idd);
+}
+
 function getTheme(): Theme {
     let themeValue = get(userPreferences).get("ui/theme");
     if (!themeValue) {

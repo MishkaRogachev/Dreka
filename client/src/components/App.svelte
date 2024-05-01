@@ -32,7 +32,9 @@ onMount(() => {
 <AerialVehicleDashboard />
 
 <!-- DIALOGS -->
+{#if !!$activeDialog}
 <svelte:component this={$activeDialog}/>
+{/if}
 
 <!-- MODALS -->
 <CommunicationModal />
