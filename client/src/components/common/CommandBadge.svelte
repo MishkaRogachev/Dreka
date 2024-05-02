@@ -1,4 +1,6 @@
 <script lang="ts">
+import { createEventDispatcher } from "svelte"
+
 import type { CommandState } from "$bindings/commands";
 
 export let baseClass: string = "badge-neutral"
@@ -8,6 +10,9 @@ const RESTORE_DELAY = 500;
 
 let value: number = 0;
 let stateClass: string = baseClass
+let oldState: CommandState | undefined = undefined;
+
+const dispatch = createEventDispatcher();
 
 function onStateChanged(state: CommandState | undefined) {
     if (state) {
@@ -24,11 +29,15 @@ function onStateChanged(state: CommandState | undefined) {
             stateClass = baseClass;
             value = 0;
         }
-    } else {
+        oldState = state;
+    } else if (oldState) {
         setTimeout(() => {
+            if (oldState!.Accepted) {
+                dispatch("succeeded", {});
+            }
             stateClass = baseClass;
             value = 0;
-        }, RESTORE_DELAY)
+        }, RESTORE_DELAY);
     }
 }
 

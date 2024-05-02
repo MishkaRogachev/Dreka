@@ -5,7 +5,7 @@ import { i18n } from "$stores/i18n";
 import { commandExecutions } from "$stores/commands";
 import { selectedVehicleId } from "$stores/vehicles";
 
-import CommandDialog from "$components/dialogs/CommandDialog.svelte";
+import BaseDialog from "$components/dialogs/BaseDialog.svelte";
 import CommandBadge from "$components/common/CommandBadge.svelte";
 
 $: calibrateExecution = calibrateToken ? $commandExecutions.get(calibrateToken) : undefined
@@ -21,7 +21,7 @@ async function calibrate(calibration: Calibration) {
 
 </script>
 
-<CommandDialog>
+<BaseDialog>
     <div slot="title" class="flex gap-2 items-center">
         <CommandBadge state={calibrateExecution?.state}/>
         { $i18n.t("PREFLIGHT CALIBRATIONS") }
@@ -48,4 +48,4 @@ async function calibrate(calibration: Calibration) {
             { $i18n.t("RESET") }
         </button>
     </div>
-</CommandDialog>
+</BaseDialog>
