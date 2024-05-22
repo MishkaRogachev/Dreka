@@ -33,7 +33,7 @@ onMount(() => {
 
 <!-- DIALOGS -->
 {#if !!$activeDialog}
-<svelte:component this={$activeDialog}/>
+<svelte:component this={$activeDialog.component} {...$activeDialog.props}/>
 {/if}
 
 <!-- MODALS -->

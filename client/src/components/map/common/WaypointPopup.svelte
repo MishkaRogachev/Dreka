@@ -9,11 +9,12 @@ import { i18n } from '$stores/i18n';
 import { commandExecutions } from '$stores/commands';
 import { selectedVehicleId, selectedVehicle } from '$stores/vehicles';
 import { formatRouteItem, missions, selectedVehicleMission } from '$stores/mission';
-import { activeMapPopup } from '$stores/app';
+import { activateDialog, activeMapPopup } from '$stores/app';
 
 import type { MapFacade } from '$lib/interfaces/map';
 
 import PointedPopup from '$components/common/PointedPopup.svelte';
+import WaypointEdit from "$components/dialogs/WaypointEdit.svelte";
 
 import playIcon from "$assets/svg/play.svg?raw";
 import editIcon from "$assets/svg/edit.svg?raw";
@@ -53,7 +54,7 @@ async function cancelGotoItem() {
 }
 
 function editItem() {
-    // TODO: Add waypoint editing
+    activateDialog(WaypointEdit, { missionId: missionId, index: index });
 }
 
 function removeItem() {
@@ -109,7 +110,7 @@ onDestroy(() => {
         <li class="flex" on:click={editItem}>
             <div class="flex gap-x-2 items-center grow">
                 { @html editIcon }
-                <a href={null} class="grow">{ $i18n.t("Edit") }</a>
+                <a href={null} class="grow">{ $i18n.t("Details") }</a>
             </div>
         </li>
         <li class="flex" on:click={removeItem}>

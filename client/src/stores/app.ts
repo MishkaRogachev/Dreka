@@ -13,8 +13,8 @@ export const scale = writable(getScale())
 
 export const mainMap: Writable<MapFacade | null> = writable(null);
 
-export const dashboardVisible = writable(true);
-export const activeMapPopup = writable("");
+export const dashboardVisible: Writable<boolean>  = writable(true);
+export const activeMapPopup: Writable<string>  = writable("");
 export const activeDialog: Writable<any> = writable(undefined);
 
 export function closeAllPopups() {
@@ -22,9 +22,9 @@ export function closeAllPopups() {
     activeDialog.set(undefined);
 }
 
-export function activateDialog(dialog: any) {
+export function activateDialog(comonent: any, props: any) {
     activeMapPopup.set("");
-    activeDialog.set(dialog);
+    activeDialog.set({ component: comonent, props: props });
 }
 
 export function activateMapPopup(idd: string, closeDialog: boolean) {

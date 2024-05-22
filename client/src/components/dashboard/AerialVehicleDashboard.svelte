@@ -59,7 +59,8 @@ function coordsToClipboard() {
         <div class="tooltip tooltip-left" data-tip={ $i18n.t("Center vehicle on map") }>
             <button class={ "btn btn-sm btn-circle px-1 " + (isTracking ? "btn-accent" : "btn-ghost") }
                 use:longpress={{ delay: 500, repeat: false, onLongPress: trackButtonLongpress, onIdleClick: trackButtonShortpress}}>
-                {@html centerIcon}</button>
+                {@html centerIcon}
+            </button>
         </div>
         <div class="tooltip tooltip-left grow h-full" data-tip={ $i18n.t("Vehicle coordinates, click to copy") }>
             <button class={"btn btn-xs btn-ghost px-1 font-mono text-right grow h-full " +

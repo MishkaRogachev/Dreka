@@ -64,6 +64,10 @@ class MapMissionRouteItemCesium extends MapSign {
         super.done();
     }
 
+    centerOnMap() {
+        this.billboard.centerOnMap();
+    }
+
     setCartesian(cartesian: Cesium.Cartesian3): boolean {
         super.setCartesian(cartesian)
         this.circle.setCartesian(cartesian);
@@ -143,6 +147,10 @@ export class MapMissionRouteCesium implements MapMissionRoute {
 
     fitOnMap() {
         // TODO: implement
+    }
+
+    centerOnMap(index: number) {
+        this.items.at(index)?.centerOnMap();
     }
 
     updateFromRoute(route: MissionRoute) {

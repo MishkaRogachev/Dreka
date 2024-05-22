@@ -114,6 +114,7 @@ export interface MapVehicles {
 
 export interface MapMissionRoute {
     fitOnMap: () => void
+    centerOnMap: (index: number) => void
 
     updateFromRoute: (route: MissionRoute) => void
     updateFromProgress: (progress: MissionProgress, inMissionMode: boolean) => void
@@ -142,7 +143,7 @@ export interface MapMissions {
     addMission: (missionId: string) => MapMissionRoute
     removeMission: (missionId: string) => void
 
-    mission: (vehicleId: string) => MapMissionRoute | undefined
+    mission: (missionId: string) => MapMissionRoute | undefined
     allMissions: () => Array<MapMissionRoute>
     missionIds: () => Array<string>
 }
