@@ -115,13 +115,12 @@ export interface MapVehicles {
 export interface MapMissionRoute {
     fitOnMap: () => void
     centerOnMap: (index: number) => void
+    highlightRouteItem: (index: number) => void
 
     updateFromRoute: (route: MissionRoute) => void
     updateFromProgress: (progress: MissionProgress, inMissionMode: boolean) => void
     setHomeAltitude: (altitude: number) => void
 }
-
-// TODO: add map mission type to aggregate route, fence and rally points
 
 export interface MapMissionsEvent {
     InvokeWaypointMenu?: { missionId: string, item: MissionRouteItem, index: number },

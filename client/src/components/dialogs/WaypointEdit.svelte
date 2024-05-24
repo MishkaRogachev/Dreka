@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { MissionRouteItem } from "$bindings/mission";
+import {  onDestroy } from 'svelte';
 
 import { i18n } from "$stores/i18n";
 import { mainMap } from "$stores/app";
@@ -8,23 +8,54 @@ import { formatRouteItem, missions } from "$stores/mission";
 import BaseDialog from "$components/dialogs/BaseDialog.svelte";
 import PositionEdit from "$components/common/PositionEdit.svelte";
 
+import leftIcon from "$assets/svg/left.svg?raw";
+import rightIcon from "$assets/svg/right.svg?raw";
 import centerIcon from "$assets/svg/center.svg?raw";
 
 export let disabled: boolean = false;
 export let missionId: string;
 export let index: number;
+let closeDialog: () => void;
 
 $: route = $missions.get(missionId)?.route
-$: routeItem = route ? route.items.at(index) : undefined //$missions.get(missionId).route.items.at(index) | undefined
+$: routeItem = route ? route.items.at(index) : undefined
+
+$: {
+    if (closeDialog && (!route || index < 0 || index >= route?.items.length)) {
+        closeDialog();
+    }
+}
+
+$: {
+    $mainMap?.missions.mission(missionId)?.highlightRouteItem(index);
+}
 
 function centerOnMap() {
     $mainMap?.missions.mission(missionId)?.centerOnMap(index);
 }
 
+function left() {
+    index--;
+}
+
+function right() {
+    index++;
+}
+
+onDestroy(() => {
+    $mainMap?.missions.mission(missionId)?.highlightRouteItem(-1);
+});
+
 </script>
 
-<BaseDialog>
+<BaseDialog bind:closeDialog={closeDialog}>
     <div slot="title" class="flex gap-2 items-center">
+        <button class="btn btn-sm btn-circle px-1 btn-ghost" disabled={!route || index < 1} on:click={left}>
+            {@html leftIcon}
+        </button>
+        <button class="btn btn-sm btn-circle px-1 btn-ghost" disabled={!route || index > route.items.length - 2} on:click={right}>
+            {@html rightIcon}
+        </button>
         <p class="w-full">{ routeItem ? formatRouteItem(routeItem.type, index) : $i18n.t("No item") }</p>
         <button class="btn btn-sm btn-circle px-1 btn-ghost" disabled={!routeItem || !routeItem.position} on:click={centerOnMap}>
             {@html centerIcon}

@@ -182,11 +182,12 @@ export class BillboardEntity extends BasePointEntity {
         super(cesium);
 
         this.icon = "";
+        this.scale = 1.0;
 
         this.entity.billboard = new Cesium.BillboardGraphics({
             image: new Cesium.CallbackProperty(() => { return this.icon }, false),
             scale: new Cesium.CallbackProperty(() => {
-                return this.hovered ? HOVER_SCALE_MULTIPLIER : 1.0
+                return this.hovered ? this.scale * HOVER_SCALE_MULTIPLIER : this.scale;
             }, false),
             color: new Cesium.CallbackProperty(() => { return this.baseColor.withAlpha(this.opacity) }, false),
             disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -230,6 +231,7 @@ export class BillboardEntity extends BasePointEntity {
     }
 
     icon: string
+    scale: number
 }
 
 export class PylonEntity extends BasePointEntity {

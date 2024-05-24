@@ -115,6 +115,10 @@ class MapMissionRouteItemCesium extends MapSign {
             Cesium.Color.LIGHTCYAN : Cesium.Color.WHITE : Cesium.Color.YELLOW;
     }
 
+    setHightlighted(highlighted: boolean) {
+        this.billboard.scale = highlighted ? 1.5 : 1.0;
+    }
+
     inRouteIndex(): number {
         return this.route.indexOfRouteItem(this);
     }
@@ -151,6 +155,12 @@ export class MapMissionRouteCesium implements MapMissionRoute {
 
     centerOnMap(index: number) {
         this.items.at(index)?.centerOnMap();
+    }
+
+    highlightRouteItem(index: number) {
+        this.items.forEach((item, i) => {
+            item.setHightlighted(i === index);
+        });
     }
 
     updateFromRoute(route: MissionRoute) {
