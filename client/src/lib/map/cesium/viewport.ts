@@ -73,8 +73,8 @@ export class MapViewportCesium implements MapViewport {
         if (!geodetic)
             return { x: NaN, y: NaN };
 
-        const cartographic = Cesium.Cartographic.fromDegrees(geodetic.longitude, geodetic.latitude, geodetic.altitude);
-        return Cesium.SceneTransforms.wgs84ToWindowCoordinates(this.cesium.scene, Cesium.Cartographic.toCartesian(cartographic));
+        const cartesian = Cesium.Cartesian3.fromDegrees(geodetic.longitude, geodetic.latitude, geodetic.altitude);
+        return Cesium.SceneTransforms.worldToWindowCoordinates(this.cesium.scene, cartesian) || { x: NaN, y: NaN };
     }
 
     viewportWidth(): number {
