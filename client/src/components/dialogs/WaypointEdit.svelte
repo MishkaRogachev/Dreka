@@ -1,6 +1,8 @@
 <script lang="ts">
 import {  onDestroy } from 'svelte';
 
+import { MissionRouteItemType } from '$bindings/mission';
+
 import { i18n } from "$stores/i18n";
 import { mainMap } from "$stores/app";
 import { formatRouteItem, missions } from "$stores/mission";
@@ -15,7 +17,18 @@ import centerIcon from "$assets/svg/center.svg?raw";
 export let disabled: boolean = false;
 export let missionId: string;
 export let index: number;
+
 let closeDialog: () => void;
+
+const availableRouteItemTypes = [
+    MissionRouteItemType.Waypoint,
+    MissionRouteItemType.LandStart,
+    MissionRouteItemType.Takeoff,
+    MissionRouteItemType.Landing,
+    MissionRouteItemType.LoiterTrn,
+    MissionRouteItemType.LoiterAlt,
+//    MissionRouteItemType.TriggerCam,
+];
 
 $: route = $missions.get(missionId)?.route
 $: routeItem = route ? route.items.at(index) : undefined
@@ -42,6 +55,17 @@ function right() {
     index++;
 }
 
+function save() {
+    if (routeItem != undefined) {
+        missions.setRouteItem(missionId, routeItem, index);
+    }
+}
+
+function changeType() {
+    // TODO: add a command for changing type
+    console.log("changeType::", routeItem?.type);
+}
+
 onDestroy(() => {
     $mainMap?.missions.mission(missionId)?.highlightRouteItem(-1);
 });
@@ -62,7 +86,18 @@ onDestroy(() => {
         </button>
     </div>
     <div slot="content" class="grid grid-cols-2 gap-1 w-80">
-    <!-- TODO: select for route item type -->
+
+    <!-- SPATIAL -->
+    {#if routeItem}
+        <h1 class="font-medium my-2 w-full">{ $i18n.t("Route item type") }</h1>
+        <select class="select select-sm w-full" disabled={disabled} bind:value={routeItem.type} on:change={changeType}>
+            {#each availableRouteItemTypes as type}
+            <option value={type}>{ $i18n.t(type) }</option>
+            {/each}
+        </select>
+    {/if}
+
+    <!-- POSITION -->
     {#if routeItem && routeItem.position}
         <PositionEdit bind:position={routeItem.position} disabled={disabled}/>
     {/if}

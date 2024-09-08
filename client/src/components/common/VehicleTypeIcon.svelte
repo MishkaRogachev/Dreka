@@ -2,7 +2,6 @@
 import { VehicleType } from "$bindings/vehicles";
 import { toColorCode } from '$bindings/colors';
 
-import unknownIcon from "$assets/svg/unknown.svg?raw"
 import autoIcon from "$assets/svg/auto.svg?raw"
 import vtolIcon from "$assets/svg/vtol.svg?raw"
 import fixedWingIcon from "$assets/svg/fixed_wing.svg?raw"
@@ -28,7 +27,7 @@ function iconFromType(vehicleType: VehicleType) {
         case VehicleType.Airship:
             return airshipIcon;
     }
-    return unknownIcon;
+    return "";
 }
 </script>
 

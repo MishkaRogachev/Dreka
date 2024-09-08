@@ -27,4 +27,4 @@ export let position: Geodetic;
     <option value={GeodeticFrame.Wgs84RelativeHome}>{ $i18n.t("WGS84 Rel. Home") }</option>
     <!-- TODO: terrain altitude -->
     <!-- <option value={GeodeticFrame.Wgs84AboveTerrain}>{ $i18n.t("WGS84 Rel. Terrain") }</option> -->
-    </select>
+</select>
