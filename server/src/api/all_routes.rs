@@ -31,6 +31,8 @@ pub async fn serve(
             .service(super::communication::post_link)
             .service(super::communication::delete_link)
             .service(super::communication::set_link_connected)
+            .service(super::communication::get_avaliable_serial_ports)
+            .service(super::communication::get_avaliable_baud_rates)
             .service(super::vehicles::get_descriptions)
             .service(super::vehicles::get_description)
             .service(super::vehicles::get_status)

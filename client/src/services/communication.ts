@@ -37,4 +37,12 @@ export class CommunicationService {
             headers: default_headers
         }) || null;
     }
+
+    static async getAvaliableSerialPorts(): Promise<Array<string> | null> {
+        return await send_request("/comm/avaliable_serial_ports", { method: "GET" }) || null;
+    }
+
+    static async getAvaliableBaudRates(): Promise<Array<number> | null> {
+        return await send_request("/comm/avaliable_baud_rates", { method: "GET" }) || null;
+    }
 }

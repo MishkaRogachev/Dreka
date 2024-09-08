@@ -97,3 +97,23 @@ pub async fn get_statuses(context: web::Data<ApiContext>) -> impl Responder {
         }
     }
 }
+
+#[get("/comm/avaliable_serial_ports")]
+pub async fn get_avaliable_serial_ports(_context: web::Data<ApiContext>) -> impl Responder {
+    match serialport::available_ports() {
+        Ok(ports) => {
+            let ports = ports.iter().map(|port| port.port_name.clone()).collect::<Vec<String>>();
+            HttpResponse::Ok().json(ports)
+        },
+        Err(err) => {
+            log::warn!("REST error: {}", &err); // TODO: add path here
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
+    }
+}
+
+#[get("/comm/avaliable_baud_rates")]
+pub async fn get_avaliable_baud_rates(_context: web::Data<ApiContext>) -> impl Responder {
+    let baudrates = vec![9600, 14400, 19200, 38400, 57600, 115200];
+    HttpResponse::Ok().json(baudrates)
+}

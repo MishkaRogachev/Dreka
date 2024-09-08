@@ -4,7 +4,6 @@ use test_case::test_case;
 
 use crate::models::{colors::EntityColor, vehicles::*};
 
-
 #[test_case(VehicleDescription {
     id: VehicleId::new(),
     name: "test_name_1".to_string(),
