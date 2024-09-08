@@ -9,13 +9,14 @@ use super::{traits, mavlink::connection::MavlinkConnection};
 type LinkConnection = Box<dyn traits::IConnection + Send + Sync>;
 type LinkConnections = HashMap<LinkId, LinkConnection>;
 
-const CHECK_CONNECTIONS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(250);
+const CHECK_CONNECTIONS_INTERVAL: time::Duration = time::Duration::from_millis(250);
+const RECONNECT_CONNECTION_INTERVAL: time::Duration = time::Duration::from_millis(2000);
 
 pub struct Service {
     dal: dal::Dal,
     server_bus: bus::EventBus::<ServerEvent>,
     client_bus: bus::EventBus::<ClientEvent>,
-    link_connections: LinkConnections
+    link_connections: LinkConnections // NOTE: here are enabled connections only
 }
 
 fn dafault_links() -> Vec<LinkDescription> {
@@ -71,8 +72,8 @@ impl Service {
         }
 
         let mut interval = time::interval(CHECK_CONNECTIONS_INTERVAL);
-
         let mut client_events_rx = self.client_bus.subscribe();
+        let mut reconnections = HashMap::<String, time::Instant>::new();
         loop {
             interval.tick().await;
 
@@ -94,9 +95,25 @@ impl Service {
             for (link_id, connection) in self.link_connections.iter_mut() {
                 let status = collect_connection_status(link_id, connection).await;
                 if !status.is_connected {
-                    // TODO: Add reconnect interval
-                    if let Err(err) = connection.connect().await {
-                        log::warn!("Connect link error: {}", err);
+                    let last_reconnect = reconnections.get(link_id);
+                    if let Some(last_reconnect) = last_reconnect {
+                        if last_reconnect.elapsed() < RECONNECT_CONNECTION_INTERVAL {
+                            continue;
+                        }
+                    }
+
+                    match connection.connect().await {
+                        Ok(connected) => {
+                            if connected {
+                                reconnections.remove(link_id);
+                            } else {
+                                reconnections.insert(link_id.clone(), time::Instant::now());
+                            }
+                        },
+                        Err(err) => {
+                            log::warn!("Connect link error: {}", err);
+                            reconnections.insert(link_id.clone(), time::Instant::now());
+                        }
                     }
                 }
 

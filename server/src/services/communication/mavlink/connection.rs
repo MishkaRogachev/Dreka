@@ -20,7 +20,7 @@ pub struct MavlinkConnection {
     client_bus: bus::EventBus::<ClientEvent>,
     mav_address: String,
     mav_version: mavlink::MavlinkVersion,
-    command_id: Option<CancellationToken>,
+    token: Option<CancellationToken>,
     statistics: Arc<Mutex<MavlinkConnectionStatistics>>
 }
 
@@ -46,7 +46,7 @@ impl MavlinkConnection {
             client_bus,
             mav_address: link_type.to_mavlink(),
             mav_version: protocol.to_mavlink(),
-            command_id: None,
+            token: None,
             statistics: Arc::new(Mutex::new(MavlinkConnectionStatistics {
                 last_recieved: time::Instant::now(),
                 bytes_received_sec: 0,
@@ -61,20 +61,20 @@ impl MavlinkConnection {
 #[async_trait::async_trait]
 impl traits::IConnection for MavlinkConnection {
     async fn connect(&mut self) -> anyhow::Result<bool> {
-        if let Some(command_id) = &self.command_id {
-            if !command_id.is_cancelled() {
+        if let Some(token) = &self.token {
+            if !token.is_cancelled() {
                 log::warn!("MAVLink {:?}:{:?} is already connected", &self.mav_address, &self.mav_version);
                 return Ok(false);
             }
         }
 
-        log::info!("MAVLink is going connect to {:?}:{:?}...", &self.mav_address, &self.mav_version);
+        log::info!("MAVLink {:?}:{:?} establishing connection..", &self.mav_address, &self.mav_version);
 
         let mav_connection_result = mavlink::connect::<mavlink::common::MavMessage>(&self.mav_address);
         let mut mav_connection = match mav_connection_result {
             Ok(mav_connection) => mav_connection,
             Err(err) => {
-                log::error!("MAVLink connection error: {:?}", &err);
+                log::error!("MAVLink connection error: {}, exiting", &err.to_string());
                 return Ok(false);
             }
         };
@@ -83,18 +83,19 @@ impl traits::IConnection for MavlinkConnection {
 
         let mav = Arc::new(mav_connection);
 
-        // command_id to stop polling mavlink packets
-        let command_id = CancellationToken::new();
-        let cloned_command_id = command_id.clone();
-        self.command_id = Some(command_id);
+        // token to stop polling mavlink packets
+        let token = CancellationToken::new();
+        let cloned_token = token.clone();
+        self.token = Some(token);
 
         let mut last_stats_reset = time::Instant::now();
         let statistics = self.statistics.clone();
         let cloned_mav = mav.clone();
         let mut handler = Handler::new(self.dal.clone(), self.server_bus.clone(), self.client_bus.subscribe());
 
+        // TODO: take care of the handle
         tokio::task::spawn(async move {
-            loop {
+            while !cloned_token.is_cancelled() {
                 let now = time::Instant::now();
                 if now.checked_duration_since(last_stats_reset) > Some(RESET_STATS_INTERVAL) {
                     let mut lock = statistics.lock().await;
@@ -122,7 +123,7 @@ impl traits::IConnection for MavlinkConnection {
                                 tokio::time::sleep(MAVLINK_POLL_INTERVAL).await;
                             },
                             _ => {
-                                cloned_command_id.cancel();
+                                cloned_token.cancel();
                                 let mut lock = statistics.lock().await;
                                 lock.bytes_received_sec = 0;
                                 lock.bytes_sent_sec = 0;
@@ -143,32 +144,26 @@ impl traits::IConnection for MavlinkConnection {
                         Err(error) => println!("Mavlink send message error: {:?}", error),
                     }
                 }
-
-                if cloned_command_id.is_cancelled() {
-                    return;
-                }
             }
         });
-
         Ok(true)
     }
 
     async fn disconnect(&mut self) -> anyhow::Result<bool> {
-        if let Some(command_id) = &self.command_id {
-            if !command_id.is_cancelled() {
-                log::info!("MAVLink disconnect from {:?}:{:?}", &self.mav_address, &self.mav_version);
-                command_id.cancel();
-                self.command_id = None;
-                return Ok(true);
+        if let Some(token) = &self.token {
+            log::info!("MAVLink {:?}:{:?} disconnecting..", &self.mav_address, &self.mav_version);
+            if !token.is_cancelled() {
+                token.cancel();
+                self.token = None;
+            } else {
+                log::warn!("MAVLink {:?}:{:?} was already disconnected", &self.mav_address, &self.mav_version);
             }
-        }
-
-        log::warn!("MAVLink {:?}:{:?} is already connected", &self.mav_address, &self.mav_version);
+        } // No else, for error connection case
         return Ok(false);
     }
 
     async fn is_connected(&self) -> bool {
-        if let Some(command_id) = &self.command_id {
+        if let Some(command_id) = &self.token {
             if !command_id.is_cancelled() {
                 return true;
             }
@@ -196,7 +191,7 @@ impl traits::IConnection for MavlinkConnection {
 
 impl Drop for MavlinkConnection {
     fn drop(&mut self) {
-        if let Some(command_id) = &self.command_id {
+        if let Some(command_id) = &self.token {
             command_id.cancel();
         }
     }
