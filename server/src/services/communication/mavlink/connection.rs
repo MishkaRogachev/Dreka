@@ -10,9 +10,9 @@ use crate::services::communication::traits;
 
 use super::handler::Handler;
 
-const MAVLINK_POLL_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(5);
-const RESET_STATS_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(1000);
-const ONLINE_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(2000);
+const MAVLINK_POLL_INTERVAL: time::Duration = time::Duration::from_millis(5);
+const RESET_STATS_INTERVAL: time::Duration = time::Duration::from_millis(1000);
+const ONLINE_INTERVAL: time::Duration = time::Duration::from_millis(2000);
 
 pub struct MavlinkConnection {
     dal: dal::Dal,
@@ -120,7 +120,7 @@ impl traits::IConnection for MavlinkConnection {
                         match err.kind() {
                             std::io::ErrorKind::WouldBlock => {
                                 //no messages currently available to receive -- wait a while
-                                tokio::time::sleep(MAVLINK_POLL_INTERVAL).await;
+                                time::sleep(MAVLINK_POLL_INTERVAL).await;
                             },
                             _ => {
                                 cloned_token.cancel();
