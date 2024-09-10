@@ -85,6 +85,10 @@ pub fn available_apm_modes(mav_type: MavType) -> Vec<VehicleMode> {
     match mav_type {
         MavType::MAV_TYPE_FIXED_WING | MavType::MAV_TYPE_KITE | MavType::MAV_TYPE_FLAPPING_WING =>
             return vec!(
+                VehicleMode::Manual,
+                VehicleMode::Stabilize,
+                VehicleMode::Autotune,
+                VehicleMode::FBWA,
                 VehicleMode::Mission,
                 VehicleMode::RTL,
                 VehicleMode::Loiter,
@@ -95,6 +99,10 @@ pub fn available_apm_modes(mav_type: MavType) -> Vec<VehicleMode> {
         MavType::MAV_TYPE_VTOL_TAILSITTER_DUOROTOR | MavType::MAV_TYPE_VTOL_TILTROTOR | MavType::MAV_TYPE_VTOL_FIXEDROTOR |
         MavType::MAV_TYPE_VTOL_TAILSITTER | MavType::MAV_TYPE_VTOL_TILTWING | MavType::MAV_TYPE_VTOL_RESERVED5 =>
             return vec!(
+                VehicleMode::Manual,
+                VehicleMode::Stabilize,
+                VehicleMode::Autotune,
+                VehicleMode::FBWA,
                 VehicleMode::Mission,
                 VehicleMode::RTL,
                 VehicleMode::Loiter,
@@ -112,6 +120,9 @@ pub fn available_apm_modes(mav_type: MavType) -> Vec<VehicleMode> {
         MavType::MAV_TYPE_TRICOPTER | MavType::MAV_TYPE_QUADROTOR | MavType::MAV_TYPE_HEXAROTOR | MavType::MAV_TYPE_OCTOROTOR |
         MavType::MAV_TYPE_COAXIAL | MavType::MAV_TYPE_HELICOPTER =>
         return vec!(
+            VehicleMode::Stabilize,
+            VehicleMode::Autotune,
+            VehicleMode::FBWA,
             VehicleMode::Mission,
             VehicleMode::RTL,
             VehicleMode::AltHold,

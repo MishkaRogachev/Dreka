@@ -9,7 +9,7 @@ import { VehiclesService } from '$services/vehicles';
 import { i18n } from '$stores/i18n';
 
 const ONLINE_CHECK_INTERVAL = 250;
-const IS_ONLINE_TIMEOUT = 2000;
+const IS_ONLINE_TIMEOUT = 3000;
 
 // TODO: get red of "Vehicle", use 2 strores for dscriptions and statuses
 export class Vehicle {

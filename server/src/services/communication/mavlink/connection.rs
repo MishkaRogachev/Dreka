@@ -59,6 +59,7 @@ impl MavlinkConnection {
 }
 
 #[async_trait::async_trait]
+// FIXME: get rid of using mav_connection, use raw tpc/udp/serial connection + raw packets in async loop
 impl traits::IConnection for MavlinkConnection {
     async fn connect(&mut self) -> anyhow::Result<bool> {
         if let Some(token) = &self.token {
