@@ -1,7 +1,7 @@
 use mavlink::common::*;
 
 use crate::models::{colors::EntityColor, vehicles::*};
-use super::{handler, protocol::modes as protocol};
+use super::{handler, super::protocol::modes as protocol};
 
 const AUTO_ADD_VEHICLES: bool = true; // TODO: to settings
 

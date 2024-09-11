@@ -2,7 +2,7 @@ use tokio::time;
 use mavlink::common::*;
 
 use crate::models::commands::*;
-use super::{handler, protocol::commands as protocol};
+use super::{handler, super::protocol::commands as protocol};
 
 const MAX_COMMAND_SEND_ATTEMPTS: u8 = 5;
 const COMMAND_RESEND_INTERVAL: time::Duration = time::Duration::from_millis(2000);

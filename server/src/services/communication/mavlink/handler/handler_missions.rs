@@ -2,7 +2,7 @@
 use mavlink::common::*;
 
 use crate::models::missions::*;
-use super::{handler, protocol::missions as protocol};
+use super::{handler, super::protocol::missions as protocol};
 
 const MISSION_RESEND_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(2000);
 

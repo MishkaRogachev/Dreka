@@ -1,7 +1,7 @@
 use mavlink::common::*;
 
 use crate::models::{telemetry::*, spatial::*};
-use super::{handler, protocol::telemetry as protocol};
+use super::{handler, super::protocol::telemetry as protocol};
 
 impl handler::Handler {
     pub async fn handle_attitude(&mut self, mav_id: u8, attitude: &ATTITUDE_DATA) {

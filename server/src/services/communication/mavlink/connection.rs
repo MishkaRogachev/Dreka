@@ -8,7 +8,7 @@ use crate::{bus::bus, dal::dal};
 
 use crate::services::communication::traits;
 
-use super::handler::Handler;
+use super::handler::handler::Handler;
 
 const MAVLINK_POLL_INTERVAL: time::Duration = time::Duration::from_millis(5);
 const RESET_STATS_INTERVAL: time::Duration = time::Duration::from_millis(1000);
